@@ -36,12 +36,8 @@ router.post("/login", async (req, res) => {
   );
 
   if (existingSession) {
-    // Session exists on same device type — block login
-    const deviceLabel = deviceType === "desktop" ? "حاسوب" : "موبايل";
-    return res.status(403).json({
-      error: `الحساب مفتوح بالفعل على ${deviceLabel} آخر. يرجى تسجيل الخروج من الجهاز الآخر أولاً.`,
-      device_blocked: true,
-    });
+    // Same device type — allow re-login, just replace the old session
+    await execute("DELETE FROM user_sessions WHERE user_id = ? AND device_type = ?", [user.id, deviceType]);
   }
 
   // Create new session in user_sessions table
