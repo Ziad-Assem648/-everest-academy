@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { useLang } from "../LangContext";
 import LanguageToggle from "../components/LanguageToggle";
-import { api } from "../App";
+import { api, uploadApi } from "../App";
 import AppNavbar from "../components/AppNavbar";
 import { useTheme } from "../ThemeContext";
 
@@ -58,9 +58,7 @@ export default function ProfilePage() {
     setUploading(true);
     try {
       const fd = new FormData(); fd.append("file", file);
-      const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
-      if (!uploadRes.ok) throw new Error(t("فشل رفع الصورة", "Image upload failed"));
-      const { url } = await uploadRes.json();
+      const { url } = await uploadApi(fd);
       const updated = await api(`/api/users/${user.id}`, { method: "PUT", body: JSON.stringify({ avatar: url }) });
       setProfile(updated);
       authLogin(updated);

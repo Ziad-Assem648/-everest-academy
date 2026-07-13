@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { useLang } from "../LangContext";
-import { api } from "../App";
+import { api, uploadApi } from "../App";
 import AppNavbar from "../components/AppNavbar";
 import { useTheme } from "../ThemeContext";
 
@@ -30,9 +30,7 @@ export default function TopUpPage() {
       if (file) {
         const formData = new FormData();
         formData.append("file", file);
-        const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
-        if (!uploadRes.ok) throw new Error(t("فشل رفع الصورة", "Failed to upload image"));
-        const data = await uploadRes.json();
+        const data = await uploadApi(formData);
         proofUrl = data.url;
       }
 

@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { useTheme } from "../ThemeContext";
 import { useLang } from "../LangContext";
+import { uploadApi } from "../App";
 
 const api2 = async (path, opts = {}) => {
   const headers = { "Content-Type": "application/json" };
@@ -51,9 +52,7 @@ export default function InstapayPurchasePage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
-      if (!uploadRes.ok) throw new Error(t("فشل رفع الصورة", "Image upload failed"));
-      const { url } = await uploadRes.json();
+      const { url } = await uploadApi(formData);
 
       await api2(`/api/courses/${id}/purchase`, {
         method: "POST",

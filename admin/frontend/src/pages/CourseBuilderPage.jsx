@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLang } from "../LangContext";
-import { api } from "../api.js";
+import { api, uploadApi } from "../api.js";
 
 export default function CourseBuilderPage() {
   const { lang } = useLang();
@@ -120,8 +120,8 @@ export default function CourseBuilderPage() {
               <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                 const file = e.target.files?.[0]; if (!file) return;
                 const fd = new FormData(); fd.append("file", file);
-                const res = await fetch("/api/upload", { method: "POST", body: fd });
-                if (res.ok) { const d = await res.json(); handleChange("featured_image", d.url); setErrors(prev => ({...prev, image: false})); }
+                const d = await uploadApi(fd);
+                if (d.url) { handleChange("featured_image", d.url); setErrors(prev => ({...prev, image: false})); }
               }} />
               {course.featured_image ? t("غيّر الصورة", "Change Image") : t("اضغط لرفع الصورة", "Click to upload image")}
             </label>

@@ -1,3 +1,5 @@
+export const BACKEND_URL = window.location.origin.includes("localhost") ? "http://localhost:5000" : "https://steadfast-energy-production-a9d1.up.railway.app";
+
 export function getAdminSession() {
   try { return JSON.parse(localStorage.getItem("admin_session") || "{}"); } catch { return {}; }
 }
@@ -17,4 +19,14 @@ export async function api(path, opts = {}) {
     throw new Error("Session expired");
   }
   return data;
+}
+
+export async function uploadApi(formData) {
+  const headers = {};
+  const s = getAdminSession();
+  if (s.userId) headers["x-user-id"] = s.userId;
+  if (s.token) headers["x-session-token"] = s.token;
+  const r = await fetch(`${BACKEND_URL}/api/upload`, { method: "POST", headers, body: formData });
+  if (!r.ok) throw new Error("Upload failed");
+  return r.json();
 }

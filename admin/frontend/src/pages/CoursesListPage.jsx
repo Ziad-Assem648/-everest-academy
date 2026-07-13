@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
-import { api } from "../api.js";
+import { api, uploadApi } from "../api.js";
 
 const statusOpts = [
   { ar: "منشور", en: "Published", val: "published" },
@@ -351,8 +351,8 @@ export default function CoursesListPage() {
                       <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                         const file = e.target.files?.[0]; if (!file) return;
                         const fd = new FormData(); fd.append("file", file);
-                        const res = await fetch("/api/upload", { method: "POST", body: fd });
-                        if (res.ok) { const d = await res.json(); setCv("featured_image", d.url); }
+                        const d = await uploadApi(fd);
+                        if (d.url) { setCv("featured_image", d.url); }
                       }} />
                       {t("اضغط لرفع الصورة", "Click to upload image")}
                     </label>
@@ -421,8 +421,8 @@ export default function CoursesListPage() {
                             <input type="file" accept="video/*" className="hidden" onChange={async (e) => {
                               const file = e.target.files?.[0]; if (!file) return;
                               const fd = new FormData(); fd.append("file", file);
-                              const res = await fetch("/api/upload", { method: "POST", body: fd });
-                              if (res.ok) { const d = await res.json();
+                              const d = await uploadApi(fd);
+                              if (d.url) {
                                 const upd = { ...lesson, video_url: d.url };
                                 setDetail((prev) => ({ ...prev, topics: prev.topics.map((t) => t.id === topic.id
                                   ? { ...t, lessons: t.lessons.map((l) => l.id === lesson.id ? upd : l) } : t) }));
@@ -495,8 +495,8 @@ export default function CoursesListPage() {
                               <input type="file" accept="video/*" className="hidden" onChange={async (e) => {
                                 const file = e.target.files?.[0]; if (!file) return;
                                 const fd = new FormData(); fd.append("file", file);
-                                const res = await fetch("/api/upload", { method: "POST", body: fd });
-                                if (res.ok) { const d = await res.json(); setNewLessonVideo(d.url); }
+                                const d = await uploadApi(fd);
+                                if (d.url) { setNewLessonVideo(d.url); }
                               }} />
                             </label>
                             <label className="flex items-center gap-1.5 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs cursor-pointer select-none">

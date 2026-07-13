@@ -33,6 +33,8 @@ import MyCoursesPage from "./pages/MyCoursesPage";
 import TopSallerPage from "./pages/TopSallerPage";
 import PendingActivationPage from "./pages/PendingActivationPage";
 
+const BACKEND_URL = window.location.origin.includes("localhost") ? "http://localhost:5000" : "https://steadfast-energy-production-a9d1.up.railway.app";
+
 const api = async (path, opts = {}) => {
   const headers = { "Content-Type": "application/json" };
   const uid = localStorage.getItem("everest_user");
@@ -46,6 +48,16 @@ const api = async (path, opts = {}) => {
     if (body.upgradeRequired) err.upgradeRequired = true;
     throw err;
   }
+  return res.json();
+};
+
+const uploadApi = async (formData) => {
+  const uid = localStorage.getItem("everest_user");
+  const stoken = localStorage.getItem("everest_session_token");
+  const headers = {};
+  if (uid && stoken) { try { headers["x-user-id"] = JSON.parse(uid).id; headers["x-session-token"] = stoken; } catch {} }
+  const res = await fetch(`${BACKEND_URL}/api/upload`, { method: "POST", headers, body: formData });
+  if (!res.ok) throw new Error("Upload failed");
   return res.json();
 };
 
@@ -104,4 +116,4 @@ export default function App() {
   );
 }
 
-export { api };
+export { api, uploadApi, BACKEND_URL };
