@@ -4,6 +4,7 @@ import { useAuth } from "../AuthContext";
 import { api } from "../App";
 import { useLang } from "../LangContext";
 import LanguageToggle from "../components/LanguageToggle";
+import { useTheme } from "../ThemeContext";
 
 export default function AdminEnrollmentsPage() {
   const { t, dir } = useLang();
@@ -20,6 +21,7 @@ export default function AdminEnrollmentsPage() {
   const [topups, setTopups] = useState([]);
   const [topupSearch, setTopupSearch] = useState("");
   const [topupFilter, setTopupFilter] = useState("pending");
+  const { colors: c } = useTheme();
 
   const loadUpgradeRequests = () => {
     api("/api/users/upgrade-requests/list").then(setUpgradeRequests).catch(() => {});
@@ -86,24 +88,24 @@ export default function AdminEnrollmentsPage() {
   };
 
   return (
-    <div className="courses-body" style={{direction:dir}}>
+    <div className="courses-body" style={{direction:dir, background:c.bg}}>
       <header className="courses-header">
         <div className="courses-nav">
           <Link to="/dashboard" className="courses-brand"><h1>{t("EVEREST — لوحة تحكم المدير","EVEREST — ADMIN PANEL")}</h1></Link>
           <div style={{display:"flex",gap:10,alignItems:"center"}}>
             <LanguageToggle minimal />
-            <button onClick={() => nav("/dashboard")} style={{background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.1)",color:"#fff",padding:"8px 16px",borderRadius:8,cursor:"pointer"}}>{t("لوحة التحكم","Dashboard")}</button>
-            <button onClick={() => { logout(); nav("/login"); }} style={{background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.1)",color:"#fff",padding:"8px 16px",borderRadius:8,cursor:"pointer"}}>{t("تسجيل خروج","Logout")}</button>
+            <button onClick={() => nav("/dashboard")} style={{background:c.bgCard,border:`1px solid ${c.border}`,color:c.text,padding:"8px 16px",borderRadius:8,cursor:"pointer"}}>{t("لوحة التحكم","Dashboard")}</button>
+            <button onClick={() => { logout(); nav("/login"); }} style={{background:c.bgCard,border:`1px solid ${c.border}`,color:c.text,padding:"8px 16px",borderRadius:8,cursor:"pointer"}}>{t("تسجيل خروج","Logout")}</button>
           </div>
         </div>
       </header>
 
       <main className="courses-main" style={{padding:"30px 0"}}>
         <div style={{display:"flex",gap:10,marginBottom:25,flexWrap:"wrap"}}>
-          <button onClick={() => setTab("pending")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="pending"?"#e2c275":"rgba(255,255,255,.05)",color:tab==="pending"?"#05030a":"#fff"}}>🛒 {t("طلبات الشراء","Purchase Requests")}</button>
-          <button onClick={() => setTab("topups")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="topups"?"#e2c275":"rgba(255,255,255,.05)",color:tab==="topups"?"#05030a":"#fff"}}>💰 {t("طلبات شحن الرصيد","Top-up Requests")}</button>
-          <button onClick={() => setTab("upgrades")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="upgrades"?"#e2c275":"rgba(255,255,255,.05)",color:tab==="upgrades"?"#05030a":"#fff"}}>⬆️ {t("طلبات الترقية","Upgrade Requests")}</button>
-          <button onClick={() => setTab("add")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="add"?"#e2c275":"rgba(255,255,255,.05)",color:tab==="add"?"#05030a":"#fff"}}>➕ {t("إضافة كورس يدوي","Manual Add Course")}</button>
+          <button onClick={() => setTab("pending")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="pending"?"#e2c275":c.bgCard,color:tab==="pending"?"#05030a":c.text}}>🛒 {t("طلبات الشراء","Purchase Requests")}</button>
+          <button onClick={() => setTab("topups")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="topups"?"#e2c275":c.bgCard,color:tab==="topups"?"#05030a":c.text}}>💰 {t("طلبات شحن الرصيد","Top-up Requests")}</button>
+          <button onClick={() => setTab("upgrades")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="upgrades"?"#e2c275":c.bgCard,color:tab==="upgrades"?"#05030a":c.text}}>⬆️ {t("طلبات الترقية","Upgrade Requests")}</button>
+          <button onClick={() => setTab("add")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="add"?"#e2c275":c.bgCard,color:tab==="add"?"#05030a":c.text}}>➕ {t("إضافة كورس يدوي","Manual Add Course")}</button>
         </div>
 
         {tab === "pending" && (
@@ -114,10 +116,10 @@ export default function AdminEnrollmentsPage() {
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:12}}>
                 {enrollments.map((e) => (
-                  <div key={e.id} style={{background:"rgba(20,16,36,.6)",border:"1px solid rgba(255,255,255,.05)",borderRadius:16,padding:20}}>
+                  <div key={e.id} style={{background:c.bgCard,border:`1px solid ${c.border}`,borderRadius:16,padding:20}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
                       <div>
-                        <p style={{color:"#fff",fontWeight:700,fontSize:15,marginBottom:4}}>{e.student_name}</p>
+                        <p style={{color:c.text,fontWeight:700,fontSize:15,marginBottom:4}}>{e.student_name}</p>
                         <p style={{color:"#9a95b0",fontSize:13}}>{e.student_email}</p>
                         <p style={{color:"#e2c275",fontSize:14,marginTop:4}}>📚 {e.course_name_ar || e.course_name}</p>
                         <p style={{color:"#666",fontSize:12,marginTop:2}}>{t("طريقة الدفع:","Payment:")} {e.payment_method === "vodafone" ? "📱 " + t("فودافون كاش","Vodafone Cash") : e.payment_method === "cash" ? "💵 " + t("كاش","Cash") : "💳 E-Money"}</p>
@@ -129,10 +131,10 @@ export default function AdminEnrollmentsPage() {
                       </div>
                     </div>
                     {e.payment_method === "vodafone" && e.payment_proof && (
-                      <div style={{marginTop:12,paddingTop:12,borderTop:"1px solid rgba(255,255,255,.05)"}}>
+                      <div style={{marginTop:12,paddingTop:12,borderTop:`1px solid ${c.border}`}}>
                         <p style={{color:"#9a95b0",fontSize:12,marginBottom:6}}>📎 {t("صورة التحويل (فودافون كاش):","Transfer image (Vodafone Cash):")}</p>
                         <a href={e.payment_proof} target="_blank" rel="noreferrer">
-                          <img src={e.payment_proof} alt="Payment proof" style={{maxWidth:300,maxHeight:200,borderRadius:10,border:"1px solid rgba(255,255,255,.1)",cursor:"pointer"}} />
+                          <img src={e.payment_proof} alt="Payment proof" style={{maxWidth:300,maxHeight:200,borderRadius:10,border:`1px solid ${c.border}`,cursor:"pointer"}} />
                         </a>
                       </div>
                     )}
@@ -148,9 +150,9 @@ export default function AdminEnrollmentsPage() {
             <h2 style={{color:"#e2c275",marginBottom:16,fontSize:20}}>💰 {t("طلبات شحن الرصيد","Top-up Requests")}</h2>
             <div style={{display:"flex",gap:12,marginBottom:20,flexWrap:"wrap",alignItems:"center"}}>
               <input type="text" placeholder={t("بحث عن طالب...","Search for student...")} value={topupSearch} onChange={(e) => setTopupSearch(e.target.value)}
-                style={{padding:"10px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",background:"rgba(255,255,255,.03)",color:"#fff",fontSize:13,flex:1,minWidth:200}} />
+                style={{padding:"10px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:c.bgCard,color:c.text,fontSize:13,flex:1,minWidth:200}} />
               <select value={topupFilter} onChange={(e) => { setTopupFilter(e.target.value); loadTopups(e.target.value); }}
-                style={{padding:"10px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",background:"rgba(20,16,36,.8)",color:"#fff",fontSize:13}}>
+                style={{padding:"10px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:"rgba(20,16,36,.8)",color:c.text,fontSize:13}}>
                 <option value="pending" style={{background:"#1a1530"}}>{t("قيد الانتظار","Pending")}</option>
                 <option value="approved" style={{background:"#1a1530"}}>{t("تم الموافقة","Approved")}</option>
                 <option value="rejected" style={{background:"#1a1530"}}>{t("مرفوض","Rejected")}</option>
@@ -160,7 +162,7 @@ export default function AdminEnrollmentsPage() {
             <div style={{overflowX:"auto"}}>
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
                 <thead>
-                  <tr style={{borderBottom:"1px solid rgba(255,255,255,.08)"}}>
+                  <tr style={{borderBottom:`1px solid ${c.border}`}}>
                     <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الطلب","Order")}</th>
                     <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الطالب","Student")}</th>
                     <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("المبلغ","Amount")}</th>
@@ -173,16 +175,16 @@ export default function AdminEnrollmentsPage() {
                 </thead>
                 <tbody>
                   {topups.filter(r => !topupSearch || r.full_name?.includes(topupSearch) || r.email?.includes(topupSearch)).map((r) => (
-                    <tr key={r.id} style={{borderBottom:"1px solid rgba(255,255,255,.05)"}}>
-                      <td style={{padding:"10px",color:"#fff"}}>#{r.id?.slice(0,8)}</td>
-                      <td style={{padding:"10px"}}><div style={{color:"#fff",fontWeight:600}}>{r.full_name}</div><div style={{color:"#9a95b0",fontSize:11}}>{r.email}</div></td>
+                    <tr key={r.id} style={{borderBottom:`1px solid ${c.border}`}}>
+                      <td style={{padding:"10px",color:c.text}}>#{r.id?.slice(0,8)}</td>
+                      <td style={{padding:"10px"}}><div style={{color:c.text,fontWeight:600}}>{r.full_name}</div><div style={{color:"#9a95b0",fontSize:11}}>{r.email}</div></td>
                       <td style={{padding:"10px",color:"#e2c275",fontWeight:700}}>{r.amount} EGP</td>
-                      <td style={{padding:"10px",color:"#fff"}}>{r.phone_number || "—"}</td>
-                      <td style={{padding:"10px",color:"#fff"}}>📱 {t("فودافون كاش","Vodafone Cash")}</td>
+                      <td style={{padding:"10px",color:c.text}}>{r.phone_number || "—"}</td>
+                      <td style={{padding:"10px",color:c.text}}>📱 {t("فودافون كاش","Vodafone Cash")}</td>
                       <td style={{padding:"10px"}}>
                         {r.payment_proof ? (
                           <a href={r.payment_proof} target="_blank" rel="noreferrer">
-                            <img src={r.payment_proof} alt="proof" style={{width:50,height:50,borderRadius:8,objectFit:"cover",border:"1px solid rgba(255,255,255,.1)",cursor:"pointer"}} />
+                            <img src={r.payment_proof} alt="proof" style={{width:50,height:50,borderRadius:8,objectFit:"cover",border:`1px solid ${c.border}`,cursor:"pointer"}} />
                           </a>
                         ) : "—"}
                       </td>
@@ -220,10 +222,10 @@ export default function AdminEnrollmentsPage() {
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:12}}>
                 {upgradeRequests.filter(r => r.status === "pending").map((r) => (
-                  <div key={r.id} style={{background:"rgba(20,16,36,.6)",border:"1px solid rgba(255,255,255,.05)",borderRadius:16,padding:20}}>
+                  <div key={r.id} style={{background:c.bgCard,border:`1px solid ${c.border}`,borderRadius:16,padding:20}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
                       <div>
-                        <p style={{color:"#fff",fontWeight:700,fontSize:15,marginBottom:4}}>{r.full_name}</p>
+                        <p style={{color:c.text,fontWeight:700,fontSize:15,marginBottom:4}}>{r.full_name}</p>
                         <p style={{color:"#9a95b0",fontSize:13}}>{r.email}</p>
                         <p style={{color:"#666",fontSize:12,marginTop:2}}>📱 {r.phone || "—"}</p>
                         <p style={{color:"#666",fontSize:12}}>{t("مسجل منذ:","Registered since:")} {r.user_since?.slice(0,10) || "—"}</p>
@@ -243,17 +245,17 @@ export default function AdminEnrollmentsPage() {
         {tab === "add" && (
           <>
             <h2 style={{color:"#e2c275",marginBottom:20,fontSize:20}}>➕ {t("إضافة كورس لمستخدم (يدوي)","Add Course to User (Manual)")}</h2>
-            <div style={{background:"rgba(20,16,36,.6)",border:"1px solid rgba(255,255,255,.05)",borderRadius:16,padding:24,maxWidth:500}}>
+            <div style={{background:c.bgCard,border:`1px solid ${c.border}`,borderRadius:16,padding:24,maxWidth:500}}>
               <form onSubmit={handleAdminAdd}>
                 <div style={{marginBottom:16}}>
                   <label style={{color:"#9a95b0",fontSize:13,display:"block",marginBottom:6}}>{t("البريد الإلكتروني للمستخدم:","User Email:")}</label>
                   <input type="email" required placeholder="user@example.com" value={addEmail} onChange={(e) => setAddEmail(e.target.value)}
-                    style={{width:"100%",padding:"12px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",background:"rgba(255,255,255,.03)",color:"#fff",fontSize:14}} />
+                    style={{width:"100%",padding:"12px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:c.bgCard,color:c.text,fontSize:14}} />
                 </div>
                 <div style={{marginBottom:20}}>
                   <label style={{color:"#9a95b0",fontSize:13,display:"block",marginBottom:6}}>{t("الكورس:","Course:")}</label>
                   <select required value={addCourse} onChange={(e) => setAddCourse(e.target.value)}
-                    style={{width:"100%",padding:"12px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",background:"rgba(255,255,255,.03)",color:"#fff",fontSize:14}}>
+                    style={{width:"100%",padding:"12px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:c.bgCard,color:c.text,fontSize:14}}>
                     <option value="" style={{background:"#1a1530"}}>{t("اختر كورس...","Select a course...")}</option>
                     {courses.map((c) => <option key={c.id} value={c.id} style={{background:"#1a1530"}}>{c.title_ar || c.title}</option>)}
                   </select>

@@ -1,98 +1,84 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
 import AppNavbar from "../components/AppNavbar";
+import { useTheme } from "../ThemeContext";
 
-const fields = [
-  {
-    id: "networking", icon: "fa-network-wired", color: "#818cf8",
-    title_ar: "هندسة الشبكات وتأمين السحابة", title_en: "Networking & Cloud Security",
-    desc_ar: "تحليل وتصميم وإدارة البنية التحتية السحابية والفيزيائية", desc_en: "Analysis, design and management of cloud and physical infrastructure",
-    badge: "NETWORKING & CLOUD",
-    students: [
-      { rank: 1, name: "خالد عبد الرحمن السالم", sub: "تأمين السحابة المتقدم", grade: "99.2%", xp: "4,820 XP", img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150&h=150" },
-      { rank: 2, name: "أروى محمد البلوشي", sub: "هندسة الشبكات CCNA", grade: "98.5%", xp: "4,550 XP", img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150&h=150" },
-      { rank: 3, name: "مازن وليد الجبالي", sub: "بايثون وأتمتة الشبكات", grade: "97.8%", xp: "4,310 XP", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150&h=150" },
-    ]
-  },
-  {
-    id: "ai", icon: "fa-brain", color: "#a78bfa",
-    title_ar: "الذكاء الاصطناعي وهندسة البيانات", title_en: "AI & Data Engineering",
-    desc_ar: "بناء النماذج الذكية التنبؤية والتوليدية وإدارة البيانات الضخمة", desc_en: "Building predictive and generative AI models and managing big data",
-    badge: "DATA SCIENCE & AI",
-    students: [
-      { rank: 1, name: "طارق سليم الهواري", sub: "تعلم الآلة والشبكات العصبية", grade: "99.8%", xp: "5,120 XP", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150&h=150" },
-      { rank: 2, name: "ندى محمود زكي", sub: "علم وتحليل البيانات الفنية", grade: "98.9%", xp: "4,780 XP", img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150&h=150" },
-      { rank: 3, name: "حمزة طلال القاضي", sub: "بناء النماذج الذكية التوليدية", grade: "97.4%", xp: "4,450 XP", img: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=150&h=150" },
-    ]
-  },
-  {
-    id: "web", icon: "fa-code", color: "#34d399",
-    title_ar: "هندسة وتطوير الويب المتكامل (MERN)", title_en: "Full-Stack Web Development (MERN)",
-    desc_ar: "بناء تطبيقات الواجهات والمنظومات الخلفية وقواعد البيانات", desc_en: "Building frontend apps, backend systems and databases",
-    badge: "FULLSTACK WEB DEVELOPMENT",
-    students: [
-      { rank: 1, name: "سعيد علي الحاتمي", sub: "بناء الباكيند والنظم الموزعة", grade: "99.0%", xp: "4,980 XP", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150&h=150" },
-      { rank: 2, name: "شهد حسام المرزوق", sub: "تطوير واجهات المستخدم React", grade: "98.1%", xp: "4,620 XP", img: "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&q=80&w=150&h=150" },
-      { rank: 3, name: "عبدالله مصطفى هلال", sub: "بناء برمجيات الويب الشاملة", grade: "97.6%", xp: "4,380 XP", img: "https://images.unsplash.com/photo-1489980508314-941910ded1f4?auto=format&fit=crop&q=80&w=150&h=150" },
-    ]
-  },
-  {
-    id: "cyber", icon: "fa-shield-halved", color: "#fb7185",
-    title_ar: "الأمن السيبراني والاختراق الأخلاقي", title_en: "Cyber Security & Ethical Hacking",
-    desc_ar: "تأمين الشبكات، فحص الثغرات، والاختبار الاستباقي للأنظمة", desc_en: "Network security, vulnerability scanning and proactive system testing",
-    badge: "CYBER SECURITY & PENTESTING",
-    students: [
-      { rank: 1, name: "منصور وليد الحربي", sub: "فحص الثغرات والأمن السيبراني", grade: "99.5%", xp: "5,340 XP", img: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=150&h=150" },
-      { rank: 2, name: "جود فهد القحطاني", sub: "حماية واختراق الشبكات", grade: "98.7%", xp: "4,910 XP", img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=150&h=150" },
-      { rank: 3, name: "فارس عصام الجندي", sub: "الاستجابة للحوادث الرقمية", grade: "97.2%", xp: "4,500 XP", img: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=150&h=150" },
-    ]
-  }
-];
+const useIsMobile = () => {
+  const [m, setM] = useState(typeof window !== "undefined" && window.innerWidth <= 768);
+  useEffect(() => {
+    const h = () => setM(window.innerWidth <= 768);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+  return m;
+};
 
-const glowMap = { 1: "0 0 30px rgba(251,191,36,0.25)", 2: "0 0 20px rgba(148,163,184,0.12)", 3: "0 0 20px rgba(217,119,6,0.12)" };
-const borderMap = { 1: "rgba(251,191,36,0.45)", 2: "rgba(148,163,184,0.3)", 3: "rgba(217,119,6,0.3)" };
+const GOLD = "#d4af37";
+const medals = { 1: "🥇", 2: "🥈", 3: "🥉" };
+const podiumOrder = [2, 1, 3];
+const podiumHeights = { 1: 240, 2: 190, 3: 160 };
 
-function StudentCard({ s }) {
-  const [celebrated, setCelebrated] = useState(false);
-  const initials = s.name.split(" ").map(w => w[0]).join("").slice(0, 2);
-  const rankLabel = { 1: "الأول على الدفعة (ذهبي)", 2: "المركز الثاني (فضي)", 3: "المركز الثالث (برونزي)" };
+function scoreColor(s) { return s >= 90 ? "#10b981" : s >= 75 ? "#3b82f6" : s >= 60 ? "#f97316" : "#ef4444"; }
+function gradeBadge(s) { return s >= 90 ? { ar: "ممتاز", en: "Excellent", bg: "#10b98118", fg: "#10b981" } : s >= 75 ? { ar: "جيد جداً", en: "Very Good", bg: "#3b82f618", fg: "#3b82f6" } : s >= 60 ? { ar: "جيد", en: "Good", bg: "#f9731618", fg: "#f97316" } : { ar: "مقبول", en: "Pass", bg: "#ef444418", fg: "#ef4444" }; }
+
+function PodiumCard({ s, position, t, c, m }) {
+  const isTop = position === 1;
+  const init = (s.full_name || "?").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+  const sc = scoreColor(s.avg_score);
+  const g = gradeBadge(s.avg_score);
   return (
-    <div style={{
-      background: "rgba(15,6,36,0.6)", backdropFilter: "blur(14px)",
-      border: `1px solid ${borderMap[s.rank]}`,
-      borderRadius: 16, padding: 20, minWidth: 290, flex: "1 1 0",
-      display: "flex", flexDirection: "column", justifyContent: "space-between",
-      height: 180, transition: "0.35s", position: "relative",
-      boxShadow: glowMap[s.rank],
-    }}>
-      <span style={{ position: "absolute", top: 14, left: 14, fontSize: s.rank === 1 ? 20 : 12, color: s.rank === 1 ? "#fbbf24" : s.rank === 2 ? "#94a3b8" : "#d97706" }}>
-        {s.rank === 1 ? <i className="fa-solid fa-crown" style={{filter:"drop-shadow(0 2px 5px rgba(251,191,36,0.3))"}}></i> : `#${s.rank}`}
-      </span>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{
-          width: 56, height: 56, borderRadius: 12,
-          background: s.rank === 1 ? "linear-gradient(135deg,#fbbf24,#fef3c7)" : s.rank === 2 ? "linear-gradient(135deg,#94a3b8,#e2e8f0)" : "linear-gradient(135deg,#92400e,#d97706)",
-          padding: 1.5, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
-        }}>
-          <img src={s.img} alt="" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:10}}
-            onError={(e) => { e.target.style.display = "none"; e.target.parentElement.innerHTML = `<div style="width:100%;height:100%;background:#0f0824;border-radius:10px;display:flex;align-items:center;justify-content:center;color:${s.rank===1?"#fbbf24":s.rank===2?"#94a3b8":"#d97706"};font-weight:800;font-size:13px">${initials}</div>`; }}
-          />
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", order: position === 2 ? 0 : position === 1 ? -1 : 1, flex: position === 1 ? "1.2 1 0" : "1 1 0", animation: `podiumRise 0.8s ease ${position * 0.15}s both`, maxWidth: m ? 110 : "none" }}>
+      <div style={{ position: "relative", marginBottom: m ? 6 : 12 }}>
+        <div style={{ width: isTop ? (m ? 64 : 90) : (m ? 50 : 70), height: isTop ? (m ? 64 : 90) : (m ? 50 : 70), borderRadius: "50%", background: `linear-gradient(135deg, ${sc}25, ${sc}10)`, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${isTop ? sc : sc + "40"}`, boxShadow: isTop ? `0 8px 30px ${sc}30` : "none" }}>
+          {s.avatar ? <img src={s.avatar} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} onError={e => { e.target.style.display = "none"; }} /> : null}
+          <span style={{ position: "absolute", fontSize: isTop ? 26 : 18, fontWeight: 800, color: sc, display: s.avatar ? "none" : "flex" }}>{init}</span>
         </div>
-        <div>
-          <span style={{fontSize:8,fontWeight:800,color:s.rank===1?"#fbbf24":s.rank===2?"#94a3b8":"#d97706",textTransform:"uppercase",letterSpacing:1}}>{rankLabel[s.rank]}</span>
-          <h3 style={{fontSize:13,fontWeight:700,color:"#fff",marginTop:2}}>{s.name}</h3>
-          <p style={{fontSize:9,color:"#94a3b8",marginTop:2}}>{s.sub}</p>
-        </div>
+        <span style={{ position: "absolute", top: -8, right: -8, fontSize: isTop ? 26 : 20 }}>{medals[position]}</span>
+        {isTop && <span style={{ position: "absolute", bottom: -6, left: "50%", transform: "translateX(-50%)", fontSize: 20 }}>👑</span>}
       </div>
-      <div style={{marginTop:16,paddingTop:14,borderTop:"1px solid rgba(124,58,237,0.15)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <span style={{fontSize:10,color:"#94a3b8"}}>الدرجة النهائية: <strong style={{color:"#34d399",fontSize:12}}>{s.grade}</strong></span>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span style={{color:"#fbbf24",fontWeight:700,fontSize:12}}>{s.xp}</span>
-          <button onClick={() => setCelebrated(true)}
-            style={{padding:"4px 10px",borderRadius:8,border:"1px solid rgba(251,191,36,0.2)",background:celebrated?"rgba(16,185,129,0.2)":"rgba(251,191,36,0.1)",color:celebrated?"#34d399":"#fbbf24",fontSize:9,fontWeight:700,cursor:"pointer",transition:"0.2s"}}>
-            {celebrated ? "تم التهنئة! 💖" : "هنئ الفائز 🎉"}
-          </button>
+      <h3 style={{ fontSize: isTop ? 16 : 13, fontWeight: 700, color: c.text, textAlign: "center", marginBottom: 4, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.full_name}</h3>
+      <span style={{ fontSize: m ? 18 : 24, fontWeight: 900, color: sc }}>{Math.round(s.avg_score)}%</span>
+      <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 10, background: g.bg, color: g.fg, fontWeight: 700, marginBottom: 6 }}>{t(g.ar, g.en)}</span>
+      <span style={{ fontSize: 10, color: c.textMuted, maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center", marginBottom: 8 }}>{s.course_title}</span>
+      <div style={{ display: "flex", gap: 8, fontSize: 10, color: c.textSoft, marginBottom: 8 }}>
+        <span style={{ color: "#10b981" }}>✓ {s.passed}</span>
+        <span style={{ color: "#ef4444" }}>✗ {s.failed}</span>
+      </div>
+      <div style={{ width: "100%", borderRadius: "16px 16px 0 0", marginTop: "auto", height: m ? podiumHeights[position] * 0.6 : podiumHeights[position], background: `linear-gradient(180deg, ${sc}12 0%, ${sc}04 100%)`, borderTop: `2px solid ${sc}50`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", padding: "14px 10px" }}>
+        <div style={{ width: "80%", height: 6, borderRadius: 3, background: c.border, overflow: "hidden" }}>
+          <div style={{ width: s.avg_score + "%", height: "100%", borderRadius: 3, background: sc, transition: "width 0.8s ease" }} />
         </div>
+        <p style={{ fontSize: 9, color: c.textMuted, marginTop: 4 }}>{t("معدل الدرجات", "Avg Score")}</p>
+      </div>
+    </div>
+  );
+}
+
+function RankRow({ s, i, t, c, m }) {
+  const init = (s.full_name || "?").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+  const sc = scoreColor(s.avg_score);
+  const g = gradeBadge(s.avg_score);
+  const posColor = i === 0 ? "#fbbf24" : i === 1 ? "#94a3b8" : i === 2 ? "#d97706" : c.textMuted;
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: m ? "40px 1fr auto" : "50px 1fr 140px 140px 90px 80px", alignItems: "center", padding: m ? "10px 12px" : "12px 16px", borderBottom: `1px solid ${c.border}`, background: i < 3 ? "rgba(212,175,55,0.03)" : "transparent" }}>
+      <span style={{ fontWeight: 800, fontSize: i < 3 ? (m ? 14 : 16) : (m ? 11 : 12), color: posColor, textAlign: "center" }}>{i < 3 ? medals[i + 1] : `#${i + 1}`}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: m ? 8 : 10, minWidth: 0 }}>
+        <div style={{ width: m ? 30 : 36, height: m ? 30 : 36, borderRadius: "50%", flexShrink: 0, background: sc + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: m ? 10 : 12, fontWeight: 700, color: sc }}>
+          {s.avatar ? <img src={s.avatar} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} /> : init}
+        </div>
+        <span style={{ fontWeight: 600, fontSize: m ? 12 : 13, color: c.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.full_name}</span>
+      </div>
+      {!m && <span style={{ fontSize: 11, color: c.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.course_title}</span>}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ flex: 1, height: 6, borderRadius: 3, background: c.border, overflow: "hidden", minWidth: 60 }}>
+          <div style={{ width: s.avg_score + "%", height: "100%", borderRadius: 3, background: sc }} />
+        </div>
+        <span style={{ fontSize: 12, fontWeight: 800, color: sc, minWidth: 32 }}>{Math.round(s.avg_score)}%</span>
+      </div>
+      {!m && <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 10, background: g.bg, color: g.fg, textAlign: "center" }}>{t(g.ar, g.en)}</span>}
+      <div style={{ display: "flex", gap: 6, fontSize: 11, justifyContent: "center" }}>
+        <span style={{ color: "#10b981" }}>✓{s.passed}</span>
+        <span style={{ color: "#ef4444" }}>✗{s.failed}</span>
       </div>
     </div>
   );
@@ -100,85 +86,125 @@ function StudentCard({ s }) {
 
 export default function TopSallerPage() {
   const { t, dir } = useLang();
+  const { colors: c } = useTheme();
+  const m = useIsMobile();
+  const [performers, setPerformers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [activeTab, setActiveTab] = useState("podium");
 
-  const filtered = fields.map(f => ({
-    ...f,
-    students: f.students.filter(s => search === "" || s.name.includes(search))
-  })).filter(f => f.students.length > 0 || search === "");
+  useEffect(() => {
+    fetch("/api/courses/top-quiz-performers")
+      .then(r => r.json())
+      .then(d => setPerformers(Array.isArray(d) ? d : []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const sorted = [...performers].sort((a, b) => b.avg_score - a.avg_score);
+  const top3 = sorted.slice(0, 3);
+  const rest = sorted.slice(3, 10);
+  const filtered = search ? sorted.filter(s => (s.full_name || "").toLowerCase().includes(search.toLowerCase())) : sorted;
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "linear-gradient(135deg, #090127 0%, #1e0f4e 60%, #e74edb 100%)",
-      direction: dir,
-      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-      position: "relative", overflowX: "hidden"
-    }}>
+    <div style={{ minHeight: "100vh", background: c.bg, direction: dir, position: "relative", overflow: "hidden", fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}>
       <AppNavbar />
-
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 20px 40px", position: "relative", zIndex: 10 }}>
-        {/* Stats Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
-          {[
-            { label_ar: "الطلاب المتنافسين", label_en: "Competing Students", value: "12,450 طالب", icon: "fa-users-viewfinder", color: "#818cf8" },
-            { label_ar: "التقييم الأعلى مسجل", label_en: "Highest Recorded Score", value: "99.8% (رقم قياسي)", icon: "fa-star-half-stroke", color: "#fbbf24" },
-            { label_ar: "التحديث التلقائي القادم", label_en: "Next Auto Update", value: "14 ساعة و 32 دقيقة", icon: "fa-rotate", color: "#fb7185", spin: true },
-            { label_ar: "ابحث عن طالب", label_en: "Search Student", search: true, color: "#a78bfa" },
-          ].map((stat, i) => (
-            <div key={i} style={{
-              background: "rgba(15,6,36,0.6)", backdropFilter: "blur(14px)",
-              border: "1px solid rgba(168,85,247,0.15)", borderRadius: 16, padding: 16,
-              display: "flex", alignItems: "center", justifyContent: "space-between"
-            }}>
-              {stat.search ? (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
-                  <i className="fa-solid fa-magnifying-glass" style={{color:"#a78bfa",fontSize:12}}></i>
-                  <input type="text" placeholder={t("ابحث عن اسم طالب...", "Search student name...")} value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    style={{width:"100%",background:"transparent",border:"none",color:"#fff",fontSize:12,outline:"none"}}
-                  />
-                </div>
-              ) : (
-                <>
-                  <div>
-                    <span style={{fontSize:10,color:"#94a3b8",display:"block",marginBottom:2,fontWeight:600}}>{t(stat.label_ar, stat.label_en)}</span>
-                    <p style={{fontSize:18,fontWeight:700,color: stat.color === "#fbbf24" ? "#fbbf24" : "#fff"}}>{stat.value}</p>
-                  </div>
-                  <div style={{width:40,height:40,borderRadius:12,background:`${stat.color}15`,display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${stat.color}20`}}>
-                    <i className={`fa-solid ${stat.icon}`} style={{color:stat.color,fontSize:14,animation: stat.spin ? "spin 8s linear infinite" : "none"}}></i>
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 800, height: 800, borderRadius: "50%", background: "linear-gradient(180deg, rgba(212,175,55,0.04), transparent)", filter: "blur(60px)" }} />
+      </div>
+      <div style={{ position: "relative", zIndex: 10, maxWidth: 1100, margin: "0 auto", padding: m ? "80px 14px 40px" : "110px 20px 60px" }}>
+        <div style={{ textAlign: "center", marginBottom: m ? 20 : 40, animation: "fadeInUp 0.6s ease" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: m ? "4px 14px" : "6px 18px", borderRadius: 30, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.15)", color: GOLD, fontSize: m ? 10 : 12, fontWeight: 800, marginBottom: m ? 10 : 16 }}>
+            ⭐ {t("أفضل الدرجات", "TOP SCORERS")}
+          </div>
+          <h1 style={{ fontSize: m ? 24 : 42, fontWeight: 900, marginBottom: m ? 6 : 10, lineHeight: 1.2 }}>
+            <span style={{ background: "linear-gradient(to left, #d4af37, #f0d060, #d4af37)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              {t("لوحة الشرف", "HALL OF FAME")}
+            </span>
+          </h1>
+          <p style={{ color: c.textMuted, fontSize: m ? 12 : 14, maxWidth: 450, margin: "0 auto" }}>
+            {t("أفضل الأداء في الاختبارات — طلاب يحققون درجات استثنائية", "Top exam performers — students achieving exceptional scores")}
+          </p>
         </div>
 
-        {/* Fields */}
-        {filtered.map((field, fi) => (
-          <div key={field.id} style={{ marginBottom: 24, animation: `fadeInUp 0.6s ease ${fi * 0.05}s both` }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(124,58,237,0.25)", paddingBottom: 8, marginBottom: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{width:32,height:32,borderRadius:10,background:`${field.color}15`,border:`1px solid ${field.color}20`,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <i className={`fa-solid ${field.icon}`} style={{color:field.color,fontSize:14}}></i>
-                </div>
-                <div>
-                  <h2 style={{fontSize:16,fontWeight:700,color:"#fff"}}>{t(field.title_ar, field.title_en)}</h2>
-                  <p style={{fontSize:9,color:"#94a3b8",marginTop:1}}>{t(field.desc_ar, field.desc_en)}</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: m ? 16 : 28, flexWrap: "wrap", gap: m ? 8 : 12, animation: "fadeInUp 0.6s ease 0.2s both" }}>
+          <div style={{ display: "flex", gap: m ? 6 : 8 }}>
+            {[["podium", t("المنصة", "Podium"), "🏆"], ["all", t("القائمة الكاملة", "Full List"), "📋"]].map(([id, label, icon]) => (
+              <button key={id} onClick={() => setActiveTab(id)} style={{ padding: m ? "6px 14px" : "8px 20px", borderRadius: 12, fontSize: m ? 11 : 13, fontWeight: 700, cursor: "pointer", transition: "0.2s", background: activeTab === id ? "rgba(212,175,55,0.12)" : c.bgCard, border: `1px solid ${activeTab === id ? "rgba(212,175,55,0.3)" : c.border}`, color: activeTab === id ? GOLD : c.textMuted }}>
+                {icon} {label}
+              </button>
+            ))}
+          </div>
+          <div style={{ position: "relative", width: 260 }}>
+            <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: c.textMuted }}>🔍</span>
+            <input type="text" placeholder={t("ابحث عن طالب...", "Search student...")} value={search} onChange={e => setSearch(e.target.value)} style={{ width: "100%", paddingLeft: 36, paddingRight: 14, paddingTop: 10, paddingBottom: 10, background: c.bgInput, border: `1px solid ${c.border}`, borderRadius: 12, color: c.text, fontSize: 13, outline: "none" }} />
+          </div>
+        </div>
+
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "80px 0" }}>
+            <div style={{ display: "inline-block", width: 36, height: 36, border: `3px solid ${GOLD}33`, borderTopColor: GOLD, borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+            <p style={{ color: c.textMuted, fontSize: 13, marginTop: 12 }}>{t("جاري التحميل...", "Loading...")}</p>
+          </div>
+        ) : (
+          <>
+            {activeTab === "podium" && top3.length > 0 && !search && (
+              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 16, marginBottom: 60, padding: "0 20px", animation: "fadeInUp 0.6s ease 0.3s both" }}>
+                {top3.length === 1 && <PodiumCard s={top3[0]} position={1} t={t} c={c} m={m} />}
+                {top3.length === 2 && <>
+                  <PodiumCard s={top3[0]} position={1} t={t} c={c} m={m} />
+                  <PodiumCard s={top3[1]} position={2} t={t} c={c} m={m} />
+                </>}
+                {top3.length >= 3 && podiumOrder.map(pos => <PodiumCard key={pos} s={top3[pos - 1]} position={pos} t={t} c={c} m={m} />)}
+              </div>
+            )}
+            {activeTab === "podium" && rest.length > 0 && !search && (
+              <div style={{ marginBottom: 40, animation: "fadeInUp 0.6s ease 0.4s both" }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: c.textMuted, marginBottom: 14, paddingLeft: 8 }}>🏅 {t("المتصدرين الآخرين", "Other Top Performers")}</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 10 }}>
+                  {rest.map((s, i) => {
+                    const sc = scoreColor(s.avg_score);
+                    const init = (s.full_name || "?").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+                    return (
+                      <div key={s.user_id + s.course_id} style={{ display: "flex", alignItems: "center", gap: 12, background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 14, padding: "12px 16px" }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: c.textMuted, width: 30, textAlign: "center" }}>#{i + 4}</span>
+                        <div style={{ width: 40, height: 40, borderRadius: "50%", flexShrink: 0, background: sc + "15", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: sc, border: `1px solid ${sc}25` }}>
+                          {s.avatar ? <img src={s.avatar} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} /> : init}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontWeight: 700, fontSize: 13, color: c.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.full_name}</p>
+                          <span style={{ fontSize: 10, color: c.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>{s.course_title}</span>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <p style={{ fontSize: 13, fontWeight: 800, color: sc }}>{Math.round(s.avg_score)}%</p>
+                          <div style={{ display: "flex", gap: 4, fontSize: 9, justifyContent: "flex-end" }}>
+                            <span style={{ color: "#10b981" }}>✓{s.passed}</span>
+                            <span style={{ color: "#ef4444" }}>✗{s.failed}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-              <span style={{fontSize:10,color:"#64748b",display:"none"}}>{field.badge}</span>
-            </div>
-            <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16, scrollbarWidth: "none" }}>
-              {field.students.map((s, i) => <StudentCard key={i} s={s} />)}
-            </div>
-          </div>
-        ))}
+            )}
+            {(activeTab === "all" || search) && (
+              <div style={{ background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 18, overflow: "hidden", animation: "fadeInUp 0.6s ease 0.3s both" }}>
+                {!m && <div style={{ display: "grid", gridTemplateColumns: "50px 1fr 140px 140px 90px 80px", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${c.border}`, fontSize: 10, color: c.textMuted, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>
+                  <span>#</span><span>{t("الطالب", "Student")}</span><span>{t("المادة", "Course")}</span><span>{t("الدرجة", "Score")}</span><span>{t("التقدير", "Grade")}</span><span style={{ textAlign: "center" }}>{t("النتائج", "Results")}</span>
+                </div>}
+                {filtered.length === 0 ? (
+                  <div style={{ padding: "50px 0", textAlign: "center", color: c.textMuted, fontSize: 13 }}>{t("لا يوجد نتائج", "No results")}</div>
+                ) : filtered.map((s, i) => <RankRow key={s.user_id + s.course_id} s={s} i={i} t={t} c={c} m={m} />)}
+              </div>
+            )}
+          </>
+        )}
       </div>
-
       <style>{`
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes podiumRise { from { opacity:0; transform:translateY(40px) scale(.9); } to { opacity:1; transform:translateY(0) scale(1); } }
+        @keyframes spin { to { transform:rotate(360deg); } }
       `}</style>
     </div>
   );

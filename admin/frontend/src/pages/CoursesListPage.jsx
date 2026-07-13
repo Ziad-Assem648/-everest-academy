@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
-
-const api = async (path, opts = {}) => {
-  const res = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-};
+import { api } from "../api.js";
 
 const statusOpts = [
   { ar: "منشور", en: "Published", val: "published" },
@@ -37,6 +32,9 @@ export default function CoursesListPage() {
   const [newLessonVideo, setNewLessonVideo] = useState("");
   const [newLessonContent, setNewLessonContent] = useState("");
   const [newLessonContentAr, setNewLessonContentAr] = useState("");
+  const [newLessonIsFree, setNewLessonIsFree] = useState(false);
+  const [quizEditor, setQuizEditor] = useState(null); // { type: 'topic'|'lesson'|'final', topicId, lessonId?, quizId? }
+  const [quizForm, setQuizForm] = useState({ title: "", questions: [], pass_mark: 50, quiz_type: "mcq" });
 
   const load = () => api("/api/courses").then(setCourses).finally(() => setLoading(false));
 
@@ -95,7 +93,7 @@ export default function CoursesListPage() {
   const addLesson = async (topicId) => {
     if (!newLessonTitle.trim()) return;
     try {
-      await api(`/api/courses/topics/${topicId}/lessons`, { method: "POST", body: JSON.stringify({ title: newLessonTitle, title_ar: newLessonAr, video_url: newLessonVideo, content: newLessonContent, content_ar: newLessonContentAr }) });
+      await api(`/api/courses/topics/${topicId}/lessons`, { method: "POST", body: JSON.stringify({ title: newLessonTitle, title_ar: newLessonAr, video_url: newLessonVideo, content: newLessonContent, content_ar: newLessonContentAr, is_free: newLessonIsFree }) });
       const fresh = await api(`/api/courses/${detail.id}`);
       setDetail(fresh);
       load();
@@ -105,6 +103,7 @@ export default function CoursesListPage() {
       setNewLessonVideo("");
       setNewLessonContent("");
       setNewLessonContentAr("");
+      setNewLessonIsFree(false);
     } catch (err) {
       alert(t("خطأ في إضافة الدرس: ", "Error adding lesson: ") + err.message);
     }
@@ -135,9 +134,73 @@ export default function CoursesListPage() {
   };
 
   const addQuiz = async (topicId) => {
-    const title = prompt(t("عنوان الاختبار:", "Quiz title:"));
+    const title = prompt(t("عنوان اختبار الموضوع:", "Topic Quiz title:"));
     if (!title) return;
-    await api(`/api/courses/topics/${topicId}/quizzes`, { method: "POST", body: JSON.stringify({ title }) });
+    const res = await api(`/api/courses/topics/${topicId}/quizzes`, { method: "POST", body: JSON.stringify({ title, questions: [], total_marks: 0, type: "topic", pass_mark: 50, quiz_type: "mcq" }) });
+    const fresh = await api(`/api/courses/${detail.id}`);
+    setDetail(fresh);
+    load();
+    openQuizEditor("topic", topicId, null, { id: res.id, title, questions: "[]", pass_mark: 50, quiz_type: "mcq" });
+  };
+
+  const addLessonQuiz = async (topicId, lessonId) => {
+    await api(`/api/courses/topics/${topicId}/quizzes`, {
+      method: "POST",
+      body: JSON.stringify({ title: t("اختبار الدرس", "Lesson Quiz"), questions: [], total_marks: 0, type: "lesson", lesson_id: lessonId }),
+    });
+    const fresh = await api(`/api/courses/${detail.id}`);
+    setDetail(fresh);
+    openQuizEditor("lesson", topicId, lessonId);
+  };
+
+  const addFinalQuiz = async () => {
+    await api(`/api/courses/${detail.id}/final-quiz`, {
+      method: "POST",
+      body: JSON.stringify({ title: t("الاختبار النهائي", "Final Quiz"), questions: [], total_marks: 0, pass_mark: 50 }),
+    });
+    const fresh = await api(`/api/courses/${detail.id}`);
+    setDetail(fresh);
+    openQuizEditor("final");
+  };
+
+  const openQuizEditor = (type, topicId, lessonId, quiz) => {
+    if (quiz) {
+      setQuizForm({ title: quiz.title || "", questions: JSON.parse(quiz.questions || "[]"), pass_mark: quiz.pass_mark || 50, quiz_type: quiz.quiz_type || "mcq" });
+      setQuizEditor({ type, topicId, lessonId, quizId: quiz.id });
+    } else {
+      setQuizForm({ title: "", questions: [], pass_mark: 50, quiz_type: "mcq" });
+      setQuizEditor({ type, topicId, lessonId, quizId: null });
+    }
+  };
+
+  const saveQuizEditor = async () => {
+    if (!quizEditor) return;
+    if (quizEditor.type === "final") {
+      await api(`/api/courses/${detail.id}/final-quiz`, {
+        method: "POST",
+        body: JSON.stringify({ title: quizForm.title, questions: quizForm.questions, total_marks: quizForm.questions.length, pass_mark: quizForm.pass_mark, quiz_type: quizForm.quiz_type }),
+      });
+    } else {
+      const topicId = quizEditor.topicId;
+      const payload = { title: quizForm.title, questions: quizForm.questions, total_marks: quizForm.questions.length, type: quizEditor.type, pass_mark: quizForm.pass_mark, quiz_type: quizForm.quiz_type };
+      if (quizEditor.type === "lesson") payload.lesson_id = quizEditor.lessonId;
+      if (quizEditor.quizId) {
+        await api(`/api/courses/topics/${topicId}/quizzes/${quizEditor.quizId}`, { method: "PUT", body: JSON.stringify(payload) });
+      } else {
+        await api(`/api/courses/topics/${topicId}/quizzes`, { method: "POST", body: JSON.stringify(payload) });
+      }
+    }
+    const fresh = await api(`/api/courses/${detail.id}`);
+    setDetail(fresh);
+    load();
+    setQuizEditor(null);
+  };
+
+  const delLessonQuiz = async (topicId, lessonId) => {
+    const quizzes = detail.topics?.find(t => t.id === topicId)?.lessons?.find(l => l.id === lessonId)?.quiz;
+    if (!quizzes) return;
+    if (!confirm(t("حذف اختبار الدرس؟", "Delete lesson quiz?"))) return;
+    await api(`/api/courses/topics/${topicId}/quizzes/${quizzes.id}`, { method: "DELETE" });
     const fresh = await api(`/api/courses/${detail.id}`);
     setDetail(fresh);
     load();
@@ -258,8 +321,12 @@ export default function CoursesListPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium">{t("السعر", "Price")}</label>
+                  <label className="text-sm font-medium">{t("السعر (E-Money)", "Price (E-Money)")}</label>
                   <input type="number" value={cv.price || 0} onChange={(e) => setCv("price", parseFloat(e.target.value) || 0)} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">{t("السعر (ج.م EGP)", "Price (EGP)")}</label>
+                  <input type="number" value={cv.price_egp || 0} onChange={(e) => setCv("price_egp", parseFloat(e.target.value) || 0)} className="w-full px-3 py-2 border rounded-lg text-sm" />
                 </div>
                 <div className="flex items-center gap-3 pt-6">
                   <label className="flex items-center gap-2 text-sm">
@@ -366,14 +433,38 @@ export default function CoursesListPage() {
                           <button onClick={() => updateLesson(topic.id, lesson)} className="px-3 py-1.5 text-xs bg-everest-600 text-white rounded-lg">💾</button>
                           <button onClick={() => delLesson(topic.id, lesson.id)} className="px-3 py-1.5 text-xs bg-red-500 text-white rounded-lg">✕</button>
                         </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <label className="flex items-center gap-1.5 px-2 py-0.5 bg-green-50 border border-green-200 rounded text-xs cursor-pointer select-none">
+                            <input type="checkbox" checked={!!lesson.is_free} onChange={(e) => {
+                              const upd = { ...lesson, is_free: e.target.checked ? 1 : 0 };
+                              setDetail((prev) => ({ ...prev, topics: prev.topics.map((t) => t.id === topic.id
+                                ? { ...t, lessons: t.lessons.map((l) => l.id === lesson.id ? upd : l) } : t) }));
+                            }} className="accent-green-500" />
+                            {t("مجاني (Preview)", "Free (Preview)")}
+                          </label>
+                        </div>
                         {lesson.video_url && <p className="text-xs text-green-600 mt-1 truncate">{lesson.video_url}</p>}
+                        {/* Lesson Quiz */}
+                        {lesson.quiz ? (
+                          <div className="flex items-center gap-2 mt-1 bg-blue-50 rounded px-2 py-1 border border-blue-200">
+                            <span className="text-xs">📝</span>
+                            <span className="text-xs font-medium">{lesson.quiz.title || t("اختبار الدرس", "Lesson Quiz")} ({JSON.parse(lesson.quiz.questions || "[]").length} {t("أسئلة", "Q")})</span>
+                            <button onClick={() => openQuizEditor("lesson", topic.id, lesson.id, lesson.quiz)} className="text-xs text-everest-600 hover:underline ml-auto">{t("تعديل", "Edit")}</button>
+                            <button onClick={() => delLessonQuiz(topic.id, lesson.id)} className="text-xs text-red-500">✕</button>
+                          </div>
+                        ) : (
+                          <button onClick={() => addLessonQuiz(topic.id, lesson.id)} className="mt-1 text-xs text-blue-500 hover:underline">
+                            + {t("إضافة اختبار للدرس", "Add lesson quiz")}
+                          </button>
+                        )}
                       </div>
                     ))}
                     {(topic.quizzes || []).map((quiz) => (
                       <div key={quiz.id} className="flex items-center gap-2 bg-yellow-50 rounded px-3 py-1.5 border text-sm">
                         <span className="text-xs">📝</span>
-                        <span>{quiz.title}</span>
-                        <button onClick={() => delQuiz(topic.id, quiz.id)} className="text-xs text-red-500 mr-auto">✕</button>
+                        <span className="flex-1">{quiz.title} <span className="text-xs text-gray-400">({JSON.parse(quiz.questions || "[]").length} {t("سؤال", "Q")})</span></span>
+                        <button onClick={() => openQuizEditor("topic", topic.id, null, quiz)} className="text-xs text-everest-600 hover:underline">{t("تعديل", "Edit")}</button>
+                        <button onClick={() => delQuiz(topic.id, quiz.id)} className="text-xs text-red-500">✕</button>
                       </div>
                     ))}
                     <div className="flex gap-2 mt-2">
@@ -408,8 +499,12 @@ export default function CoursesListPage() {
                                 if (res.ok) { const d = await res.json(); setNewLessonVideo(d.url); }
                               }} />
                             </label>
-                            <button onClick={() => addLesson(topic.id)} className="px-3 py-1.5 text-xs bg-everest-600 text-white rounded-lg">{t("حفظ", "Save")}</button>
-                            <button onClick={() => { setNewLessonTopic(null); setNewLessonTitle(""); setNewLessonAr(""); setNewLessonVideo(""); }} className="px-3 py-1.5 text-xs border rounded-lg">{t("إلغاء", "Cancel")}</button>
+                            <label className="flex items-center gap-1.5 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs cursor-pointer select-none">
+                              <input type="checkbox" checked={newLessonIsFree} onChange={(e) => setNewLessonIsFree(e.target.checked)} className="accent-green-500" />
+                              {t("مجاني (Preview)", "Free (Preview)")}
+                            </label>
+                          <button onClick={() => addLesson(topic.id)} className="px-3 py-1.5 text-xs bg-everest-600 text-white rounded-lg">{t("حفظ", "Save")}</button>
+                          <button onClick={() => { setNewLessonTopic(null); setNewLessonTitle(""); setNewLessonAr(""); setNewLessonVideo(""); setNewLessonIsFree(false); }} className="px-3 py-1.5 text-xs border rounded-lg">{t("إلغاء", "Cancel")}</button>
                           </div>
                         </div>
                       ) : (
@@ -429,6 +524,135 @@ export default function CoursesListPage() {
               <button onClick={addTopic} className="w-full py-2 border-2 border-dashed border-everest-300 text-everest-600 rounded-lg text-sm font-medium hover:bg-everest-50">
                 + {t("إضافة موضوع", "Add Topic")}
               </button>
+              {/* Final Quiz Section */}
+              <div className="border-t pt-4 mt-4">
+                <h4 className="text-sm font-bold mb-2">🏆 {t("الاختبار النهائي للكورس", "Course Final Quiz")}</h4>
+                {detail?.final_quiz ? (
+                  <div className="flex items-center gap-2 bg-yellow-50 rounded-lg px-4 py-2 border border-yellow-200">
+                    <span>🏆</span>
+                    <span className="text-sm font-medium">{detail.final_quiz.title} ({JSON.parse(detail.final_quiz.questions || "[]").length} {t("أسئلة", "questions")})</span>
+                    <button onClick={() => openQuizEditor("final", null, null, detail.final_quiz)} className="text-xs text-everest-600 hover:underline ml-auto">{t("تعديل", "Edit")}</button>
+                  </div>
+                ) : (
+                  <button onClick={addFinalQuiz} className="w-full py-3 border-2 border-dashed border-yellow-400 text-yellow-600 rounded-lg text-sm font-medium hover:bg-yellow-50">
+                    + {t("إضافة اختبار نهائي", "Add Final Quiz")}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Quiz Editor Modal */}
+          {quizEditor && (
+            <div className="fixed inset-0 z-[60] bg-black/50 flex items-start justify-center pt-10 pb-10 overflow-y-auto" onClick={() => setQuizEditor(null)}>
+              <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
+                  <h3 className="text-lg font-bold">📝 {quizEditor.type === "final" ? t("الاختبار النهائي", "Final Quiz") : quizEditor.type === "lesson" ? t("اختبار الدرس", "Lesson Quiz") : t("اختبار الموضوع", "Topic Quiz")}</h3>
+                  <button onClick={() => setQuizEditor(null)} className="text-gray-400 hover:text-black text-xl">✕</button>
+                </div>
+                <div className="p-6 space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium">{t("عنوان الاختبار", "Quiz Title")}</label>
+                      <input value={quizForm.title} onChange={e => setQuizForm({...quizForm, title: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">{t("نسبة النجاح %", "Pass Mark %")}</label>
+                      <input type="number" min={0} max={100} value={quizForm.pass_mark} onChange={e => setQuizForm({...quizForm, pass_mark: parseInt(e.target.value) || 50})} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                    </div>
+                  </div>
+                  {/* Quiz Type Selector */}
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">{t("نوع الاختبار", "Quiz Type")}</label>
+                    <div className="flex gap-3">
+                      {[
+                        { val: "mcq", label: "MCQ", desc: t("اختيارات متعددة", "Multiple Choice"), icon: "🔘" },
+                        { val: "tf", label: "T/F", desc: t("صح وغلط", "True or False"), icon: "✅" },
+                        { val: "mixed", label: "MCQ + T/F", desc: t("النوعين معاً", "Both types"), icon: "🔀" },
+                      ].map(opt => (
+                        <button key={opt.val} onClick={() => {
+                          if (quizForm.questions.length > 0 && !confirm(t("تغيير النوع سيحذف الأسئلة. متأكد؟", "Changing type deletes questions. Sure?"))) return;
+                          setQuizForm({...quizForm, quiz_type: opt.val, questions: []});
+                        }}
+                          className={`flex-1 p-3 rounded-xl border-2 text-center transition-all ${quizForm.quiz_type === opt.val ? "border-everest-600 bg-everest-50" : "border-gray-200 hover:border-gray-300"}`}>
+                          <div className="text-2xl mb-1">{opt.icon}</div>
+                          <div className="text-sm font-bold">{opt.label}</div>
+                          <div className="text-xs text-gray-500">{opt.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex gap-4 mt-2 text-xs text-gray-500">
+                      <span>🔘 MCQ: {quizForm.questions.filter(q => q.type === "mcq").length}</span>
+                      <span>✅ T/F: {quizForm.questions.filter(q => q.type === "tf").length}</span>
+                      <span className="font-bold text-gray-700">{t("المجموع:", "Total:")} {quizForm.questions.length}</span>
+                    </div>
+                  </div>
+                  {/* Questions */}
+                  <div className="space-y-4">
+                    {quizForm.questions.map((q, qIdx) => (
+                      <div key={qIdx} className={`border-2 rounded-xl p-4 space-y-3 ${q.type === "tf" ? "border-green-200 bg-green-50/30" : "border-blue-200 bg-blue-50/30"}`}>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${q.type === "tf" ? "bg-green-200 text-green-800" : "bg-blue-200 text-blue-800"}`}>
+                            {q.type === "tf" ? "T/F" : "MCQ"}
+                          </span>
+                          <span className="text-xs font-bold text-gray-400">#{qIdx + 1}</span>
+                          <input value={q.question} onChange={e => { const newQs = quizForm.questions.map((qq, i) => i === qIdx ? {...qq, question: e.target.value} : qq); setQuizForm({...quizForm, questions: newQs}); }}
+                            className="flex-1 px-3 py-1.5 border rounded-lg text-sm" placeholder={t("نص السؤال...", "Question text...")} />
+                          <button onClick={() => setQuizForm({...quizForm, questions: quizForm.questions.filter((_, i) => i !== qIdx)})} className="text-red-400 hover:text-red-600 text-sm px-2">✕</button>
+                        </div>
+                        {q.type === "tf" ? (
+                          <div className="flex gap-3 ml-10">
+                            <button onClick={() => { const newQs = quizForm.questions.map((qq, i) => i === qIdx ? {...qq, answer: true} : qq); setQuizForm({...quizForm, questions: newQs}); }}
+                              className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-medium transition ${q.answer === true ? "border-green-500 bg-green-500 text-white" : "border-gray-200 text-gray-600 hover:border-green-300"}`}>
+                              ✓ {t("صح", "True")}
+                            </button>
+                            <button onClick={() => { const newQs = quizForm.questions.map((qq, i) => i === qIdx ? {...qq, answer: false} : qq); setQuizForm({...quizForm, questions: newQs}); }}
+                              className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-medium transition ${q.answer === false ? "border-red-500 bg-red-500 text-white" : "border-gray-200 text-gray-600 hover:border-red-300"}`}>
+                              ✕ {t("غلط", "False")}
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="space-y-2 ml-10">
+                            {(q.options || []).map((opt, oIdx) => (
+                              <div key={oIdx} className="flex items-center gap-2">
+                                <button onClick={() => { const newQs = quizForm.questions.map((qq, i) => i === qIdx ? {...qq, answer: oIdx} : qq); setQuizForm({...quizForm, questions: newQs}); }}
+                                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold transition ${q.answer === oIdx ? "border-green-500 bg-green-500 text-white" : "border-gray-300 text-gray-400"}`}>
+                                  {String.fromCharCode(65 + oIdx)}
+                                </button>
+                                <input value={opt} onChange={e => { const newQs = quizForm.questions.map((qq, i) => { if (i !== qIdx) return qq; const newOpts = [...(qq.options || [])]; newOpts[oIdx] = e.target.value; return {...qq, options: newOpts}; }); setQuizForm({...quizForm, questions: newQs}); }}
+                                  className="flex-1 px-3 py-1.5 border-b text-sm" placeholder={`${t("الخيار", "Option")} ${String.fromCharCode(65 + oIdx)}`} />
+                              </div>
+                            ))}
+                            {(q.options || []).length < 6 && (
+                              <button onClick={() => { const newQs = quizForm.questions.map((qq, i) => i === qIdx ? {...qq, options: [...(qq.options || []), ""]} : qq); setQuizForm({...quizForm, questions: newQs}); }}
+                                className="text-xs text-everest-600 hover:underline">+ {t("إضافة خيار", "Add option")}</button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Add Question Buttons */}
+                  <div className="flex gap-3">
+                    {(quizForm.quiz_type === "mcq" || quizForm.quiz_type === "mixed") && (
+                      <button onClick={() => setQuizForm({...quizForm, questions: [...quizForm.questions, { type: "mcq", question: "", options: ["", "", "", ""], answer: 0 }]})}
+                        className="flex-1 py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-xl text-sm font-medium hover:bg-blue-50 transition">
+                        + {t("إضافة سؤال MCQ", "Add MCQ")}
+                      </button>
+                    )}
+                    {(quizForm.quiz_type === "tf" || quizForm.quiz_type === "mixed") && (
+                      <button onClick={() => setQuizForm({...quizForm, questions: [...quizForm.questions, { type: "tf", question: "", answer: true }]})}
+                        className="flex-1 py-3 border-2 border-dashed border-green-300 text-green-600 rounded-xl text-sm font-medium hover:bg-green-50 transition">
+                        + {t("إضافة سؤال صح/غلط", "Add T/F")}
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <button onClick={saveQuizEditor} className="px-6 py-2 bg-everest-600 text-white rounded-lg text-sm font-medium">{t("حفظ الاختبار", "Save Quiz")}</button>
+                    <button onClick={() => setQuizEditor(null)} className="px-6 py-2 border rounded-lg text-sm">{t("إلغاء", "Cancel")}</button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -594,7 +818,7 @@ export default function CoursesListPage() {
               </tr>
               {showStudents === c.id && (
                 <tr><td colSpan={7} className="p-0">
-                  <div className="bg-gray-50 p-4 border-t">
+                      <div className="bg-gray-50 p-4 border-t">
                     {loadingStudents ? (
                       <p className="text-sm text-gray-400">{t("جاري التحميل...", "Loading...")}</p>
                     ) : students.length === 0 ? (
@@ -602,78 +826,114 @@ export default function CoursesListPage() {
                     ) : (
                       <div>
                         <p className="text-sm font-bold mb-3">🎓 {t("الطلاب المسجلين", "Enrolled Students")} ({students.length})</p>
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-xs bg-white rounded-lg border">
-                            <thead>
-                              <tr className="bg-gray-100 text-gray-500 uppercase">
-                                <th className="p-2 text-right">{t("الطالب", "Student")}</th>
-                                <th className="p-2 text-right">{t("الايميل", "Email")}</th>
-                                <th className="p-2 text-right">{t("الهاتف", "Phone")}</th>
-                                <th className="p-2 text-right">{t("الرتبة", "Rank")}</th>
-                                <th className="p-2 text-right">{t("الحالة", "Status")}</th>
-                                <th className="p-2 text-right">{t("طريقة الدفع", "Payment")}</th>
-                                <th className="p-2 text-right">{t("تاريخ التسجيل", "Enrolled")}</th>
-                                <th className="p-2 text-right">{t("تاريخ الانتهاء", "Expires")}</th>
-                                <th className="p-2 text-right">{t("تحكم", "Actions")}</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {students.map((enr) => (
-                                <tr key={enr.id} className="border-t hover:bg-gray-50">
+                        <div className="space-y-3">
+                          {students.map((enr) => (
+                            <div key={enr.id} className="bg-white rounded-lg border p-4">
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-full bg-everest-100 text-everest-700 flex items-center justify-center font-bold text-sm">
+                                    {(enr.student_name || "?")[0]}
+                                  </div>
+                                  <div>
+                                    <p className="font-bold text-sm">{enr.student_name}</p>
+                                    <p className="text-xs text-gray-400">{enr.student_email}</p>
+                                  </div>
+                                </div>
+                                <div className="flex gap-1">
                                   {editStudent === enr.id ? (
                                     <>
-                                      <td className="p-2 font-medium">{enr.student_name}</td>
-                                      <td className="p-2 text-gray-500">{enr.student_email}</td>
-                                      <td className="p-2">{enr.student_phone || "—"}</td>
-                                      <td className="p-2"><span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">{enr.student_rank || "—"}</span></td>
-                                      <td className="p-2">
-                                        <select value={studentForm.status} onChange={(e) => setStudentForm({...studentForm, status: e.target.value})} className="px-2 py-1 border rounded text-xs">
-                                          <option value="">—</option>
-                                          <option value="approved">Approved</option>
-                                          <option value="pending">Pending</option>
-                                          <option value="rejected">Rejected</option>
-                                        </select>
-                                      </td>
-                                      <td className="p-2 text-gray-500">{enr.payment_method}</td>
-                                      <td className="p-2 text-gray-500">{enr.enrolled_at?.slice(0, 10)}</td>
-                                      <td className="p-2">
-                                        <input type="date" value={studentForm.expires_at} onChange={(e) => setStudentForm({...studentForm, expires_at: e.target.value})} className="px-2 py-1 border rounded text-xs" />
-                                      </td>
-                                      <td className="p-2">
-                                        <div className="flex gap-1">
-                                          <button onClick={() => saveStudent(enr.id)} className="px-2 py-1 text-xs bg-green-500 text-white rounded">{t("حفظ", "Save")}</button>
-                                          <button onClick={() => setEditStudent(null)} className="px-2 py-1 text-xs border rounded">{t("إلغاء", "Cancel")}</button>
-                                        </div>
-                                      </td>
+                                      <button onClick={() => saveStudent(enr.id)} className="px-2 py-1 text-xs bg-green-500 text-white rounded">{t("حفظ", "Save")}</button>
+                                      <button onClick={() => setEditStudent(null)} className="px-2 py-1 text-xs border rounded">{t("إلغاء", "Cancel")}</button>
                                     </>
                                   ) : (
                                     <>
-                                      <td className="p-2 font-medium">{enr.student_name}</td>
-                                      <td className="p-2 text-gray-500 text-xs">{enr.student_email}</td>
-                                      <td className="p-2 text-gray-500">{enr.student_phone || "—"}</td>
-                                      <td className="p-2"><span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">{enr.student_rank || "—"}</span></td>
-                                      <td className="p-2">
-                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                          enr.status === "approved" ? "bg-green-100 text-green-700"
-                                          : enr.status === "pending" ? "bg-yellow-100 text-yellow-700"
-                                          : "bg-red-100 text-red-700"
-                                        }`}>{enr.status}</span>
-                                      </td>
-                                      <td className="p-2 text-gray-500">{enr.payment_method}</td>
-                                      <td className="p-2 text-gray-500">{enr.enrolled_at?.slice(0, 10)}</td>
-                                      <td className="p-2 text-gray-500">{enr.expires_at?.slice(0, 10) || "—"}</td>
-                                      <td className="p-2">
-                                        <div className="flex gap-1">
-                                          <button onClick={() => startEditStudent(enr)} title={t("تعديل", "Edit")} className="px-2 py-1 text-xs bg-blue-500 text-white rounded">{t("تعديل", "Edit")}</button>
-                                          <button onClick={() => deleteStudent(enr.id, enr.student_name)} title={t("حذف", "Delete")} className="px-2 py-1 text-xs bg-red-500 text-white rounded">{t("حذف", "Delete")}</button>
-                                        </div>
-                                      </td>
+                                      <button onClick={() => startEditStudent(enr)} className="px-2 py-1 text-xs bg-blue-500 text-white rounded">{t("تعديل", "Edit")}</button>
+                                      <button onClick={() => deleteStudent(enr.id, enr.student_name)} className="px-2 py-1 text-xs bg-red-500 text-white rounded">{t("حذف", "Delete")}</button>
                                     </>
                                   )}
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                                </div>
+                              </div>
+
+                              {editStudent === enr.id ? (
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                  <div>
+                                    <span className="text-gray-400">{t("الحالة", "Status")}</span>
+                                    <select value={studentForm.status} onChange={(e) => setStudentForm({...studentForm, status: e.target.value})} className="w-full px-2 py-1 border rounded mt-1">
+                                      <option value="">—</option>
+                                      <option value="approved">Approved</option>
+                                      <option value="pending">Pending</option>
+                                      <option value="rejected">Rejected</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">{t("تاريخ الانتهاء", "Expires")}</span>
+                                    <input type="date" value={studentForm.expires_at} onChange={(e) => setStudentForm({...studentForm, expires_at: e.target.value})} className="w-full px-2 py-1 border rounded mt-1" />
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                  <div>
+                                    <span className="text-gray-400">{t("الهاتف", "Phone")}</span>
+                                    <p className="font-medium">{enr.student_phone || "—"}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">{t("العنوان", "Address")}</span>
+                                    <p className="font-medium">{enr.student_address || "—"}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">{t("الرتبة", "Rank")}</span>
+                                    <p><span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded">{enr.student_rank || "—"}</span></p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">{t("حالة الحساب", "Account Status")}</span>
+                                    <p><span className={`px-2 py-0.5 rounded font-medium ${enr.student_status === "active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{enr.student_status || "—"}</span></p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">{t("حالة الاشتراك", "Enrollment")}</span>
+                                    <p><span className={`px-2 py-0.5 rounded font-medium ${enr.status === "approved" ? "bg-green-100 text-green-700" : enr.status === "pending" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>{enr.status}</span></p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">{t("طريقة الدفع", "Payment")}</span>
+                                    <p className="font-medium">{enr.payment_method || "—"}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">{t("رصيد E-Money", "E-Money")}</span>
+                                    <p className="font-medium">{enr.student_emoney || 0}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">{t("مبيعات الفريق", "Team Sales")}</span>
+                                    <p className="font-medium">{enr.student_team_sales || 0}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">{t("المباشرين", "Directs")}</span>
+                                    <p className="font-medium">{enr.student_direct_count || 0}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">{t("كود الإحالة", "Referral")}</span>
+                                    <p className="font-medium font-mono text-everest-600">{enr.student_referral_code || "—"}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">{t("تاريخ التسجيل بالكورس", "Enrolled")}</span>
+                                    <p className="font-medium">{enr.enrolled_at?.slice(0, 10) || "—"}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">{t("انتهاء العضوية", "Membership Expires")}</span>
+                                    <p className="font-medium">{enr.student_membership_expires?.slice(0, 10) || "—"}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">{t("عضو منذ", "Joined")}</span>
+                                    <p className="font-medium">{enr.student_joined?.slice(0, 10) || "—"}</p>
+                                  </div>
+                                  {enr.student_bio && (
+                                    <div className="col-span-2 md:col-span-4">
+                                      <span className="text-gray-400">{t("البايو", "Bio")}</span>
+                                      <p className="font-medium">{enr.student_bio}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}

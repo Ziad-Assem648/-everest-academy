@@ -11,7 +11,10 @@ router.get("/", async (req, res) => {
       (SELECT COUNT(*) FROM topics WHERE course_id = c.id) as topic_count,
       (SELECT COUNT(*) FROM lessons l JOIN topics t ON l.topic_id = t.id WHERE t.course_id = c.id) as lesson_count,
       (SELECT COUNT(*) FROM quizzes q JOIN topics t ON q.topic_id = t.id WHERE t.course_id = c.id) as quiz_count,
-      (SELECT COUNT(*) FROM enrollments WHERE course_id = c.id) as enrollment_count
+      (SELECT COUNT(*) FROM quizzes q WHERE q.course_id = c.id AND q.type = 'final') as final_quiz_count,
+      (SELECT COUNT(*) FROM enrollments WHERE course_id = c.id) as enrollment_count,
+      COALESCE((SELECT ROUND(AVG(rating),1) FROM course_reviews WHERE course_id = c.id), 0) as avg_rating,
+      (SELECT COUNT(*) FROM course_reviews WHERE course_id = c.id) as review_count
     FROM courses c LEFT JOIN users u ON c.author_id = u.id
   `;
   const conditions = [];
@@ -43,15 +46,85 @@ router.get("/my", async (req, res) => {
 
 router.get("/attempts", async (req, res) => {
   const attempts = await query(`
-    SELECT qa.*, q.title as quiz_title, c.title as course_name, u.full_name as student_name, u.email as student_email
+    SELECT qa.*, q.title as quiz_title, q.type as quiz_type,
+      COALESCE(c.title, '—') as course_name,
+      u.full_name as student_name, u.email as student_email, u.id as student_id
     FROM quiz_attempts qa
     JOIN quizzes q ON qa.quiz_id = q.id
-    JOIN topics t ON q.topic_id = t.id
-    JOIN courses c ON t.course_id = c.id
-    JOIN users u ON qa.user_id = u.id
+    LEFT JOIN topics t ON q.topic_id = t.id
+    LEFT JOIN courses c ON t.course_id = c.id OR q.course_id = c.id
+    LEFT JOIN users u ON qa.user_id = u.id
     ORDER BY qa.created_at DESC
   `);
   res.json(attempts);
+});
+
+router.delete("/attempts", async (req, res) => {
+  await execute("DELETE FROM quiz_attempts");
+  res.json({ success: true });
+});
+
+router.get("/top-quiz-performers", async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT user_id, full_name, email, avatar, course_id, course_title,
+        total_attempts, avg_score, passed, failed, best_score
+      FROM quiz_leaderboard
+      ORDER BY avg_score DESC
+      LIMIT 10
+    `);
+    res.json(rows);
+  } catch (e) {
+    console.error("top-quiz-performers error:", e);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.post("/sync-leaderboard", async (req, res) => {
+  try {
+    const existing = await query("SELECT user_id FROM quiz_leaderboard");
+    const existingIds = new Set(existing.map(e => e.user_id));
+
+    const aggregated = await query(`
+      SELECT
+        qa.user_id,
+        u.full_name,
+        u.email,
+        u.avatar,
+        COALESCE(c.id, c2.id) as course_id,
+        COALESCE(c.title, c2.title, '—') as course_title,
+        COUNT(qa.id) as total_attempts,
+        ROUND(AVG(qa.earned_marks), 1) as avg_score,
+        SUM(CASE WHEN qa.result = 'pass' THEN 1 ELSE 0 END) as passed,
+        SUM(CASE WHEN qa.result = 'fail' THEN 1 ELSE 0 END) as failed,
+        MAX(qa.earned_marks) as best_score
+      FROM quiz_attempts qa
+      JOIN users u ON qa.user_id = u.id
+      JOIN quizzes q ON qa.quiz_id = q.id
+      LEFT JOIN courses c ON q.course_id = c.id
+      LEFT JOIN topics t ON q.topic_id = t.id
+      LEFT JOIN courses c2 ON t.course_id = c2.id
+      WHERE qa.user_id NOT IN (SELECT user_id FROM quiz_leaderboard)
+      GROUP BY qa.user_id, COALESCE(c.id, c2.id)
+      ORDER BY avg_score DESC
+      LIMIT 10
+    `);
+
+    for (const row of aggregated) {
+      if (!existingIds.has(row.user_id)) {
+        const lbId = uuidv4();
+        await execute(
+          `INSERT INTO quiz_leaderboard (id, user_id, full_name, email, avatar, course_id, course_title, total_attempts, avg_score, passed, failed, best_score)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [lbId, row.user_id, row.full_name, row.email, row.avatar, row.course_id, row.course_title, row.total_attempts, row.avg_score, row.passed, row.failed, row.best_score]
+        );
+      }
+    }
+    res.json({ success: true, synced: aggregated.length });
+  } catch (e) {
+    console.error("sync-leaderboard error:", e);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 router.get("/enrollments/list", async (req, res) => {
@@ -69,10 +142,16 @@ router.get("/enrollments/list", async (req, res) => {
   res.json(enrollments);
 });
 
-// Get enrollments for a specific course (with student details)
+// Get enrollments for a specific course (with full student details)
 router.get("/enrollments/list/:courseId", async (req, res) => {
   const enrollments = await query(`
-    SELECT e.*, u.full_name as student_name, u.email as student_email, u.phone as student_phone, u.rank as student_rank
+    SELECT e.*,
+      u.full_name as student_name, u.email as student_email, u.phone as student_phone,
+      u.rank as student_rank, u.address as student_address, u.bio as student_bio,
+      u.e_money as student_emoney, u.total_team_sales as student_team_sales,
+      u.direct_count as student_direct_count, u.referral_code as student_referral_code,
+      u.membership_expires_at as student_membership_expires, u.status as student_status,
+      u.created_at as student_joined
     FROM enrollments e
     JOIN users u ON e.user_id = u.id
     WHERE e.course_id = ?
@@ -106,24 +185,84 @@ router.put("/enrollments/:id", async (req, res) => {
   res.json(updated);
 });
 
+// --- Get quiz by ID ---
+router.get("/quizzes/:quizId", async (req, res) => {
+  const quiz = await queryOne("SELECT * FROM quizzes WHERE id = ?", [req.params.quizId]);
+  if (!quiz) return res.status(404).json({ error: "Quiz not found" });
+  res.json(quiz);
+});
+
+router.get("/free-lessons", async (req, res) => {
+  const lessons = await query(`
+    SELECT l.id, l.title, l.title_ar, l.content, l.content_ar, l.video_url, l.duration, l.sort_order,
+           t.id as topic_id, t.title as topic_title, t.title_ar as topic_title_ar,
+           c.id as course_id, c.title as course_title, c.title_ar as course_title_ar,
+           c.description as course_description, c.description_ar as course_description_ar,
+           c.featured_image as course_image, c.difficulty, c.price
+    FROM lessons l
+    JOIN topics t ON l.topic_id = t.id
+    JOIN courses c ON t.course_id = c.id
+    WHERE l.is_free = 1 AND c.status = 'published'
+    ORDER BY c.created_at DESC, l.sort_order ASC
+  `);
+  res.json(lessons);
+});
+
+router.get("/:courseId/reviews", async (req, res) => {
+  const reviews = await query(`
+    SELECT cr.*, u.full_name, u.avatar
+    FROM course_reviews cr
+    JOIN users u ON cr.user_id = u.id
+    WHERE cr.course_id = ?
+    ORDER BY cr.created_at DESC
+  `, [req.params.courseId]);
+  const stats = await queryOne(`
+    SELECT COUNT(*) as count, COALESCE(AVG(rating), 0) as avg_rating
+    FROM course_reviews WHERE course_id = ?
+  `, [req.params.courseId]);
+  res.json({ reviews, avg_rating: Math.round((stats?.avg_rating || 0) * 10) / 10, count: stats?.count || 0 });
+});
+
+router.post("/:courseId/reviews", async (req, res) => {
+  const { userId, rating, comment } = req.body;
+  if (!userId || !rating) return res.status(400).json({ error: "userId and rating required" });
+  const existing = await queryOne("SELECT id FROM course_reviews WHERE course_id = ? AND user_id = ?", [req.params.courseId, userId]);
+  if (existing) {
+    await execute("UPDATE course_reviews SET rating=?, comment=?, created_at=datetime('now','localtime') WHERE id=?", [rating, comment || "", existing.id]);
+  } else {
+    const id = uuidv4();
+    await execute("INSERT INTO course_reviews (id, course_id, user_id, rating, comment) VALUES (?, ?, ?, ?, ?)",
+      [id, req.params.courseId, userId, rating, comment || ""]);
+  }
+  const stats = await queryOne("SELECT COUNT(*) as count, COALESCE(AVG(rating), 0) as avg_rating FROM course_reviews WHERE course_id = ?", [req.params.courseId]);
+  res.json({ success: true, avg_rating: Math.round((stats?.avg_rating || 0) * 10) / 10, count: stats?.count || 0 });
+});
+
 router.get("/:id", async (req, res) => {
   const course = await queryOne("SELECT * FROM courses WHERE id = ?", [req.params.id]);
   if (!course) return res.status(404).json({ error: "Course not found" });
   const topics = await query("SELECT * FROM topics WHERE course_id = ? ORDER BY sort_order", [req.params.id]);
   for (const topic of topics) {
     topic.lessons = await query("SELECT * FROM lessons WHERE topic_id = ? ORDER BY sort_order", [topic.id]);
-    topic.quizzes = await query("SELECT * FROM quizzes WHERE topic_id = ? ORDER BY created_at", [topic.id]);
+    topic.quizzes = await query("SELECT * FROM quizzes WHERE topic_id = ? AND (type = 'topic' OR type IS NULL) ORDER BY created_at", [topic.id]);
+    for (const lesson of topic.lessons) {
+      lesson.quiz = await queryOne("SELECT * FROM quizzes WHERE lesson_id = ? AND type = 'lesson'", [lesson.id]);
+    }
   }
+  course.final_quiz = await queryOne("SELECT * FROM quizzes WHERE course_id = ? AND type = 'final'", [req.params.id]);
+  const reviewStats = await queryOne("SELECT COUNT(*) as count, COALESCE(AVG(rating), 0) as avg_rating FROM course_reviews WHERE course_id = ?", [req.params.id]);
+  course.avg_rating = Math.round((reviewStats?.avg_rating || 0) * 10) / 10;
+  course.review_count = reviewStats?.count || 0;
   res.json({ ...course, topics });
 });
 
 router.post("/", async (req, res) => {
   try {
-    const { title, description, title_ar, description_ar, category_ar, difficulty, is_public, price, is_free, category, tags, featured_image, intro_video, author_id, status } = req.body;
+    const { title, description, title_ar, description_ar, category_ar, difficulty, is_public, price, price_egp, is_free, category, tags, featured_image, intro_video, author_id, status } = req.body;
     const id = uuidv4();
     await execute(
-      "INSERT INTO courses (id, title, description, title_ar, description_ar, category_ar, difficulty, is_public, price, is_free, category, tags, featured_image, intro_video, author_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [id, title, description, title_ar, description_ar, category_ar, difficulty || "beginner", is_public ?? 1, price || 0, is_free ?? 1, category, tags, featured_image, intro_video, author_id, status || "published"]
+      "INSERT INTO courses (id, title, description, title_ar, description_ar, category_ar, difficulty, is_public, price, price_egp, is_free, category, tags, featured_image, intro_video, author_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [id, title, description, title_ar, description_ar, category_ar, difficulty || "beginner", is_public ?? 1, price || 0, price_egp || 0, is_free ?? 1, category, tags, featured_image, intro_video, author_id, status || "published"]
     );
     const course = await queryOne("SELECT * FROM courses WHERE id = ?", [id]);
     res.json(course);
@@ -134,10 +273,10 @@ router.post("/", async (req, res) => {
 });
 
 router.put("/:id", async (req, res) => {
-  const { title, description, title_ar, description_ar, category_ar, difficulty, is_public, price, is_free, category, tags, featured_image, intro_video, status } = req.body;
+  const { title, description, title_ar, description_ar, category_ar, difficulty, is_public, price, price_egp, is_free, category, tags, featured_image, intro_video, status } = req.body;
   await execute(
-    "UPDATE courses SET title=?, description=?, title_ar=?, description_ar=?, category_ar=?, difficulty=?, is_public=?, price=?, is_free=?, category=?, tags=?, featured_image=?, intro_video=?, status=?, updated_at=datetime('now','localtime') WHERE id=?",
-    [title, description, title_ar, description_ar, category_ar, difficulty, is_public, price, is_free, category, tags, featured_image, intro_video, status, req.params.id]
+    "UPDATE courses SET title=?, description=?, title_ar=?, description_ar=?, category_ar=?, difficulty=?, is_public=?, price=?, price_egp=?, is_free=?, category=?, tags=?, featured_image=?, intro_video=?, status=?, updated_at=datetime('now','localtime') WHERE id=?",
+    [title, description, title_ar, description_ar, category_ar, difficulty, is_public, price, price_egp || 0, is_free, category, tags, featured_image, intro_video, status, req.params.id]
   );
   const course = await queryOne("SELECT * FROM courses WHERE id = ?", [req.params.id]);
   res.json(course);
@@ -158,7 +297,7 @@ router.post("/:id/purchase", async (req, res) => {
 
     const user = await queryOne("SELECT * FROM users WHERE id = ?", [userId]);
     if (!user) return res.status(404).json({ error: "User not found" });
-    if (user.role === "registration") return res.status(403).json({ error: "Registration users cannot purchase courses. Please upgrade to Student account.", upgradeRequired: true });
+    if (user.account_type === "registration_sponsor") return res.status(403).json({ error: "Registration (Sponsor) users cannot purchase courses. Please upgrade to Student account.", upgradeRequired: true });
     if (user.role !== "student") return res.status(403).json({ error: "Only student accounts can purchase courses" });
 
     const existing = await queryOne("SELECT id, status FROM enrollments WHERE user_id = ? AND course_id = ?", [userId, req.params.id]);
@@ -252,6 +391,8 @@ async function updateUserRankAndReward(userId) {
 }
 
 async function incrementTeamSales(userId, excludeEnrollmentId) {
+  const user = await queryOne("SELECT account_type FROM users WHERE id = ?", [userId]);
+  if (!user || user.account_type !== "student") return; // Only students count for team sales
   const count = await queryOne("SELECT COUNT(*) as c FROM enrollments WHERE user_id = ? AND status = 'approved' AND id != ?", [userId, excludeEnrollmentId]);
   if (count.c > 0) return; // Already counted
   const userRef = await queryOne("SELECT referred_by FROM users WHERE id = ?", [userId]);
@@ -260,10 +401,13 @@ async function incrementTeamSales(userId, excludeEnrollmentId) {
   const visited = new Set();
   while (uplineId && !visited.has(uplineId)) {
     visited.add(uplineId);
-    await execute("UPDATE users SET total_team_sales = total_team_sales + 1 WHERE id = ?", [uplineId]);
-    await updateUserRankAndReward(uplineId);
-    const upline = await queryOne("SELECT referred_by FROM users WHERE id = ?", [uplineId]);
-    uplineId = upline?.referred_by;
+    const upline = await queryOne("SELECT account_type FROM users WHERE id = ?", [uplineId]);
+    if (upline && upline.account_type === "student") {
+      await execute("UPDATE users SET total_team_sales = total_team_sales + 1 WHERE id = ?", [uplineId]);
+      await updateUserRankAndReward(uplineId);
+    }
+    const next = await queryOne("SELECT referred_by FROM users WHERE id = ?", [uplineId]);
+    uplineId = next?.referred_by;
   }
 }
 
@@ -291,6 +435,21 @@ router.put("/enrollments/:id/reject", async (req, res) => {
   if (pendingTx) await execute("UPDATE wallet_transactions SET status = 'refunded' WHERE id = ?", [pendingTx.id]);
   const nid = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type, related_id) VALUES (?, ?, ?, ?, 'error', ?)", [nid, enrollment.user_id, "❌ تم رفض الاشتراك", `تم رفض اشتراكك في ${course?.title_ar || course?.title || "الكورس"} وتم استرداد المبلغ`, enrollment.course_id]);
   res.json({ success: true, message: "Enrollment rejected, E-Money refunded" });
+});
+
+// --- Course-level final quiz ---
+router.post("/:courseId/final-quiz", async (req, res) => {
+  try {
+    const { title, questions, total_marks, pass_mark, quiz_type } = req.body;
+    await execute("DELETE FROM quizzes WHERE course_id = ? AND type = 'final'", [req.params.courseId]);
+    const id = uuidv4();
+    await execute("INSERT INTO quizzes (id, topic_id, course_id, type, title, questions, total_marks, pass_mark, quiz_type) VALUES (?, '___none___', ?, 'final', ?, ?, ?, ?, ?)",
+      [id, req.params.courseId, title, JSON.stringify(questions || []), total_marks || 0, pass_mark || 50, quiz_type || "mixed"]);
+    res.json({ id, success: true });
+  } catch (err) {
+    console.error("Final quiz error:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.post("/:id/topics", async (req, res) => {
@@ -327,9 +486,9 @@ router.delete("/topics/:topicId/lessons/:lessonId", async (req, res) => {
 });
 
 router.put("/topics/:topicId/quizzes/:quizId", async (req, res) => {
-  const { title, questions, total_marks } = req.body;
-  await execute("UPDATE quizzes SET title=?, questions=?, total_marks=? WHERE id=?",
-    [title, JSON.stringify(questions || []), total_marks || 0, req.params.quizId]);
+  const { title, questions, total_marks, pass_mark, quiz_type } = req.body;
+  await execute("UPDATE quizzes SET title=?, questions=?, total_marks=?, pass_mark=?, quiz_type=? WHERE id=?",
+    [title, JSON.stringify(questions || []), total_marks || 0, pass_mark || 50, quiz_type || "mixed", req.params.quizId]);
   res.json({ success: true });
 });
 
@@ -348,11 +507,128 @@ router.post("/topics/:topicId/lessons", async (req, res) => {
 });
 
 router.post("/topics/:topicId/quizzes", async (req, res) => {
-  const { title, questions, total_marks } = req.body;
+  const { title, questions, total_marks, lesson_id, type, pass_mark, quiz_type } = req.body;
   const id = uuidv4();
-  await execute("INSERT INTO quizzes (id, topic_id, title, questions, total_marks) VALUES (?, ?, ?, ?, ?)",
-    [id, req.params.topicId, title, JSON.stringify(questions || []), total_marks || 0]);
+  await execute("INSERT INTO quizzes (id, topic_id, lesson_id, title, questions, total_marks, type, pass_mark, quiz_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [id, req.params.topicId, lesson_id || null, title, JSON.stringify(questions || []), total_marks || 0, type || "topic", pass_mark || 50, quiz_type || "mixed"]);
   res.json({ id, success: true });
+});
+
+// --- Quiz submission ---
+router.post("/quizzes/:quizId/submit", async (req, res) => {
+  try {
+    const { userId, answers } = req.body;
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    const quiz = await queryOne("SELECT * FROM quizzes WHERE id = ?", [req.params.quizId]);
+    if (!quiz) return res.status(404).json({ error: "Quiz not found" });
+
+    const questions = JSON.parse(quiz.questions || "[]");
+    let correct = 0;
+    questions.forEach((q, i) => {
+      if (answers[i] === undefined || answers[i] === null) return;
+      if (q.type === "tf") {
+        // T/F: answer is boolean (true/false)
+        const expected = q.answer === true || q.answer === "true" || q.answer === 1;
+        const given = answers[i] === true || answers[i] === "true" || answers[i] === 1;
+        if (expected === given) correct++;
+      } else {
+        // MCQ: answer is index (0-3)
+        if (answers[i] === q.answer) correct++;
+      }
+    });
+    const incorrect = questions.length - correct;
+    const total = questions.length;
+    const marks = total > 0 ? Math.round((correct / total) * 100) : 0;
+    const passMark = quiz.pass_mark || 50;
+    const result = marks >= passMark ? "pass" : "fail";
+
+    const id = uuidv4();
+    await execute(
+      "INSERT INTO quiz_attempts (id, quiz_id, user_id, total_marks, earned_marks, correct_answers, incorrect_answers, result) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [id, quiz.id, userId, total, marks, correct, incorrect, result]
+    );
+
+    // Update persistent leaderboard (survives quiz_attempts deletion)
+    try {
+      const user = await queryOne("SELECT * FROM users WHERE id = ?", [userId]);
+      const courseTitle = await queryOne(`
+        SELECT COALESCE(c.title, c2.title, '—') as title
+        FROM quizzes q
+        LEFT JOIN courses c ON q.course_id = c.id
+        LEFT JOIN topics t ON q.topic_id = t.id
+        LEFT JOIN courses c2 ON t.course_id = c2.id
+        WHERE q.id = ?
+      `, [quiz.id]);
+      const courseId = await queryOne(`
+        SELECT COALESCE(c.id, c2.id) as id
+        FROM quizzes q
+        LEFT JOIN courses c ON q.course_id = c.id
+        LEFT JOIN topics t ON q.topic_id = t.id
+        LEFT JOIN courses c2 ON t.course_id = c2.id
+        WHERE q.id = ?
+      `, [quiz.id]);
+
+      const existing = await queryOne("SELECT * FROM quiz_leaderboard WHERE user_id = ?", [userId]);
+      if (existing) {
+        const newAvg = existing.total_attempts > 0
+          ? ((existing.avg_score * existing.total_attempts) + marks) / (existing.total_attempts + 1)
+          : marks;
+        const newPassed = existing.passed + (result === "pass" ? 1 : 0);
+        const newFailed = existing.failed + (result === "fail" ? 1 : 0);
+        const newBest = Math.max(existing.best_score, marks);
+        await execute(
+          `UPDATE quiz_leaderboard SET full_name=?, email=?, avatar=?, course_id=?, course_title=?,
+           total_attempts=total_attempts+1, avg_score=?, passed=?, failed=?, best_score=?, updated_at=datetime('now','localtime')
+           WHERE user_id=?`,
+          [user?.full_name || existing.full_name, user?.email || existing.email, user?.avatar || existing.avatar,
+           courseId?.id || existing.course_id, courseTitle?.title || existing.course_title,
+           Math.round(newAvg * 10) / 10, newPassed, newFailed, newBest, userId]
+        );
+      } else {
+        const lbId = uuidv4();
+        await execute(
+          `INSERT INTO quiz_leaderboard (id, user_id, full_name, email, avatar, course_id, course_title, total_attempts, avg_score, passed, failed, best_score)
+           VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)`,
+          [lbId, userId, user?.full_name || "—", user?.email || "", user?.avatar || "",
+           courseId?.id || null, courseTitle?.title || "—", marks,
+           result === "pass" ? 1 : 0, result === "fail" ? 1 : 0, marks]
+        );
+      }
+    } catch (lbErr) {
+      console.error("Leaderboard update error:", lbErr);
+    }
+
+    res.json({ id, correct, incorrect, total, marks, result, passMark });
+  } catch (err) {
+    console.error("Quiz submit error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Quiz progress for a course (checks which quizzes the user passed) ---
+router.get("/:courseId/quiz-progress", async (req, res) => {
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ error: "userId required" });
+  const quizzes = await query(`
+    SELECT q.id, q.type, q.lesson_id, q.topic_id, q.title
+    FROM quizzes q
+    LEFT JOIN topics t ON q.topic_id = t.id
+    WHERE q.topic_id IN (SELECT id FROM topics WHERE course_id = ?)
+       OR q.lesson_id IN (SELECT l.id FROM lessons l JOIN topics t2 ON l.topic_id = t2.id WHERE t2.course_id = ?)
+       OR q.course_id = ?
+  `, [req.params.courseId, req.params.courseId, req.params.courseId]);
+
+  const quizIds = quizzes.map(q => q.id);
+  let passed = [];
+  if (quizIds.length) {
+    passed = await query(
+      `SELECT DISTINCT qa.quiz_id FROM quiz_attempts qa WHERE qa.user_id = ? AND qa.result = 'pass' AND qa.quiz_id IN (${quizIds.map(() => "?").join(",")})`,
+      [userId, ...quizIds]
+    );
+  }
+  const passedSet = new Set(passed.map(p => p.quiz_id));
+  const progress = quizzes.map(q => ({ ...q, passed: passedSet.has(q.id) }));
+  res.json(progress);
 });
 
 export default router;

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-
-const api = (path, opts = {}) =>
-  fetch(path, { headers: { "Content-Type": "application/json" }, ...opts }).then((r) => r.json());
+import { useLang } from "../LangContext";
+import { api } from "../api.js";
 
 export default function PaymentGatewayPage() {
+  const { lang, t: tFn } = useLang();
+  const t = (ar, en) => tFn(ar, en);
   const [gateways, setGateways] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
@@ -31,32 +32,32 @@ export default function PaymentGatewayPage() {
   };
 
   const remove = async (id) => {
-    if (!confirm("هل أنت متأكد من حذف وسيلة الدفع هذه؟")) return;
+    if (!confirm(t("هل أنت متأكد من حذف وسيلة الدفع هذه؟", "Are you sure you want to delete this payment method?"))) return;
     await api(`/api/payment-gateways/${id}`, { method: "DELETE" });
     load();
   };
 
   const typeIcons = { vodafone: "📱", instapay: "🏦", cash: "💵" };
-  const typeLabels = { vodafone: "فودافون كاش", instapay: "انستاباي", cash: "كاش" };
+  const typeLabels = { vodafone: t("فودافون كاش", "Vodafone Cash"), instapay: t("انستاباي", "Instapay"), cash: t("كاش", "Cash") };
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold">💳 بوابات الدفع</h2>
-          <p className="text-gray-500 text-sm mt-1">إدارة وسائل الدفع المتاحة (فودافون كاش، انستاباي)</p>
+          <h2 className="text-2xl font-bold">{t("💳 بوابات الدفع", "💳 Payment Gateways")}</h2>
+          <p className="text-gray-500 text-sm mt-1">{t("إدارة وسائل الدفع المتاحة (فودافون كاش، انستاباي)", "Manage available payment methods (Vodafone Cash, Instapay)")}</p>
         </div>
         <button onClick={openAdd} className="px-5 py-2.5 bg-everest-600 text-white rounded-xl font-medium text-sm hover:bg-everest-700 transition flex items-center gap-2 shadow-sm">
-          <span>+</span> إضافة وسيلة دفع
+          <span>+</span> {t("إضافة وسيلة دفع", "Add Payment Method")}
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         {[
-          { label: "إجمالي وسائل الدفع", value: gateways.length, icon: "💳", color: "#6366f1" },
-          { label: "فودافون كاش", value: gateways.filter(g => g.type === "vodafone").length, icon: "📱", color: "#10b981" },
-          { label: "انستاباي", value: gateways.filter(g => g.type === "instapay").length, icon: "🏦", color: "#f59e0b" },
+          { label: t("إجمالي وسائل الدفع", "Total Payment Methods"), value: gateways.length, icon: "💳", color: "#6366f1" },
+          { label: t("فودافون كاش", "Vodafone Cash"), value: gateways.filter(g => g.type === "vodafone").length, icon: "📱", color: "#10b981" },
+          { label: t("انستاباي", "Instapay"), value: gateways.filter(g => g.type === "instapay").length, icon: "🏦", color: "#f59e0b" },
         ].map((s, i) => (
           <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl" style={{ background: s.color + "15" }}>{s.icon}</div>
@@ -72,8 +73,8 @@ export default function PaymentGatewayPage() {
       {gateways.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
           <p className="text-5xl mb-4">💳</p>
-          <p className="text-gray-400 font-medium">لا توجد وسائل دفع مضافة بعد</p>
-          <p className="text-gray-300 text-sm mt-1">أضف وسيلة الدفع الأولى الآن</p>
+          <p className="text-gray-400 font-medium">{t("لا توجد وسائل دفع مضافة بعد", "No payment methods added yet")}</p>
+          <p className="text-gray-300 text-sm mt-1">{t("أضف وسيلة الدفع الأولى الآن", "Add the first payment method now")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -91,16 +92,16 @@ export default function PaymentGatewayPage() {
                     </div>
                   </div>
                   <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${g.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                    {g.is_active ? "نشط" : "معطل"}
+                    {g.is_active ? t("نشط", "Active") : t("معطل", "Inactive")}
                   </span>
                 </div>
                 <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-50">
                   <div className="flex items-center gap-2">
                     <button onClick={() => toggleActive(g)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${g.is_active ? "bg-orange-50 text-orange-600 hover:bg-orange-100" : "bg-green-50 text-green-600 hover:bg-green-100"}`}>
-                      {g.is_active ? "🔴 تعطيل" : "🟢 تفعيل"}
+                      {g.is_active ? t("🔴 تعطيل", "🔴 Deactivate") : t("🟢 تفعيل", "🟢 Activate")}
                     </button>
-                    <button onClick={() => openEdit(g)} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-600 hover:bg-blue-100">✏️ تعديل</button>
-                    <button onClick={() => remove(g.id)} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100">🗑️ حذف</button>
+                    <button onClick={() => openEdit(g)} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-600 hover:bg-blue-100">{t("✏️ تعديل", "✏️ Edit")}</button>
+                    <button onClick={() => remove(g.id)} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100">{t("🗑️ حذف", "🗑️ Delete")}</button>
                   </div>
                   <span className="text-xs text-gray-300">{new Date(g.created_at).toLocaleDateString("ar-EG")}</span>
                 </div>
@@ -115,17 +116,17 @@ export default function PaymentGatewayPage() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold">{editItem ? "تعديل وسيلة الدفع" : "إضافة وسيلة دفع جديدة"}</h3>
+              <h3 className="text-lg font-bold">{editItem ? t("تعديل وسيلة الدفع", "Edit Payment Method") : t("إضافة وسيلة دفع جديدة", "Add New Payment Method")}</h3>
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">نوع وسيلة الدفع</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("نوع وسيلة الدفع", "Payment Method Type")}</label>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { type: "vodafone", icon: "📱", label: "فودافون كاش" },
-                    { type: "instapay", icon: "🏦", label: "انستاباي" },
+                    { type: "vodafone", icon: "📱", label: t("فودافون كاش", "Vodafone Cash") },
+                    { type: "instapay", icon: "🏦", label: t("انستاباي", "Instapay") },
                   ].map((opt) => (
                     <button key={opt.type} onClick={() => setForm({ ...form, type: opt.type })}
                       className={`p-3 rounded-xl border-2 text-center transition ${
@@ -141,27 +142,27 @@ export default function PaymentGatewayPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  {form.type === "vodafone" ? "رقم فودافون كاش" : "رقم / حساب انستاباي"}
+                  {form.type === "vodafone" ? t("رقم فودافون كاش", "Vodafone Cash Number") : t("رقم / حساب انستاباي", "Instapay Number / Account")}
                 </label>
                 <input type="text" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })}
-                  placeholder={form.type === "vodafone" ? "مثال: 0100 000 0000" : "مثال: example@instapay"}
+                  placeholder={form.type === "vodafone" ? t("مثال: 0100 000 0000", "e.g. 0100 000 0000") : t("مثال: example@instapay", "e.g. example@instapay")}
                   className="w-full px-4 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-everest-500 focus:border-everest-500 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">تسمية توضيحية (اختياري)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("تسمية توضيحية (اختياري)", "Label (optional)")}</label>
                 <input type="text" value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })}
-                  placeholder="مثال: الرقم الأساسي"
+                  placeholder={t("مثال: الرقم الأساسي", "e.g. Primary number")}
                   className="w-full px-4 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-everest-500 focus:border-everest-500 outline-none"
                 />
               </div>
             </div>
 
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowForm(false)} className="flex-1 px-4 py-2.5 bg-gray-100 rounded-xl font-medium text-sm">إلغاء</button>
+              <button onClick={() => setShowForm(false)} className="flex-1 px-4 py-2.5 bg-gray-100 rounded-xl font-medium text-sm">{t("إلغاء", "Cancel")}</button>
               <button onClick={save} className="flex-1 px-4 py-2.5 bg-everest-600 text-white rounded-xl font-medium text-sm hover:bg-everest-700 transition">
-                {editItem ? "حفظ التعديلات" : "إضافة"}
+                {editItem ? t("حفظ التعديلات", "Save Changes") : t("إضافة", "Add")}
               </button>
             </div>
           </div>

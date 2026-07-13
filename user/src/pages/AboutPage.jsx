@@ -1,27 +1,18 @@
-import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useLang } from "../LangContext";
-import AppNavbar from "../components/AppNavbar";
+import { useTheme } from "../ThemeContext";
+import PublicNavbar from "../components/PublicNavbar";
+import CustomerServiceFooter from "../components/CustomerServiceFooter";
+
+
 
 export default function AboutPage() {
   const { t, dir } = useLang();
-  const navbarRef = useRef(null);
-  const [chatOpen, setChatOpen] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => {
-      if (navbarRef.current) {
-        navbarRef.current.classList.toggle("scrolled", window.scrollY > 40);
-      }
-    };
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const { colors: c } = useTheme();
 
   return (
-    <div className="about-page">
-      <AppNavbar />
-
+    <div className="about-page" style={{background: c.bg}}>
+      <PublicNavbar active="about" />
       <header className="about-hero">
         <img src="image/stage.png" className="hero-image" alt="" />
         <div className="overlay"></div>
@@ -49,7 +40,7 @@ export default function AboutPage() {
           <span className="section-tag">{t("لماذا إيفرست", "WHY EVEREST")}</span>
           <h2>{t("لماذا يختارنا الناس؟", "Why People Choose Us?")}</h2>
           <p>{t("تجمع Everest Academy بين التعليم العملي والتوجيه الخبير والمجتمع القوي لمساعدة الأفراد الطموحين على تعلم مهارات قيمة والنمو بشكل أسرع وفتح فرص جديدة.", "Everest Academy combines practical education, expert guidance and a strong community to help ambitious individuals learn valuable skills, grow faster and unlock new opportunities.")}</p>
-          <Link to="/courses" className="why-btn">{t("استكشف الكورسات", "Explore Courses")}</Link>
+         
         </div>
         <div className="why-right">
           <div className="feature-item">
@@ -79,7 +70,7 @@ export default function AboutPage() {
             <a href="#">f</a><a href="#">in</a><a href="#">▶</a><a href="#">✈</a><a href="#">𝕏</a><a href="#">◎</a>
           </div>
         </div>
-        <div className="footer-bottom"><p>{t("المزيد من طرق التواصل:", "More ways to reach us:")} <a href="#"></a>, {t("اتصل", "call")} +44 (0) 20 7776 9720 (24/5) <a href="#"></a></p></div>
+        <div className="footer-bottom"><CustomerServiceFooter /></div>
       </footer>
 
       <section className="disclaimer">
@@ -90,33 +81,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <div className="everest-ai-system">
-        <div className="ai-chat-trigger" onClick={() => setChatOpen(true)}>
-          <div className="ai-ring"></div>
-          <div className="ai-core"><span>AI</span></div>
-        </div>
-        <div className="ai-chat-window" style={{ display: chatOpen ? "flex" : "none" }}>
-          <div className="chat-header">
-            <button className="chat-close-btn" onClick={() => setChatOpen(false)}>
-              <svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" /></svg>
-            </button>
-            <div className="chat-header-profile">
-              <div className="chat-info" style={{ textAlign: "left", marginRight: 10 }}>
-                <h5>{t("مساعد إيفرست الذكي", "Everest AI Assistant")}</h5><span>{t("متصل الآن", "Online Now")}</span>
-              </div>
-            </div>
-          </div>
-          <div className="chat-body">
-            <div className="chat-bubble ai">{t("مرحباً بك في Everest Academy! أنا مستشارك هنا لمساعدتك في خطة التسجيل وتوجيهك لمسارك المالي. اسألني عن أي شيء!", "Welcome to Everest Academy! I am your advisor here to help you with your registration plan and guide you on your financial path. Ask me anything!")}</div>
-          </div>
-          <div className="chat-footer">
-            <div className="chat-footer-input-wrapper">
-              <input type="text" placeholder={t("اكتبي سؤالكِ هنا...", "Type your question here...")} />
-              <button className="chat-send-arrow"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg></button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
-}
+} 
+       
+        
+       

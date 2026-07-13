@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-
-const api = async (path, opts = {}) => {
-  const res = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-};
+import { useLang } from "../LangContext";
+import { api } from "../api.js";
 
 export default function TopUpsPage() {
+  const { lang, t: tFn } = useLang();
+  const t = (ar, en) => tFn(ar, en);
   const [requests, setRequests] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("");
@@ -20,7 +18,7 @@ export default function TopUpsPage() {
   };
 
   const reject = async (id) => {
-    if (!confirm("متأكد من رفض طلب الشحن؟")) return;
+    if (!confirm(t("متأكد من رفض طلب الشحن؟", "Are you sure you want to reject this top-up request?"))) return;
     try { await api(`/api/wallets/topups/${id}/reject`, { method: "PUT" }); load(); }
     catch (e) { alert(e.message); }
   };
@@ -31,33 +29,33 @@ export default function TopUpsPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">💰 طلبات شحن الرصيد</h2>
+      <h2 className="text-2xl font-bold mb-6">{t("💰 طلبات شحن الرصيد", "💰 Top-Up Requests")}</h2>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <div className="p-4 border-b bg-gray-50 flex items-center gap-3 flex-wrap">
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="بحث عن طالب..." className="px-4 py-2 border rounded-lg text-sm flex-1 min-w-[200px]" />
+            placeholder={t("بحث عن طالب...", "Search student...")} className="px-4 py-2 border rounded-lg text-sm flex-1 min-w-[200px]" />
           <select value={filter} onChange={(e) => { setFilter(e.target.value); load(e.target.value); }}
             className="px-4 py-2 border rounded-lg text-sm bg-white">
-            <option value="">كل الحالات</option>
-            <option value="pending">معلق</option>
-            <option value="approved">تم الشحن</option>
-            <option value="rejected">مرفوض</option>
+            <option value="">{t("كل الحالات", "All statuses")}</option>
+            <option value="pending">{t("معلق", "Pending")}</option>
+            <option value="approved">{t("تم الشحن", "Approved")}</option>
+            <option value="rejected">{t("مرفوض", "Rejected")}</option>
           </select>
-          <button onClick={() => load()} className="px-4 py-2 bg-everest-600 text-white rounded-lg text-sm">بحث</button>
+          <button onClick={() => load()} className="px-4 py-2 bg-everest-600 text-white rounded-lg text-sm">{t("بحث", "Search")}</button>
         </div>
 
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 text-gray-600 text-xs uppercase">
-              <th className="p-3 text-right">الطلب</th>
-              <th className="p-3 text-right">الطالب</th>
-              <th className="p-3 text-right">المبلغ</th>
-              <th className="p-3 text-right">رقم المحول عليه</th>
-              <th className="p-3 text-right">طريقة الدفع</th>
-              <th className="p-3 text-right">إثبات الدفع</th>
-              <th className="p-3 text-right">الحالة</th>
-              <th className="p-3 text-right">إجراء</th>
+              <th className="p-3 text-right">{t("الطلب", "Request")}</th>
+              <th className="p-3 text-right">{t("الطالب", "Student")}</th>
+              <th className="p-3 text-right">{t("المبلغ", "Amount")}</th>
+              <th className="p-3 text-right">{t("رقم المحول عليه", "Transfer Number")}</th>
+              <th className="p-3 text-right">{t("طريقة الدفع", "Payment Method")}</th>
+              <th className="p-3 text-right">{t("إثبات الدفع", "Payment Proof")}</th>
+              <th className="p-3 text-right">{t("الحالة", "Status")}</th>
+              <th className="p-3 text-right">{t("إجراء", "Action")}</th>
             </tr>
           </thead>
           <tbody>
@@ -72,7 +70,7 @@ export default function TopUpsPage() {
                 <td className="p-3 text-xs">{r.phone_number || "—"}</td>
                 <td className="p-3">
                   <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs">
-                    {r.payment_method || "فودافون كاش"}
+                    {r.payment_method || t("فودافون كاش", "Vodafone Cash")}
                   </span>
                 </td>
                 <td className="p-3">
@@ -88,17 +86,17 @@ export default function TopUpsPage() {
                     : r.status === "pending" ? "bg-yellow-100 text-yellow-700"
                     : "bg-red-100 text-red-700"
                   }`}>
-                    {r.status === "pending" ? "قيد الانتظار" : r.status === "approved" ? "تم الشحن" : "مرفوض"}
+                    {r.status === "pending" ? t("قيد الانتظار", "Pending") : r.status === "approved" ? t("تم الشحن", "Approved") : t("مرفوض", "Rejected")}
                   </span>
                 </td>
                 <td className="p-3">
                   {r.status === "pending" && (
                     <div className="flex gap-1">
                       <button onClick={() => approve(r.id)} className="px-3 py-1 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700">
-                        موافقة
+                        {t("موافقة", "Approve")}
                       </button>
                       <button onClick={() => reject(r.id)} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600">
-                        رفض
+                        {t("رفض", "Reject")}
                       </button>
                     </div>
                   )}
@@ -106,7 +104,7 @@ export default function TopUpsPage() {
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan="8" className="text-center text-gray-400 py-8">لا توجد طلبات</td></tr>
+              <tr><td colSpan="8" className="text-center text-gray-400 py-8">{t("لا توجد طلبات", "No requests")}</td></tr>
             )}
           </tbody>
         </table>

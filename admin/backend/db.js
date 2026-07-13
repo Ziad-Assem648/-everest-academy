@@ -34,6 +34,7 @@ export async function initDb() {
   db.run("PRAGMA foreign_keys = ON");
   createSchema(db, false);
   saveDb();
+  startAutoSave();
   return db;
 }
 
@@ -50,6 +51,7 @@ function createSchema(driver, isTursoDb) {
       rank TEXT DEFAULT 'Star', e_money REAL DEFAULT 0, academic_points REAL DEFAULT 0,
       total_team_sales REAL DEFAULT 0, direct_count INTEGER DEFAULT 0,
       blocked INTEGER DEFAULT 0, status TEXT DEFAULT 'active',
+      membership_expires_at TEXT,
       created_at TEXT DEFAULT (datetime('now','localtime')),
       updated_at TEXT DEFAULT (datetime('now','localtime'))
     )`,
@@ -76,10 +78,14 @@ function createSchema(driver, isTursoDb) {
       FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
     )`,
     `CREATE TABLE IF NOT EXISTS quizzes (
-      id TEXT PRIMARY KEY, topic_id TEXT NOT NULL, title TEXT NOT NULL,
-      questions TEXT, total_marks INTEGER DEFAULT 0,
+      id TEXT PRIMARY KEY, topic_id TEXT, lesson_id TEXT, course_id TEXT,
+      type TEXT DEFAULT 'topic', quiz_type TEXT DEFAULT 'mixed',
+      title TEXT NOT NULL,
+      questions TEXT, total_marks INTEGER DEFAULT 0, pass_mark INTEGER DEFAULT 50,
       created_at TEXT DEFAULT (datetime('now','localtime')),
-      FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE
+      FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE,
+      FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE,
+      FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
     )`,
     `CREATE TABLE IF NOT EXISTS quiz_attempts (
       id TEXT PRIMARY KEY, quiz_id TEXT NOT NULL, user_id TEXT NOT NULL,
@@ -89,6 +95,22 @@ function createSchema(driver, isTursoDb) {
       created_at TEXT DEFAULT (datetime('now','localtime')),
       FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`,
+    `CREATE TABLE IF NOT EXISTS quiz_leaderboard (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      full_name TEXT,
+      email TEXT,
+      avatar TEXT,
+      course_id TEXT,
+      course_title TEXT,
+      total_attempts INTEGER DEFAULT 0,
+      avg_score REAL DEFAULT 0,
+      passed INTEGER DEFAULT 0,
+      failed INTEGER DEFAULT 0,
+      best_score REAL DEFAULT 0,
+      updated_at TEXT DEFAULT (datetime('now','localtime')),
+      UNIQUE(user_id)
     )`,
     `CREATE TABLE IF NOT EXISTS enrollments (
       id TEXT PRIMARY KEY, user_id TEXT NOT NULL, course_id TEXT NOT NULL,
@@ -113,9 +135,15 @@ function createSchema(driver, isTursoDb) {
       FOREIGN KEY (to_user_id) REFERENCES users(id) ON DELETE CASCADE
     )`,
     `CREATE TABLE IF NOT EXISTS ranks (
-      id TEXT PRIMARY KEY, name TEXT NOT NULL, min_direct INTEGER DEFAULT 0,
-      weekly_bonus REAL DEFAULT 0, sort_order INTEGER DEFAULT 0,
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, sales_required INTEGER DEFAULT 0,
+      bonus REAL DEFAULT 0, sort_order INTEGER DEFAULT 0,
       is_active INTEGER DEFAULT 1
+    )`,
+    `CREATE TABLE IF NOT EXISTS rank_bonuses (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL, rank_name TEXT NOT NULL,
+      amount REAL DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now','localtime')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )`,
     `CREATE TABLE IF NOT EXISTS feedbacks (
       id TEXT PRIMARY KEY, user_id TEXT NOT NULL, message TEXT NOT NULL,
@@ -152,6 +180,20 @@ function createSchema(driver, isTursoDb) {
       label TEXT, is_active INTEGER DEFAULT 1,
       created_at TEXT DEFAULT (datetime('now','localtime'))
     )`,
+    `CREATE TABLE IF NOT EXISTS proofs (
+      id TEXT PRIMARY KEY, image TEXT NOT NULL, caption TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now','localtime'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS admin_logs (
+      id TEXT PRIMARY KEY, admin_id TEXT NOT NULL, admin_name TEXT NOT NULL,
+      action TEXT NOT NULL, target_user_id TEXT, target_user_name TEXT,
+      details TEXT, created_at TEXT DEFAULT (datetime('now','localtime'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )`,
     // --- MLM Tables ---
     `CREATE TABLE IF NOT EXISTS user_closure (
       ancestor TEXT NOT NULL,
@@ -181,6 +223,21 @@ function createSchema(driver, isTursoDb) {
       reason TEXT NOT NULL,
       FOREIGN KEY (commission_id) REFERENCES weekly_commissions(id) ON DELETE CASCADE,
       FOREIGN KEY (excluded_user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`,
+    `CREATE TABLE IF NOT EXISTS course_reviews (
+      id TEXT PRIMARY KEY, course_id TEXT NOT NULL, user_id TEXT NOT NULL,
+      rating INTEGER DEFAULT 5, comment TEXT,
+      created_at TEXT DEFAULT (datetime('now','localtime')),
+      UNIQUE(course_id, user_id),
+      FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`,
+    `CREATE TABLE IF NOT EXISTS user_sessions (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL, session_token TEXT NOT NULL,
+      device_type TEXT NOT NULL CHECK(device_type IN ('desktop','mobile')),
+      device_info TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now','localtime')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )`
   ];
 
@@ -193,6 +250,25 @@ function createSchema(driver, isTursoDb) {
       try { await driver.execute("ALTER TABLE users ADD COLUMN membership_days INTEGER DEFAULT 365"); } catch(e) {}
       try { await driver.execute("ALTER TABLE users ADD COLUMN membership_progress REAL DEFAULT 65"); } catch(e) {}
       try { await driver.execute("ALTER TABLE users ADD COLUMN session_token TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN total_sales INTEGER DEFAULT 0"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN rank_progress INTEGER DEFAULT 0"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN commission_per_sale REAL DEFAULT 1000"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN membership_expires_at TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE ranks ADD COLUMN sales_required INTEGER DEFAULT 0"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE ranks ADD COLUMN bonus REAL DEFAULT 0"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE quizzes ADD COLUMN lesson_id TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE quizzes ADD COLUMN course_id TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE quizzes ADD COLUMN type TEXT DEFAULT 'topic'"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE quizzes ADD COLUMN pass_mark INTEGER DEFAULT 50"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE quizzes ADD COLUMN quiz_type TEXT DEFAULT 'mixed'"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE courses ADD COLUMN price_egp REAL DEFAULT 0"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE ranks ADD COLUMN image TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN account_type TEXT DEFAULT 'student'"); } catch(e) {}
+      try {
+        await driver.execute("UPDATE users SET account_type = 'registration_sponsor' WHERE role = 'registration' AND account_type = 'student' AND referred_by IS NOT NULL AND referred_by != ''");
+        await driver.execute("UPDATE users SET account_type = 'registration' WHERE role = 'registration' AND account_type = 'student'");
+        await driver.execute("UPDATE users SET account_type = 'student' WHERE role NOT IN ('registration', 'admin', 'ghost') AND account_type = 'student'");
+      } catch(e) {}
       await seedDataTurso(driver, exec);
     })();
   }
@@ -203,6 +279,25 @@ function createSchema(driver, isTursoDb) {
   try { driver.run("ALTER TABLE users ADD COLUMN membership_days INTEGER DEFAULT 365"); } catch(e) {}
   try { driver.run("ALTER TABLE users ADD COLUMN membership_progress REAL DEFAULT 65"); } catch(e) {}
   try { driver.run("ALTER TABLE users ADD COLUMN session_token TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN total_sales INTEGER DEFAULT 0"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN rank_progress INTEGER DEFAULT 0"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN commission_per_sale REAL DEFAULT 1000"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN membership_expires_at TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE quizzes ADD COLUMN lesson_id TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE quizzes ADD COLUMN course_id TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE quizzes ADD COLUMN type TEXT DEFAULT 'topic'"); } catch(e) {}
+  try { driver.run("ALTER TABLE quizzes ADD COLUMN pass_mark INTEGER DEFAULT 50"); } catch(e) {}
+  try { driver.run("ALTER TABLE quizzes ADD COLUMN quiz_type TEXT DEFAULT 'mixed'"); } catch(e) {}
+  try { driver.run("ALTER TABLE courses ADD COLUMN price_egp REAL DEFAULT 0"); } catch(e) {}
+  try { driver.run("ALTER TABLE ranks ADD COLUMN image TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE user_sessions ADD COLUMN device_type TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE user_sessions ADD COLUMN device_info TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN account_type TEXT DEFAULT 'student'"); } catch(e) {}
+  try {
+    driver.run("UPDATE users SET account_type = 'registration_sponsor' WHERE role = 'registration' AND account_type = 'student' AND referred_by IS NOT NULL AND referred_by != ''");
+    driver.run("UPDATE users SET account_type = 'registration' WHERE role = 'registration' AND account_type = 'student'");
+    driver.run("UPDATE users SET account_type = 'student' WHERE role NOT IN ('registration', 'admin', 'ghost') AND account_type = 'student'");
+  } catch(e) {}
   seedDataLocal(driver);
 }
 
@@ -211,13 +306,13 @@ async function seedDataTurso(driver, exec) {
   if (!rankRes.length || rankRes[0].c === 0) {
     const ranks = [
       ["r1","Star",0,0,0],["r2","Executive",5,1500,1],["r3","Executive Star",10,3000,2],
-      ["r4","Senior Leader",40,8000,3],["r5","Regional Leader",70,12000,4],
-      ["r6","Everest Elite",120,18000,5],["r7","Everest Master",200,28000,6],
-      ["r8","Everest Legend",350,45000,7],["r9","Everest Ambassador",600,75000,8],
-      ["r10","Everest Chairman",1000,100000,9],
+      ["r4","Team Leader",20,5000,3],["r5","Senior Leader",40,8000,4],
+      ["r6","Regional Leader",70,12000,5],["r7","Everest Elite",120,18000,6],
+      ["r8","Everest Master",200,28000,7],["r9","Everest Legend",350,45000,8],
+      ["r10","Everest Ambassador",600,75000,9],
     ];
     for (const r of ranks) {
-      await driver.execute({ sql: "INSERT INTO ranks (id,name,min_direct,weekly_bonus,sort_order) VALUES (?,?,?,?,?)", args: r });
+      await driver.execute({ sql: "INSERT INTO ranks (id,name,sales_required,bonus,sort_order) VALUES (?,?,?,?,?)", args: r });
     }
   }
   const adminRes = await exec("SELECT id FROM users WHERE email = 'admin@everest.com'");
@@ -232,12 +327,12 @@ function seedDataLocal(driver) {
   if (!rankExists.length || !rankExists[0].values.length || rankExists[0].values[0][0] === 0) {
     const ranks = [
       ["r1","Star",0,0,0],["r2","Executive",5,1500,1],["r3","Executive Star",10,3000,2],
-      ["r4","Senior Leader",40,8000,3],["r5","Regional Leader",70,12000,4],
-      ["r6","Everest Elite",120,18000,5],["r7","Everest Master",200,28000,6],
-      ["r8","Everest Legend",350,45000,7],["r9","Everest Ambassador",600,75000,8],
-      ["r10","Everest Chairman",1000,100000,9],
+      ["r4","Team Leader",20,5000,3],["r5","Senior Leader",40,8000,4],
+      ["r6","Regional Leader",70,12000,5],["r7","Everest Elite",120,18000,6],
+      ["r8","Everest Master",200,28000,7],["r9","Everest Legend",350,45000,8],
+      ["r10","Everest Ambassador",600,75000,9],
     ];
-    const stmt = driver.prepare("INSERT INTO ranks (id,name,min_direct,weekly_bonus,sort_order) VALUES (?,?,?,?,?)");
+    const stmt = driver.prepare("INSERT INTO ranks (id,name,sales_required,bonus,sort_order) VALUES (?,?,?,?,?)");
     for (const r of ranks) stmt.run(r);
     stmt.free();
   }
@@ -252,7 +347,24 @@ export function saveDb() {
   if (db) {
     const data = db.export();
     fs.writeFileSync(DB_PATH, Buffer.from(data));
+    // Save backup copy
+    try {
+      const backupDir = join(__dirname, "backups");
+      if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      fs.writeFileSync(join(backupDir, `everest-${timestamp}.db`), Buffer.from(data));
+      // Keep only latest 5 backups
+      const files = fs.readdirSync(backupDir).filter(f => f.endsWith(".db")).sort().reverse();
+      for (let i = 5; i < files.length; i++) fs.unlinkSync(join(backupDir, files[i]));
+    } catch (e) {}
   }
+}
+
+// Auto-save every 10 minutes (started after init)
+let autoSaveTimer = null;
+export function startAutoSave() {
+  if (autoSaveTimer) clearInterval(autoSaveTimer);
+  autoSaveTimer = setInterval(() => { if (db) saveDb(); }, 600000);
 }
 
 export async function query(sql, params = []) {

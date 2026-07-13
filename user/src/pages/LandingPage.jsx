@@ -1,22 +1,23 @@
-import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useLang } from "../LangContext";
-import LanguageToggle from "../components/LanguageToggle";
+import { useTheme } from "../ThemeContext";
+import PublicNavbar from "../components/PublicNavbar";
+import CustomerServiceFooter from "../components/CustomerServiceFooter";
+
 
 export default function LandingPage() {
   const { t, lang } = useLang();
-  const navRef = useRef(null);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { theme, toggle, colors: c } = useTheme();
+  const navigate = useNavigate();
   const [chatOpen, setChatOpen] = useState(false);
+  const [stats, setStats] = useState({ totalMembers: 0, satisfactionRate: 95, totalFeedbacks: 0 });
 
   useEffect(() => {
-    const onScroll = () => {
-      if (navRef.current) {
-        navRef.current.classList.toggle("scrolled", window.scrollY > 40);
-      }
-    };
-    window.addEventListener("scroll", onScroll);
+    fetch("/api/dashboard/public-stats").then(r => r.json()).then(setStats).catch(() => {});
+  }, []);
 
+  useEffect(() => {
     const reveals = document.querySelectorAll(".landing-page .reveal");
     const revealElements = () => {
       reveals.forEach((item) => {
@@ -29,41 +30,13 @@ export default function LandingPage() {
     revealElements();
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("scroll", revealElements);
     };
   }, []);
 
   return (
     <div className="landing-page">
-      {/* Public Navbar - Landing only */}
-      <nav className="navbar" ref={navRef}>
-        <div className="nav-left">
-          <Link to="/" className="logo"><img src="/image/logo3.png" alt="Everest" /></Link>
-          <LanguageToggle minimal />
-        </div>
-        <div className="nav-right">
-          <div className="auth-buttons">
-            <Link to="/login" className="login-btn">{t("تسجيل الدخول", "Login")}</Link>
-            <Link to="/register" className="signup-btn">{t("إنشاء حساب", "Sign Up")}</Link>
-          </div>
-          <button className="menu-btn" onClick={() => setMenuOpen(true)} aria-label="menu">
-            <i className="fa-solid fa-bars"></i>
-          </button>
-        </div>
-      </nav>
-      {/* Mobile Menu */}
-      <div className={`menu-overlay${menuOpen ? " active" : ""}`} onClick={() => setMenuOpen(false)}></div>
-      <div className={`mobile-menu${menuOpen ? " active" : ""}`}>
-        <div className="mobile-header">
-          <h2>Everest</h2>
-          <button onClick={() => setMenuOpen(false)}>&times;</button>
-        </div>
-        <div className="mobile-auth" style={{marginTop:20}}>
-          <Link to="/login" className="mobile-login-btn" onClick={() => setMenuOpen(false)}>{t("تسجيل الدخول", "Login")}</Link>
-          <Link to="/register" className="mobile-signup-btn" onClick={() => setMenuOpen(false)}>{t("إنشاء حساب", "Sign Up")}</Link>
-        </div>
-      </div>
+      <PublicNavbar />
 
       {/* Hero */}
       <section className="hero-section">
@@ -116,54 +89,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="features">
-        <div className="feature-card">
-          <span className="line"></span>
-          <i className="fa-solid fa-arrow-up-down icon"></i>
-          <p className="small-title">{t("بدون رسوم تبييت", "NO ROLLOVER FEES")}</p>
-          <h3>0 Swap</h3>
-          <p className="desc">{t("تداول بدون رسوم تبييت على جميع الأدوات، إلى الأبد.", "Trade without swap fees, on all instruments, forever.")}</p>
-        </div>
-        <div className="feature-card">
-          <span className="line"></span>
-          <i className="fa-solid fa-mountain icon"></i>
-          <p className="small-title">{t("رافعة مالية عالية", "HIGH LEVERAGE")}</p>
-          <h3>1:Unlimited</h3>
-          <p className="desc">{t("رافعة مالية مرنة تناسب أي أسلوب تداول.", "Flexible leverage to suit any trading style.")}</p>
-        </div>
-        <div className="feature-card">
-          <span className="line"></span>
-          <i className="fa-solid fa-shield icon"></i>
-          <p className="small-title">{t("رأس المال", "CAPITAL")}</p>
-          <h3>$120M+</h3>
-          <p className="desc">{t("انضم إلى الملايين الذين يثقون بنا في التداول الآمن.", "Join millions who trust us for secure trading.")}</p>
-        </div>
-        <div className="feature-card">
-          <span className="line"></span>
-          <i className="fa-solid fa-star icon"></i>
-          <p className="small-title">{t("تطبيق تداول", "TRADING APP")}</p>
-          <h3>5* Rated</h3>
-          <p className="desc">{t("تطبيق حائز على جوائز للهواتف والأجهزة اللوحية.", "Award-winning app for mobiles and tablets.")}</p>
-        </div>
-        <div className="feature-card featured">
-          <span className="line"></span>
-          <div className="top-row">
-            <span className="badge">{t("عرض جديد", "New Offering")}</span>
-            <i className="fa-solid fa-sliders icon"></i>
-          </div>
-          <p className="small-title">{t("إيقاف الخسائر", "STOP OUT")}</p>
-          <h3>0%</h3>
-          <p className="desc">{t("حافظ على صفقاتك مفتوحة لفترة أطول بمرونة أكبر.", "Keep your trades open longer with more flexibility.")}</p>
-        </div>
-        <div className="feature-card">
-          <span className="line"></span>
-          <i className="fa-solid fa-headset icon"></i>
-          <p className="small-title">{t("دعم مخصص", "DEDICATED SUPPORT")}</p>
-          <h3>24/5</h3>
-          <p className="desc">{t("نحن هنا كلما احتجت إلينا.", "We are here whenever you need us.")}</p>
-        </div>
-      </section>
+
 
       {/* CTA */}
       <section className="cta-section">
@@ -206,9 +132,9 @@ export default function LandingPage() {
           </div>
           <div className="stat-card">
             <i className="fa-solid fa-star"></i>
-            <h2 className="stat-number">5-star</h2>
-            <h3 className="stat-title">{t("خدمة العملاء", "Customer Service")}</h3>
-            <p className="stat-desc">{t("فريق دعم متعدد اللغات متاح 24/5 بجودة خدمة استثنائية.", "Multilingual support team available 24/5 with exceptional service quality.")}</p>
+            <h2 className="stat-number">{stats.totalFeedbacks >= 5 ? `${(stats.satisfactionRate / 20).toFixed(1)} ★` : "5-star"}</h2>
+            <h3 className="stat-title">{stats.totalFeedbacks >= 5 ? t("تقييم المنصة", "Platform Rating") : t("خدمة العملاء", "Customer Service")}</h3>
+            <p className="stat-desc">{stats.totalFeedbacks >= 5 ? t(`متوسط ${stats.totalFeedbacks} تقييم من الطلاب`, `Average of ${stats.totalFeedbacks} student reviews`) : t("فريق دعم متعدد اللغات متاح 24/5 بجودة خدمة استثنائية.", "Multilingual support team available 24/5 with exceptional service quality.")}</p>
           </div>
           <div className="stat-card">
             <i className="fa-solid fa-award"></i>
@@ -218,7 +144,7 @@ export default function LandingPage() {
           </div>
           <div className="stat-card">
             <i className="fa-solid fa-user"></i>
-            <h2 className="stat-number">17,200,000</h2>
+            <h2 className="stat-number">{stats.totalMembers >= 100 ? stats.totalMembers.toLocaleString() : "1,000"}</h2>
             <h3 className="stat-title">{t("حسابات العملاء", "Client Accounts")}</h3>
             <p className="stat-desc">{t("تقديم خدمات التداول عبر الإنترنت منذ 1999 في أكثر من 170 دولة.", "Providing online trading services since 1999 across 170+ countries.")}</p>
           </div>
@@ -227,30 +153,32 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="footer">
-        <div className="footer-top">
-          <p>{t("تحتاج مساعدة؟ تفضل بزيارة", "Need Help? Visit our")} <a href="#">{t("قسم المساعدة", "Help Section")}</a></p>
-        </div>
+       
         <div className="footer-middle">
           <div className="brand">
-            <h3>F</h3>
+            <h3>E</h3>
             <span>{t("© 1999 - 2026 Everest Academy", "© 1999 - 2026 Everest Academy")}</span>
           </div>
-          <div className="social">
-            <a href="#">f</a>
-            <a href="#">in</a>
-            <a href="#">▶</a>
-            <a href="#">✈</a>
-            <a href="#">𝕏</a>
-            <a href="#">◎</a>
+          <div className="social" style={{display:"flex",gap:16,justifyContent:"center",alignItems:"center"}}>
+            <a href="#" style={{width:48,height:48,borderRadius:"50%",background:"linear-gradient(135deg,#0088cc,#005f8f)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",textDecoration:"none",fontSize:20,transition:"transform .2s,box-shadow .2s",boxShadow:"0 4px 15px rgba(0,136,204,.4)"}}
+              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px) scale(1.1)";e.currentTarget.style.boxShadow="0 8px 25px rgba(0,136,204,.6)";}}
+              onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 15px rgba(0,136,204,.4)";}}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.504-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+            </a>
+            <a href="#" style={{width:48,height:48,borderRadius:"50%",background:"linear-gradient(135deg,#E1306C,#F77737,#FCAF45)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",textDecoration:"none",fontSize:20,transition:"transform .2s,box-shadow .2s",boxShadow:"0 4px 15px rgba(225,48,108,.4)"}}
+              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px) scale(1.1)";e.currentTarget.style.boxShadow="0 8px 25px rgba(225,48,108,.6)";}}
+              onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 15px rgba(225,48,108,.4)";}}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="#fff" stroke="none"/></svg>
+            </a>
+            <a href="#" style={{width:48,height:48,borderRadius:"50%",background:"linear-gradient(135deg,#010101,#333)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",textDecoration:"none",fontSize:20,transition:"transform .2s,box-shadow .2s",boxShadow:"0 4px 15px rgba(0,0,0,.4)"}}
+              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px) scale(1.1)";e.currentTarget.style.boxShadow="0 8px 25px rgba(0,0,0,.6)";}}
+              onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 15px rgba(0,0,0,.4)";}}>
+              <svg width="20" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.88-2.88 2.89 2.89 0 012.88-2.89c.3 0 .59.04.86.12V9.01a6.28 6.28 0 00-.86-.06 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V8.86a8.21 8.21 0 004.86 1.56V6.97a4.84 4.84 0 01-1.1-.28z"/></svg>
+            </a>
           </div>
         </div>
-        <div className="footer-bottom">
-          <p>
-            {t("المزيد من طرق التواصل:", "More ways to reach us:")}
-            <a href="#"></a>,
-            {t("اتصل", "call")} +44 (0) 20 7776 9720 (24/5)
-            <a href="#"></a>
-          </p>
+        <div className="footer-bottom" style={{textAlign:"center",display:"block",padding:"20px"}}>
+          <CustomerServiceFooter />
         </div>
       </footer>
 
@@ -263,49 +191,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* AI Chat */}
-      <div className="everest-ai-system">
-        <div className="ai-chat-trigger" id="chatTrigger" onClick={() => setChatOpen(true)}>
-          <div className="ai-ring"></div>
-          <div className="ai-core">
-            <span>AI</span>
-          </div>
+     
         </div>
-        <div className={`ai-chat-window${chatOpen ? "" : ""}`} id="chatWindow" style={{ display: chatOpen ? "flex" : "none" }}>
-          <div className="chat-header">
-            <button className="chat-close-btn" id="chatClose" title={t("إغلاق", "Close")} onClick={() => setChatOpen(false)}>
-              <svg viewBox="0 0 24 24">
-                <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" />
-              </svg>
-            </button>
-            <div className="chat-header-profile">
-              <div className="chat-info" style={{ textAlign: "left", marginRight: 10 }}>
-                <h5>{t("مساعد إيفرست الذكي", "Everest AI Assistant")}</h5>
-                <span>{t("متصل الآن", "Online Now")}</span>
-              </div>
-              <div className="cute-robot-icon" style={{ transform: "scale(0.9)" }}>
-                <div className="robot-eye"></div>
-                <div className="robot-eye"></div>
-              </div>
-            </div>
-          </div>
-          <div className="chat-body">
-            <div className="chat-bubble ai">
-              {t("مرحباً بك في Everest Academy! أنا مستشارك هنا لمساعدتك في خطة التسجيل وتوجيهك لمسارك المالي. اسألني عن أي شيء!", "Welcome to Everest Academy! I am your advisor here to help you with your registration plan and guide you on your financial path. Ask me anything!")}
-            </div>
-          </div>
-          <div className="chat-footer">
-            <div className="chat-footer-input-wrapper">
-              <input type="text" placeholder={t("اكتبي سؤالكِ هنا...", "Type your question here...")} id="chatInput" />
-              <button className="chat-send-arrow" id="sendMessageBtn">
-                <svg viewBox="0 0 24 24">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    
   );
 }

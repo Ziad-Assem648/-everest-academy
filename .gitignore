@@ -9,3 +9,4 @@ help
 help-wal
 .vscode/
 pro/
+*.log

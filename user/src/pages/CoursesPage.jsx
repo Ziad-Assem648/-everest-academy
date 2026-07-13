@@ -5,9 +5,20 @@ import { useLang } from "../LangContext";
 import { api } from "../App";
 import AppNavbar from "../components/AppNavbar";
 
+const useIsMobile = () => {
+  const [m, setM] = useState(typeof window !== "undefined" && window.innerWidth <= 768);
+  useEffect(() => {
+    const h = () => setM(window.innerWidth <= 768);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+  return m;
+};
+
 export default function CoursesPage() {
   const { t, dir } = useLang();
   const { user, logout } = useAuth();
+  const m = useIsMobile();
   const nav = useNavigate();
   const loc = useLocation();
   const [courses, setCourses] = useState([]);
@@ -49,7 +60,7 @@ export default function CoursesPage() {
       <AppNavbar />
 
       {/* Search & Filters */}
-      <div style={{maxWidth:1200,margin:"25px auto 0",padding:"0 20px"}}>
+      <div style={{maxWidth:1200,margin:m?"16px auto 0":"25px auto 0",padding:m?"0 14px":"0 20px"}}>
         <div className="courses-search">
           <span className="search-icon">🔍</span>
           <input type="text" placeholder={t("ابحث عن مسارك التعليمي الفاخر هنا..", "Search your luxury learning path here..")} value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -73,15 +84,18 @@ export default function CoursesPage() {
               }).map((c) => (
                 <div key={c.id} className="luxury-card">
                   <div className="card-img">
-                    {c.is_free && <span className="card-free">{t("أول جلستين مجاناً", "First 2 Sessions Free")}</span>}
                     {c.featured_image ? <img src={c.featured_image} alt="" /> : <div style={{height:"100%",display:"flex",alignItems:"center",justifyContent:"center",color:"#333",fontSize:40}}>📚</div>}
                   </div>
                   <div className="card-body">
                     <h3 onClick={() => setModal(c)}>{c.title_ar || c.title}</h3>
                     <p className="card-desc">{c.description_ar || c.description || ""}</p>
                     <div className="card-specs">
-                      <span><span style={{marginLeft:3}}>🎬</span> {t("جلستين مجاناً", "2 Free Sessions")}</span>
-                      <span><span style={{marginLeft:3}}>⏱</span> {c.lesson_count || 0} {t("دروس", "Lessons")}</span>
+                      <span><span style={{marginLeft:3}}>🎬</span> {c.lesson_count || 0} {t("دروس", "Lessons")}</span>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:8,flexWrap:"wrap",gap:6}}>
+                      <span style={{fontWeight:800,fontSize:15,color:"#d4af37"}}>{Number(c.price).toLocaleString()} E-Money</span>
+                      {c.price_egp > 0 && <span style={{fontWeight:700,fontSize:13,color:"#d4af37",opacity:.7}}>{Number(c.price_egp).toLocaleString()} {t("ج.م", "EGP")}</span>}
+                      {c.avg_rating > 0 && <span style={{fontSize:12,color:"#f59e0b",fontWeight:600}}>⭐ {c.avg_rating} <span style={{color:"#9a95b0",fontWeight:400}}>({c.review_count})</span></span>}
                     </div>
                     <div className="card-actions">
                       <button className="ux-btn ux-btn-outline" onClick={() => setModal(c)}>{t("معاينة", "Preview")}</button>
@@ -106,15 +120,18 @@ export default function CoursesPage() {
                   {secCourses.map((c) => (
                     <div key={c.id} className="luxury-card">
                       <div className="card-img">
-                        {c.is_free && <span className="card-free">{t("أول جلستين مجاناً", "First 2 Sessions Free")}</span>}
                         {c.featured_image ? <img src={c.featured_image} alt="" /> : <div style={{height:"100%",display:"flex",alignItems:"center",justifyContent:"center",color:"#333",fontSize:40}}>📚</div>}
                       </div>
                       <div className="card-body">
                         <h3 onClick={() => setModal(c)}>{c.title_ar || c.title}</h3>
                         <p className="card-desc">{c.description_ar || c.description || ""}</p>
                         <div className="card-specs">
-                          <span><span style={{marginLeft:3}}>🎬</span> {t("جلستين مجاناً", "2 Free Sessions")}</span>
-                          <span><span style={{marginLeft:3}}>⏱</span> {c.lesson_count || 0} {t("دروس", "Lessons")}</span>
+                          <span><span style={{marginLeft:3}}>🎬</span> {c.lesson_count || 0} {t("دروس", "Lessons")}</span>
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:8,flexWrap:"wrap",gap:6}}>
+                          <span style={{fontWeight:800,fontSize:15,color:"#d4af37"}}>{Number(c.price).toLocaleString()} E-Money</span>
+                          {c.price_egp > 0 && <span style={{fontWeight:700,fontSize:13,color:"#d4af37",opacity:.7}}>{Number(c.price_egp).toLocaleString()} {t("ج.م", "EGP")}</span>}
+                          {c.avg_rating > 0 && <span style={{fontSize:12,color:"#f59e0b",fontWeight:600}}>⭐ {c.avg_rating} <span style={{color:"#9a95b0",fontWeight:400}}>({c.review_count})</span></span>}
                         </div>
                         <div className="card-actions">
                           <button className="ux-btn ux-btn-outline" onClick={() => setModal(c)}>{t("معاينة", "Preview")}</button>
@@ -153,35 +170,8 @@ export default function CoursesPage() {
         )}
       </div>
 
-      {/* AI Chat Trigger */}
-      <div className="ai-trigger" id="chatTrigger" onClick={() => document.getElementById("chatWindow").classList.toggle("open")}>
-        <div className="ai-ring"></div>
-        <div className="ai-core"><span>AI</span></div>
-      </div>
-      <div className="ai-window" id="chatWindow">
-        <div className="ai-header">
-          <button className="ai-close" onClick={() => document.getElementById("chatWindow").classList.remove("open")}>
-            <svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
-          </button>
-          <div className="ai-header-info">
-            <div style={{textAlign:"left",marginRight:10}}>
-              <h5>{t("مساعد إيفرست الذكي", "Everest AI Assistant")}</h5>
-              <span>{t("متصل الآن", "Online Now")}</span>
-            </div>
-          </div>
-        </div>
-        <div className="ai-body">
-          <div className="ai-bubble bot">{t("مرحباً بك في Everest Academy! أنا مستشارك هنا لمساعدتك في خطة التسجيل وتوجيهك لمسارك المالي. اسألني عن أي شيء!", "Welcome to Everest Academy! I'm your consultant here to help you with the registration plan and guide you to your financial path. Ask me anything!")}</div>
-        </div>
-        <div className="ai-footer">
-          <div className="ai-input-wrap">
-            <input type="text" placeholder={t("اكتبي سؤالك هنا...", "Type your question here...")} />
-            <button className="ai-send">
-              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
+    
+ 
     </div>
   );
 }

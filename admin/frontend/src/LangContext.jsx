@@ -5,7 +5,10 @@ const LangContext = createContext();
 export function LangProvider({ children }) {
   const [lang, setLang] = useState("ar");
   const toggle = () => setLang((l) => (l === "ar" ? "en" : "ar"));
-  return <LangContext.Provider value={{ lang, setLang, toggle }}>{children}</LangContext.Provider>;
+
+  const t = (ar, en) => lang === "ar" ? ar : en;
+
+  return <LangContext.Provider value={{ lang, setLang, toggle, t }}>{children}</LangContext.Provider>;
 }
 
 export function useLang() {

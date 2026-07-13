@@ -3,7 +3,7 @@ import { queryOne } from "../db.js";
 export default async function sessionAuth(req, res, next) {
   // Since this middleware is mounted at /api, req.path is relative to /api
   // e.g. a request to /api/auth/login gives req.path = /auth/login
-  const publicPaths = ["/auth/login", "/auth/register", "/chat", "/payment-gateways/active", "/upload"];
+  const publicPaths = ["/auth/login", "/auth/register", "/chat", "/payment-gateways/active", "/upload", "/admin-auth", "/settings"];
   if (publicPaths.some(p => req.path.startsWith(p))) return next();
   if (req.path.startsWith("/courses") || req.path.startsWith("/ranks") || req.path.startsWith("/leaders")) {
     if (req.method === "GET") return next();

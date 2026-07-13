@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-
-const api = (path, opts = {}) =>
-  fetch(path, { headers: { "Content-Type": "application/json" }, ...opts }).then((r) => r.json());
+import { useLang } from "../LangContext";
+import { api } from "../api.js";
 
 export default function StudentListPage() {
+  const { lang, t: tFn } = useLang();
+  const t = (ar, en) => tFn(ar, en);
   const [students, setStudents] = useState([]);
 
   useEffect(() => {
@@ -12,13 +13,13 @@ export default function StudentListPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">🎓 قائمة الطلاب</h2>
+      <h2 className="text-2xl font-bold mb-6">{t("🎓 قائمة الطلاب", "🎓 Student List")}</h2>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <div className="p-4 border-b bg-gray-50 flex items-center gap-3 flex-wrap">
-          <input type="text" placeholder="بحث..." className="px-4 py-2 border rounded-lg text-sm flex-1 min-w-[150px]" />
+          <input type="text" placeholder={t("بحث...", "Search...")} className="px-4 py-2 border rounded-lg text-sm flex-1 min-w-[150px]" />
           <select className="px-4 py-2 border rounded-lg text-sm bg-white">
-            <option>كل الرتب</option>
+            <option>{t("كل الرتب", "All Ranks")}</option>
             <option>Star</option>
             <option>Executive</option>
             <option>Gold</option>
@@ -39,26 +40,26 @@ export default function StudentListPage() {
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs border-t pt-3">
                 <div>
-                  <span className="text-gray-400">الرتبة:</span>
+                  <span className="text-gray-400">{t("الرتبة:", "Rank:")}</span>
                   <span className="mr-1 font-medium">⭐ {s.rank}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400">الرصيد:</span>
+                  <span className="text-gray-400">{t("الرصيد:", "Balance:")}</span>
                   <span className="mr-1 font-medium text-green-600">{s.e_money}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400">الرجوع:</span>
+                  <span className="text-gray-400">{t("الرجوع:", "Referral:")}</span>
                   <span className="mr-1 font-medium">{s.referral_code || "—"}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400">مباشر:</span>
+                  <span className="text-gray-400">{t("مباشر:", "Directs:")}</span>
                   <span className="mr-1 font-medium">{s.direct_count || 0}</span>
                 </div>
               </div>
             </div>
           ))}
           {students.length === 0 && (
-            <div className="col-span-full text-center text-gray-400 py-8">لا يوجد طلاب</div>
+            <div className="col-span-full text-center text-gray-400 py-8">{t("لا يوجد طلاب", "No students")}</div>
           )}
         </div>
       </div>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { useTheme } from "../ThemeContext";
+import { useLang } from "../LangContext";
 
 const api2 = async (path, opts = {}) => {
   const headers = { "Content-Type": "application/json" };
@@ -16,12 +18,14 @@ export default function VodafoneCashPurchasePage() {
   const { id } = useParams();
   const { user } = useAuth();
   const nav = useNavigate();
+  const { t } = useLang();
   const [course, setCourse] = useState(null);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState("");
   const [gateways, setGateways] = useState([]);
+  const { colors: c } = useTheme();
 
   useEffect(() => {
     api2(`/api/courses/${id}`).then(setCourse).catch(() => nav("/courses"));
@@ -41,14 +45,14 @@ export default function VodafoneCashPurchasePage() {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!file) { setErr("من فضلك اختر صورة التحويل"); return; }
+    if (!file) { setErr(t("من فضلك اختر صورة التحويل", "Please select transfer image")); return; }
     setUploading(true); setErr("");
 
     try {
       const formData = new FormData();
       formData.append("file", file);
       const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
-      if (!uploadRes.ok) throw new Error("فشل رفع الصورة");
+      if (!uploadRes.ok) throw new Error(t("فشل رفع الصورة", "Image upload failed"));
       const { url } = await uploadRes.json();
 
       await api2(`/api/courses/${id}/purchase`, {
@@ -58,26 +62,26 @@ export default function VodafoneCashPurchasePage() {
 
       setDone(true);
     } catch (e) {
-      setErr(e.message || "حدث خطأ أثناء عملية الشراء");
+      setErr(e.message || t("حدث خطأ أثناء عملية الشراء", "An error occurred during purchase"));
     }
     setUploading(false);
   };
 
-  if (!course) return <div className="courses-body" style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><p style={{color:"#9a95b0"}}>Loading...</p></div>;
+  if (!course) return <div className="courses-body" style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><p style={{color:c.textSoft}}>{t("جاري التحميل...", "Loading...")}</p></div>;
 
   if (done) return (
     <div className="courses-body" style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
       <div style={{textAlign:"center",padding:40}}>
         <p style={{fontSize:60,marginBottom:16}}>✅</p>
-        <h2 style={{color:"#fff",marginBottom:8}}>{err === "existing" ? "أنت مسجل بالفعل" : "تم إرسال طلب الشراء"}</h2>
-        <p style={{color:"#9a95b0",marginBottom:20}}>{err === "existing" ? "هذا الكورس مسجل لك بالفعل أو في انتظار الموافقة." : "في انتظار موافقة الادمن. سيتم تفعيل الكورس بعد التأكد من الدفع."}</p>
-        <Link to="/courses" style={{padding:"12px 24px",background:"linear-gradient(135deg,#b38728,#e2c275)",borderRadius:12,color:"#05030a",fontWeight:700,textDecoration:"none"}}>العودة للكورسات</Link>
+        <h2 style={{color:c.text,marginBottom:8}}>{err === "existing" ? t("أنت مسجل بالفعل", "Already Enrolled") : t("تم إرسال طلب الشراء", "Purchase Request Sent")}</h2>
+        <p style={{color:c.textSoft,marginBottom:20}}>{err === "existing" ? t("هذا الكورس مسجل لك بالفعل أو في انتظار الموافقة.", "You are already enrolled or awaiting approval.") : t("في انتظار موافقة الادمن. سيتم تفعيل الكورس بعد التأكد من الدفع.", "Waiting for admin approval. Course will be activated after payment confirmation.")}</p>
+        <Link to="/courses" style={{padding:"12px 24px",background:"linear-gradient(135deg,#b38728,#e2c275)",borderRadius:12,color:"#05030a",fontWeight:700,textDecoration:"none"}}>{t("العودة للكورسات", "Back to Courses")}</Link>
       </div>
     </div>
   );
 
   return (
-    <div className="courses-body">
+    <div className="courses-body" style={{background:c.bg}}>
       <header className="courses-header">
         <div className="courses-nav">
           <Link to={`/courses/${id}`} className="courses-brand"><h1>EVEREST ACADEMY</h1></Link>
@@ -85,27 +89,27 @@ export default function VodafoneCashPurchasePage() {
       </header>
 
       <main className="courses-main" style={{maxWidth:600,margin:"0 auto",padding:"40px 0"}}>
-        <div style={{background:"rgba(20,16,36,.6)",border:"1px solid rgba(255,255,255,.05)",borderRadius:20,padding:30}}>
-          <h2 style={{color:"#e2c275",fontSize:20,marginBottom:20,textAlign:"center"}}>💳 شراء الكورس عبر فودافون كاش</h2>
+        <div style={{background:"rgba(20,16,36,.6)",border:`1px solid ${c.border}`,borderRadius:20,padding:30}}>
+          <h2 style={{color:"#e2c275",fontSize:20,marginBottom:20,textAlign:"center"}}>{t("💳 شراء الكورس عبر فودافون كاش", "💳 Purchase via Vodafone Cash")}</h2>
 
-          <div style={{background:"rgba(255,255,255,.03)",borderRadius:14,padding:20,marginBottom:24}}>
-            <p style={{color:"#fff",fontWeight:700,fontSize:16,marginBottom:8}}>{course.title_ar || course.title}</p>
-            <p style={{color:"#e2c275",fontSize:24,fontWeight:800}}>{course.price} EGP</p>
+          <div style={{background:c.bgCard,borderRadius:14,padding:20,marginBottom:24}}>
+            <p style={{color:c.text,fontWeight:700,fontSize:16,marginBottom:8}}>{course.title_ar || course.title}</p>
+            <p style={{color:"#e2c275",fontSize:24,fontWeight:800}}>{course.price} E-Money{course.price_egp > 0 ? ` / ${course.price_egp} ج.م` : ""}</p>
           </div>
 
           <div style={{background:"rgba(254,212,0,.06)",border:"1px solid rgba(254,212,0,.15)",borderRadius:14,padding:16,marginBottom:24}}>
-            <p style={{color:"#fed400",fontSize:13,fontWeight:700,marginBottom:6}}>📱 بيانات الدفع عبر فودافون كاش:</p>
-            <p style={{color:"#9a95b0",fontSize:14}}>يرجى تحويل المبلغ إلى أحد الأرقام التالية ثم رفع صورة التحويل:</p>
+            <p style={{color:"#fed400",fontSize:13,fontWeight:700,marginBottom:6}}>{t("📱 بيانات الدفع عبر فودافون كاش:", "📱 Vodafone Cash Payment Info:")}</p>
+            <p style={{color:"#9a95b0",fontSize:14}}>{t("يرجى تحويل المبلغ إلى أحد الأرقام التالية ثم رفع صورة التحويل:", "Please transfer to one of the following numbers then upload proof:")}</p>
             {gateways.length > 0 ? gateways.map((g, i) => (
-              <div key={g.id} style={{background:"rgba(255,255,255,.03)",borderRadius:10,padding:"10px 14px",marginTop:8}}>
+              <div key={g.id} style={{background:c.bgCard,borderRadius:10,padding:"10px 14px",marginTop:8}}>
                 {g.label && <p style={{color:"#9a95b0",fontSize:12,marginBottom:2}}>{g.label}</p>}
-                <p style={{color:"#fff",fontSize:20,fontWeight:800,letterSpacing:1,direction:"ltr",textAlign:"center"}}>{g.value}</p>
+                <p style={{color:c.text,fontSize:20,fontWeight:800,letterSpacing:1,direction:"ltr",textAlign:"center"}}>{g.value}</p>
               </div>
             )            ) : (
               <div style={{textAlign:"center",padding:20}}>
                 <p style={{fontSize:40,marginBottom:8}}>⚠️</p>
-                <p style={{color:"#ff5b5b",fontSize:14,fontWeight:600}}>هذه الخدمة غير متوفرة حالياً</p>
-                <p style={{color:"#9a95b0",fontSize:13,marginTop:4}}>لم يتم إضافة وسيلة دفع فودافون كاش بعد. يرجى التواصل مع الإدارة.</p>
+                <p style={{color:"#ff5b5b",fontSize:14,fontWeight:600}}>{t("هذه الخدمة غير متوفرة حالياً", "This service is currently unavailable")}</p>
+                <p style={{color:"#9a95b0",fontSize:13,marginTop:4}}>{t("لم يتم إضافة وسيلة دفع فودافون كاش بعد. يرجى التواصل مع الإدارة.", "Vodafone Cash payment not added yet. Please contact support.")}</p>
               </div>
             )}
           </div>
@@ -115,23 +119,23 @@ export default function VodafoneCashPurchasePage() {
           {gateways.length > 0 && (
             <form onSubmit={handleUpload}>
               <div style={{marginBottom:20}}>
-                <label style={{color:"#9a95b0",fontSize:13,display:"block",marginBottom:8}}>صورة التحويل (Screenshot):</label>
-                <div style={{border:"2px dashed rgba(255,255,255,.1)",borderRadius:14,padding:20,textAlign:"center",cursor:"pointer",background:"rgba(255,255,255,.02)"}}
+                <label style={{color:"#9a95b0",fontSize:13,display:"block",marginBottom:8}}>{t("صورة التحويل (Screenshot):", "Transfer Screenshot:")}</label>
+                <div style={{border:`2px dashed ${c.border}`,borderRadius:14,padding:20,textAlign:"center",cursor:"pointer",background:c.bgCard}}
                   onClick={() => document.getElementById("proofInput").click()}>
                   <p style={{fontSize:40,marginBottom:8}}>📸</p>
-                  <p style={{color:"#9a95b0",fontSize:13}}>{file ? file.name : "اضغط لاختيار صورة التحويل"}</p>
+                  <p style={{color:"#9a95b0",fontSize:13}}>{file ? file.name : t("اضغط لاختيار صورة التحويل", "Click to select transfer image")}</p>
                 </div>
                 <input id="proofInput" type="file" accept="image/*" style={{display:"none"}} onChange={(e) => setFile(e.target.files[0])} />
               </div>
 
               <button type="submit" disabled={uploading}
                 style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#b38728,#e2c275)",border:"none",borderRadius:14,color:"#05030a",fontWeight:800,fontSize:16,cursor:"pointer",opacity:uploading?0.6:1}}>
-                {uploading ? "جاري رفع الصورة..." : "تأكيد الدفع وإرسال الطلب"}
+                {uploading ? t("جاري رفع الصورة...", "Uploading image...") : t("تأكيد الدفع وإرسال الطلب", "Confirm Payment & Submit")}
               </button>
             </form>
           )}
 
-          <Link to={`/courses/${id}`} style={{display:"block",textAlign:"center",marginTop:16,color:"#9a95b0",fontSize:13}}>الرجوع</Link>
+          <Link to={`/courses/${id}`} style={{display:"block",textAlign:"center",marginTop:16,color:"#9a95b0",fontSize:13}}>{t("الرجوع", "Go Back")}</Link>
         </div>
       </main>
     </div>

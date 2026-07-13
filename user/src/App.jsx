@@ -2,6 +2,8 @@ import React from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { LangProvider, useLang } from "./LangContext";
+import { ThemeProvider } from "./ThemeContext";
+import ScreenProtection from "./components/ScreenProtection";
 import LandingPage from "./pages/LandingPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -15,7 +17,11 @@ import AffiliatePage from "./pages/AffiliatePage";
 import AdminEnrollmentsPage from "./pages/AdminEnrollmentsPage";
 import AdminPage from "./pages/AdminPage";
 import FeedbackPage from "./pages/FeedbackPage";
+import AddFeedbackPage from "./pages/AddFeedbackPage";
+import PublicFeedbackPage from "./pages/PublicFeedbackPage";
 import AboutPage from "./pages/AboutPage";
+import FreeCoursesPage from "./pages/FreeCoursesPage";
+import FreeCourseViewPage from "./pages/FreeCourseViewPage";
 import PaymentPage from "./pages/PaymentPage";
 import CardPaymentPage from "./pages/CardPaymentPage";
 import InstaPayPage from "./pages/InstaPayPage";
@@ -25,6 +31,7 @@ import InstapayPurchasePage from "./pages/InstapayPurchasePage";
 import TopUpPage from "./pages/TopUpPage";
 import MyCoursesPage from "./pages/MyCoursesPage";
 import TopSallerPage from "./pages/TopSallerPage";
+import PendingActivationPage from "./pages/PendingActivationPage";
 
 const api = async (path, opts = {}) => {
   const headers = { "Content-Type": "application/json" };
@@ -60,6 +67,8 @@ export default function App() {
   return (
     <AuthProvider>
       <LangProvider>
+      <ThemeProvider>
+      <ScreenProtection />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/home" element={<HomePage />} />
@@ -68,12 +77,15 @@ export default function App() {
         <Route path="/dashboard" element={<Guard><DashboardPage /></Guard>} />
         <Route path="/courses" element={<Guard><CoursesPage /></Guard>} />
         <Route path="/my-courses" element={<Guard><MyCoursesPage /></Guard>} />
-        <Route path="/courses/:id" element={<Guard><CourseViewPage /></Guard>} />
+        <Route path="/courses/:id" element={<CourseViewPage />} />
         <Route path="/profile" element={<Guard><ProfilePage /></Guard>} />
         <Route path="/rankings" element={<Guard><RankingsPage /></Guard>} />
         <Route path="/affiliate" element={<Guard><AffiliatePage /></Guard>} />
         <Route path="/about" element={<AboutPage />} />
-        <Route path="/feedback" element={<FeedbackPage />} />
+        <Route path="/free-courses" element={<FreeCoursesPage />} />
+        <Route path="/free-courses/:id" element={<FreeCourseViewPage />} />
+        <Route path="/feedback" element={<PublicFeedbackPage />} />
+        <Route path="/feedback/new" element={<Guard><AddFeedbackPage /></Guard>} />
         <Route path="/courses/:id/vodafone-cash" element={<Guard><VodafoneCashPurchasePage /></Guard>} />
         <Route path="/courses/:id/instapay" element={<Guard><InstapayPurchasePage /></Guard>} />
         <Route path="/topup" element={<Guard><TopUpPage /></Guard>} />
@@ -84,7 +96,9 @@ export default function App() {
         <Route path="/payment/card" element={<CardPaymentPage />} />
         <Route path="/payment/instapay" element={<InstaPayPage />} />
         <Route path="/payment/vodafone" element={<VodafoneCashPage />} />
+        <Route path="/pending-activation" element={<PendingActivationPage />} />
       </Routes>
+      </ThemeProvider>
       </LangProvider>
     </AuthProvider>
   );

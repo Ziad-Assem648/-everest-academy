@@ -200,9 +200,9 @@ router.post("/weekly-commission", async (req, res) => {
     if (existing)
       return res.status(400).json({ error: `Weekly commission already calculated for week ${weekStart} - ${weekEnd}` });
 
-    // Get all non-admin users
+    // Get all student accounts only (registration accounts don't participate in commissions)
     const users = await query(
-      "SELECT id, full_name, email, rank, direct_count, e_money FROM users WHERE role IN ('student','registration')"
+      "SELECT id, full_name, email, rank, direct_count, e_money FROM users WHERE role IN ('student','registration') AND account_type = 'student'"
     );
 
     const results = [];
@@ -222,16 +222,19 @@ router.post("/weekly-commission", async (req, res) => {
         continue;
       }
 
-      // Get all direct downlines
-      const directs = await query("SELECT id, rank FROM users WHERE referred_by = ?", [user.id]);
+      // Get ALL student team members (not just directs) from closure table
+      const allTeam = await query(
+        "SELECT u.id, u.rank FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type = 'student'",
+        [user.id, user.id]
+      );
 
-      // R2: Exclude downlines with higher rank than the user
+      // Count qualified: those with rank <= user's rank (not higher)
       let qualifiedDirects = 0;
       const excluded = [];
-      for (const d of directs) {
-        const dRank = allRanks.find(r => r.name === d.rank) || allRanks[0];
-        if (dRank.sort_order > userRank.sort_order) {
-          excluded.push({ id: d.id, rank: d.rank, reason: "higher_rank" });
+      for (const tm of allTeam) {
+        const tRank = allRanks.find(r => r.name === tm.rank) || allRanks[0];
+        if (tRank.sort_order > userRank.sort_order) {
+          excluded.push({ id: tm.id, rank: tm.rank, reason: "higher_rank" });
         } else {
           qualifiedDirects++;
         }
@@ -240,14 +243,15 @@ router.post("/weekly-commission", async (req, res) => {
       // Update qualified count
       await execute("UPDATE users SET qualified_direct_count = ? WHERE id = ?", [qualifiedDirects, user.id]);
 
-      // R3: Check if qualified directs meet rank's min_direct requirement
-      if (qualifiedDirects < userRank.min_direct) {
-        results.push({ user_id: user.id, rank: user.rank, eligible: false, reason: `qualified directs (${qualifiedDirects}) < min_direct (${userRank.min_direct})` });
+      // R3: Check if qualified team members meet rank's min_direct / sales_required
+      const minRequired = userRank.sales_required || userRank.min_direct || 5;
+      if (qualifiedDirects < minRequired) {
+        results.push({ user_id: user.id, rank: user.rank, eligible: false, reason: `qualified team (${qualifiedDirects}) < required (${minRequired})` });
         continue;
       }
 
       // Eligible: award the weekly bonus
-      const bonus = userRank.weekly_bonus;
+      const bonus = userRank.bonus || userRank.weekly_bonus || 0;
       const comId = uuidv4();
       await execute(
         "INSERT INTO weekly_commissions (id, user_id, rank_name, amount, week_start, week_end, status) VALUES (?, ?, ?, ?, ?, ?, 'paid')",
@@ -279,7 +283,7 @@ router.post("/weekly-commission", async (req, res) => {
         [nid, user.id, "🏆 عمولة أسبوعية", `ربحت ${bonus} E-Money كعمولة أسبوعية عن رتبة ${userRank.name}`]
       );
 
-      results.push({ user_id: user.id, rank: user.rank, eligible: true, bonus, qualifiedDirects, total_directs: user.direct_count, excluded: excluded.length });
+      results.push({ user_id: user.id, rank: user.rank, eligible: true, bonus, qualifiedDirects: qualifiedDirects, total_team: allTeam.length, total_directs: user.direct_count, excluded: excluded.length });
     }
 
     res.json({ weekStart, weekEnd, total_users: users.length, awarded: results.filter(r => r.eligible).length, results });
@@ -369,7 +373,7 @@ router.get("/leaderboard", async (req, res) => {
            COALESCE(r.weekly_bonus, 0) as weekly_bonus, COALESCE(r.sort_order, 0) as rank_order
     FROM users u
     LEFT JOIN ranks r ON u.rank = r.name
-    WHERE u.role != 'admin'
+    WHERE u.role != 'admin' AND u.account_type = 'student'
     ORDER BY r.sort_order DESC, u.total_team_sales DESC
     LIMIT 10
   `);
@@ -383,7 +387,7 @@ router.get("/leaderboard/all", async (req, res) => {
            COALESCE(r.weekly_bonus, 0) as weekly_bonus, COALESCE(r.sort_order, 0) as rank_order
     FROM users u
     LEFT JOIN ranks r ON u.rank = r.name
-    WHERE u.role != 'admin'
+    WHERE u.role != 'admin' AND u.account_type = 'student'
     ORDER BY r.sort_order DESC, u.total_team_sales DESC
   `);
   res.json(users);

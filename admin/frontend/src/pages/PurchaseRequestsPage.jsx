@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-
-const api = async (path, opts = {}) => {
-  const res = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-};
+import { useLang } from "../LangContext";
+import { api } from "../api.js";
 
 export default function PurchaseRequestsPage() {
+  const { lang, t: tFn } = useLang();
+  const t = (ar, en) => tFn(ar, en);
   const [requests, setRequests] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("pending");
@@ -20,7 +18,7 @@ export default function PurchaseRequestsPage() {
   };
 
   const reject = async (id) => {
-    if (!confirm("متأكد من رفض هذا الطلب؟")) return;
+    if (!confirm(t("متأكد من رفض هذا الطلب؟", "Are you sure you want to reject this request?"))) return;
     try { await api(`/api/courses/enrollments/${id}/reject`, { method: "PUT" }); load(); }
     catch (e) { alert(e.message); }
   };
@@ -31,32 +29,32 @@ export default function PurchaseRequestsPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">🛒 طلبات الشراء</h2>
+      <h2 className="text-2xl font-bold mb-6">{t("🛒 طلبات الشراء", "🛒 Purchase Requests")}</h2>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <div className="p-4 border-b bg-gray-50 flex items-center gap-3 flex-wrap">
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="بحث عن طالب..." className="px-4 py-2 border rounded-lg text-sm flex-1 min-w-[200px]" />
+            placeholder={t("بحث عن طالب...", "Search student...")} className="px-4 py-2 border rounded-lg text-sm flex-1 min-w-[200px]" />
           <select value={filter} onChange={(e) => { setFilter(e.target.value); load(e.target.value); }}
             className="px-4 py-2 border rounded-lg text-sm bg-white">
-            <option value="pending">قيد الانتظار</option>
-            <option value="approved">تم الموافقة</option>
-            <option value="rejected">مرفوض</option>
+            <option value="pending">{t("قيد الانتظار", "Pending")}</option>
+            <option value="approved">{t("تم الموافقة", "Approved")}</option>
+            <option value="rejected">{t("مرفوض", "Rejected")}</option>
           </select>
-          <button onClick={() => load()} className="px-4 py-2 bg-everest-600 text-white rounded-lg text-sm">بحث</button>
+          <button onClick={() => load()} className="px-4 py-2 bg-everest-600 text-white rounded-lg text-sm">{t("بحث", "Search")}</button>
         </div>
 
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 text-gray-600 text-xs uppercase">
-              <th className="p-3 text-right">الطالب</th>
-              <th className="p-3 text-right">الكورس</th>
-              <th className="p-3 text-right">السعر</th>
-              <th className="p-3 text-right">طريقة الدفع</th>
-              <th className="p-3 text-right">إثبات الدفع</th>
-              <th className="p-3 text-right">التاريخ</th>
-              <th className="p-3 text-right">الحالة</th>
-              <th className="p-3 text-right">إجراء</th>
+              <th className="p-3 text-right">{t("الطالب", "Student")}</th>
+              <th className="p-3 text-right">{t("الكورس", "Course")}</th>
+              <th className="p-3 text-right">{t("السعر", "Price")}</th>
+              <th className="p-3 text-right">{t("طريقة الدفع", "Payment Method")}</th>
+              <th className="p-3 text-right">{t("إثبات الدفع", "Payment Proof")}</th>
+              <th className="p-3 text-right">{t("التاريخ", "Date")}</th>
+              <th className="p-3 text-right">{t("الحالة", "Status")}</th>
+              <th className="p-3 text-right">{t("إجراء", "Action")}</th>
             </tr>
           </thead>
           <tbody>
@@ -90,17 +88,17 @@ export default function PurchaseRequestsPage() {
                     : r.status === "pending" ? "bg-yellow-100 text-yellow-700"
                     : "bg-red-100 text-red-700"
                   }`}>
-                    {r.status === "pending" ? "قيد الانتظار" : r.status === "approved" ? "تم الموافقة" : "مرفوض"}
+                    {r.status === "pending" ? t("قيد الانتظار", "Pending") : r.status === "approved" ? t("تم الموافقة", "Approved") : t("مرفوض", "Rejected")}
                   </span>
                 </td>
                 <td className="p-3">
                   {r.status === "pending" && (
                     <div className="flex gap-1">
                       <button onClick={() => approve(r.id)} className="px-3 py-1 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700">
-                        موافقة
+                        {t("موافقة", "Approve")}
                       </button>
                       <button onClick={() => reject(r.id)} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600">
-                        رفض
+                        {t("رفض", "Reject")}
                       </button>
                     </div>
                   )}
@@ -108,7 +106,7 @@ export default function PurchaseRequestsPage() {
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan="8" className="text-center text-gray-400 py-8">لا توجد طلبات</td></tr>
+              <tr><td colSpan="8" className="text-center text-gray-400 py-8">{t("لا توجد طلبات", "No requests")}</td></tr>
             )}
           </tbody>
         </table>

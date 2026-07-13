@@ -3,12 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../App";
 import { useLang } from "../LangContext";
 import LanguageToggle from "../components/LanguageToggle";
+import { useTheme } from "../ThemeContext";
 
 export default function AdminPage() {
   const { t, dir } = useLang();
   const nav = useNavigate();
   const [tab, setTab] = useState("stats");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { colors: c } = useTheme();
 
   const menuItems = [
     { id: "stats", label: t("الإحصائيات","Statistics"), icon: "📊" },
@@ -23,10 +25,10 @@ export default function AdminPage() {
   ];
 
   return (
-    <div style={{display:"flex",minHeight:"100vh",background:"#0b0a14",color:"#fff",direction:dir}}>
+    <div style={{display:"flex",minHeight:"100vh",background:c.bg,color:c.text,direction:dir}}>
       {/* Sidebar */}
-      <aside style={{width:sidebarOpen?260:70,background:"rgba(20,16,36,.9)",borderLeft:dir==="rtl"?"1px solid rgba(255,255,255,.05)":"none",borderRight:dir==="ltr"?"1px solid rgba(255,255,255,.05)":"none",transition:"0.3s",display:"flex",flexDirection:"column",flexShrink:0}}>
-        <div style={{padding:"20px 16px",borderBottom:"1px solid rgba(255,255,255,.05)",display:"flex",alignItems:"center",gap:10,justifyContent:sidebarOpen?"space-between":"center"}}>
+      <aside style={{width:sidebarOpen?260:70,background:"rgba(20,16,36,.9)",borderLeft:dir==="rtl"?`1px solid ${c.border}`:"none",borderRight:dir==="ltr"?`1px solid ${c.border}`:"none",transition:"0.3s",display:"flex",flexDirection:"column",flexShrink:0}}>
+        <div style={{padding:"20px 16px",borderBottom:`1px solid ${c.border}`,display:"flex",alignItems:"center",gap:10,justifyContent:sidebarOpen?"space-between":"center"}}>
           {sidebarOpen && <h1 style={{fontSize:18,fontWeight:800,background:"linear-gradient(135deg,#e2c275,#b38728)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>{t("Everest Admin","Everest Admin")}</h1>}
           <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{background:"none",border:"none",color:"#9a95b0",fontSize:20,cursor:"pointer"}}>{dir==="rtl"?(sidebarOpen?"◀":"▶"):(sidebarOpen?"▶":"◀")}</button>
         </div>
@@ -39,8 +41,8 @@ export default function AdminPage() {
             </button>
           ))}
         </nav>
-        <div style={{padding:"16px",borderTop:"1px solid rgba(255,255,255,.05)"}}>
-          <button onClick={() => nav("/dashboard")} style={{width:"100%",padding:"10px",background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.05)",borderRadius:10,color:"#9a95b0",fontSize:13,cursor:"pointer"}}>{dir==="rtl"?"← ":"→ "}{t("الرجوع للوحة التحكم","Back to Dashboard")}</button>
+        <div style={{padding:"16px",borderTop:`1px solid ${c.border}`}}>
+          <button onClick={() => nav("/dashboard")} style={{width:"100%",padding:"10px",background:c.bgCard,border:`1px solid ${c.border}`,borderRadius:10,color:"#9a95b0",fontSize:13,cursor:"pointer"}}>{dir==="rtl"?"← ":"→ "}{t("الرجوع للوحة التحكم","Back to Dashboard")}</button>
         </div>
       </aside>
 
@@ -66,6 +68,7 @@ export default function AdminPage() {
 /* ========== Stats Tab ========== */
 function StatsTab() {
   const { t } = useLang();
+  const { colors: c } = useTheme();
   const [stats, setStats] = useState(null);
   useEffect(() => { api("/api/dashboard/stats").then(setStats).catch(() => {}); }, []);
   if (!stats) return <p style={{color:"#9a95b0"}}>{t("جاري التحميل...","Loading...")}</p>;
@@ -80,11 +83,11 @@ function StatsTab() {
   return (<div>
     <h2 style={{color:"#e2c275",marginBottom:24,fontSize:22}}>📊 {t("الإحصائيات","Statistics")}</h2>
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16}}>
-      {cards.map((c,i) => (
-        <div key={i} style={{background:"rgba(20,16,36,.6)",border:"1px solid rgba(255,255,255,.05)",borderRadius:16,padding:24}}>
-          <div style={{fontSize:32,marginBottom:8}}>{c.icon}</div>
-          <div style={{fontSize:28,fontWeight:800,color:"#fff"}}>{c.value ?? 0}</div>
-          <div style={{fontSize:13,color:"#9a95b0",marginTop:4}}>{c.label}</div>
+      {cards.map((card,i) => (
+        <div key={i} style={{background:c.bgCard,border:`1px solid ${c.border}`,borderRadius:16,padding:24}}>
+          <div style={{fontSize:32,marginBottom:8}}>{card.icon}</div>
+          <div style={{fontSize:28,fontWeight:800,color:c.text}}>{card.value ?? 0}</div>
+          <div style={{fontSize:13,color:"#9a95b0",marginTop:4}}>{card.label}</div>
         </div>
       ))}
     </div>
@@ -94,6 +97,7 @@ function StatsTab() {
 /* ========== Profile Tab ========== */
 function ProfileTab() {
   const { t } = useLang();
+  const { colors: c } = useTheme();
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   useEffect(() => { api("/api/users").then(setUsers).catch(() => {}); }, []);
@@ -101,11 +105,11 @@ function ProfileTab() {
   return (<div>
     <h2 style={{color:"#e2c275",marginBottom:16,fontSize:22}}>👤 {t("الملف الشخصي والمحفظة","Profile & Wallet")}</h2>
     <input type="text" placeholder={t("بحث باسم او ايميل...","Search by name or email...")} value={search} onChange={(e) => setSearch(e.target.value)}
-      style={{width:"100%",maxWidth:400,padding:"10px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",background:"rgba(255,255,255,.03)",color:"#fff",fontSize:13,marginBottom:20}} />
+      style={{width:"100%",maxWidth:400,padding:"10px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:c.bgCard,color:c.text,fontSize:13,marginBottom:20}} />
     <div style={{overflowX:"auto"}}>
       <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
         <thead>
-          <tr style={{borderBottom:"1px solid rgba(255,255,255,.08)"}}>
+          <tr style={{borderBottom:`1px solid ${c.border}`}}>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الاسم","Name")}</th>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الايميل","Email")}</th>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الدور","Role")}</th>
@@ -115,12 +119,12 @@ function ProfileTab() {
         </thead>
         <tbody>
           {filtered.map((u) => (
-            <tr key={u.id} style={{borderBottom:"1px solid rgba(255,255,255,.05)"}}>
-              <td style={{padding:"10px",color:"#fff",fontWeight:600}}>{u.full_name}</td>
+            <tr key={u.id} style={{borderBottom:`1px solid ${c.border}`}}>
+              <td style={{padding:"10px",color:c.text,fontWeight:600}}>{u.full_name}</td>
               <td style={{padding:"10px",color:"#9a95b0"}}>{u.email}</td>
               <td style={{padding:"10px"}}><span style={{padding:"3px 10px",borderRadius:999,fontSize:11,fontWeight:600,background:u.role==="admin"?"rgba(226,194,117,.15)":u.role==="student"?"rgba(37,99,255,.15)":"rgba(168,85,247,.15)",color:u.role==="admin"?"#e2c275":u.role==="student"?"#2563ff":"#a855f7"}}>{u.role}</span></td>
               <td style={{padding:"10px",color:"#e2c275",fontWeight:700}}>{u.e_money}</td>
-              <td style={{padding:"10px",color:"#fff"}}>{u.rank}</td>
+              <td style={{padding:"10px",color:c.text}}>{u.rank}</td>
             </tr>
           ))}
         </tbody>
@@ -132,6 +136,7 @@ function ProfileTab() {
 /* ========== Permissions Tab ========== */
 function PermissionsTab() {
   const { t } = useLang();
+  const { colors: c } = useTheme();
   const [users, setUsers] = useState([]);
   const [actionId, setActionId] = useState("");
   const [actionRole, setActionRole] = useState("student");
@@ -147,11 +152,11 @@ function PermissionsTab() {
   return (<div>
     <h2 style={{color:"#e2c275",marginBottom:16,fontSize:22}}>🔐 {t("إدارة الصلاحيات","Permissions")}</h2>
     <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"center",marginBottom:20}}>
-      <select value={actionId} onChange={(e) => setActionId(e.target.value)} style={{padding:"10px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",background:"rgba(20,16,36,.8)",color:"#fff",fontSize:13,minWidth:200}}>
+      <select value={actionId} onChange={(e) => setActionId(e.target.value)} style={{padding:"10px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:"rgba(20,16,36,.8)",color:c.text,fontSize:13,minWidth:200}}>
         <option value="" style={{background:"#1a1530"}}>{t("اختر مستخدم...","Select user...")}</option>
         {users.map((u) => <option key={u.id} value={u.id} style={{background:"#1a1530"}}>{u.full_name} ({u.email})</option>)}
       </select>
-      <select value={actionRole} onChange={(e) => setActionRole(e.target.value)} style={{padding:"10px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",background:"rgba(20,16,36,.8)",color:"#fff",fontSize:13}}>
+      <select value={actionRole} onChange={(e) => setActionRole(e.target.value)} style={{padding:"10px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:"rgba(20,16,36,.8)",color:c.text,fontSize:13}}>
         <option value="student" style={{background:"#1a1530"}}>{t("طالب","Student")}</option>
         <option value="registration" style={{background:"#1a1530"}}>{t("تسجيل","Registration")}</option>
         <option value="admin" style={{background:"#1a1530"}}>{t("مدير","Admin")}</option>
@@ -162,7 +167,7 @@ function PermissionsTab() {
     <div style={{overflowX:"auto"}}>
       <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
         <thead>
-          <tr style={{borderBottom:"1px solid rgba(255,255,255,.08)"}}>
+          <tr style={{borderBottom:`1px solid ${c.border}`}}>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الاسم","Name")}</th>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الايميل","Email")}</th>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الصلاحية الحالية","Current Role")}</th>
@@ -170,8 +175,8 @@ function PermissionsTab() {
         </thead>
         <tbody>
           {users.map((u) => (
-            <tr key={u.id} style={{borderBottom:"1px solid rgba(255,255,255,.05)"}}>
-              <td style={{padding:"10px",color:"#fff",fontWeight:600}}>{u.full_name}</td>
+            <tr key={u.id} style={{borderBottom:`1px solid ${c.border}`}}>
+              <td style={{padding:"10px",color:c.text,fontWeight:600}}>{u.full_name}</td>
               <td style={{padding:"10px",color:"#9a95b0"}}>{u.email}</td>
               <td style={{padding:"10px"}}><span style={{padding:"3px 10px",borderRadius:999,fontSize:11,fontWeight:600,background:u.role==="admin"?"rgba(226,194,117,.15)":u.role==="student"?"rgba(37,99,255,.15)":"rgba(168,85,247,.15)",color:u.role==="admin"?"#e2c275":u.role==="student"?"#2563ff":"#a855f7"}}>{u.role}</span></td>
             </tr>
@@ -185,6 +190,7 @@ function PermissionsTab() {
 /* ========== Topups Tab ========== */
 function TopupsTab() {
   const { t } = useLang();
+  const { colors: c } = useTheme();
   const [topups, setTopups] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("pending");
@@ -199,9 +205,9 @@ function TopupsTab() {
     <h2 style={{color:"#e2c275",marginBottom:16,fontSize:22}}>💰 {t("طلبات الشحن","Top-up Requests")}</h2>
     <div style={{display:"flex",gap:12,marginBottom:20,flexWrap:"wrap",alignItems:"center"}}>
       <input type="text" placeholder={t("بحث عن طالب...","Search for student...")} value={search} onChange={(e) => setSearch(e.target.value)}
-        style={{padding:"10px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",background:"rgba(255,255,255,.03)",color:"#fff",fontSize:13,flex:1,minWidth:200}} />
+        style={{padding:"10px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:c.bgCard,color:c.text,fontSize:13,flex:1,minWidth:200}} />
       <select value={filter} onChange={(e) => { setFilter(e.target.value); load(e.target.value); }}
-        style={{padding:"10px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",background:"rgba(20,16,36,.8)",color:"#fff",fontSize:13}}>
+        style={{padding:"10px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:"rgba(20,16,36,.8)",color:c.text,fontSize:13}}>
         <option value="pending" style={{background:"#1a1530"}}>{t("قيد الانتظار","Pending")}</option>
         <option value="approved" style={{background:"#1a1530"}}>{t("تم الموافقة","Approved")}</option>
         <option value="rejected" style={{background:"#1a1530"}}>{t("مرفوض","Rejected")}</option>
@@ -211,7 +217,7 @@ function TopupsTab() {
     <div style={{overflowX:"auto"}}>
       <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
         <thead>
-          <tr style={{borderBottom:"1px solid rgba(255,255,255,.08)"}}>
+          <tr style={{borderBottom:`1px solid ${c.border}`}}>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الطلب","Order")}</th>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الطالب","Student")}</th>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("المبلغ","Amount")}</th>
@@ -224,13 +230,13 @@ function TopupsTab() {
         </thead>
         <tbody>
           {topups.filter(r => !search || r.full_name?.includes(search) || r.email?.includes(search)).map((r) => (
-            <tr key={r.id} style={{borderBottom:"1px solid rgba(255,255,255,.05)"}}>
-              <td style={{padding:"10px",color:"#fff"}}>#{r.id?.slice(0,8)}</td>
-              <td style={{padding:"10px"}}><div style={{color:"#fff",fontWeight:600}}>{r.full_name}</div><div style={{color:"#9a95b0",fontSize:11}}>{r.email}</div></td>
+            <tr key={r.id} style={{borderBottom:`1px solid ${c.border}`}}>
+              <td style={{padding:"10px",color:c.text}}>#{r.id?.slice(0,8)}</td>
+              <td style={{padding:"10px"}}><div style={{color:c.text,fontWeight:600}}>{r.full_name}</div><div style={{color:"#9a95b0",fontSize:11}}>{r.email}</div></td>
               <td style={{padding:"10px",color:"#e2c275",fontWeight:700}}>{r.amount} EGP</td>
-              <td style={{padding:"10px",color:"#fff"}}>{r.phone_number || "—"}</td>
-              <td style={{padding:"10px",color:"#fff"}}>📱 {t("فودافون كاش","Vodafone Cash")}</td>
-              <td style={{padding:"10px"}}>{r.payment_proof ? <a href={r.payment_proof} target="_blank" rel="noreferrer"><img src={r.payment_proof} alt="proof" style={{width:50,height:50,borderRadius:8,objectFit:"cover",border:"1px solid rgba(255,255,255,.1)",cursor:"pointer"}} /></a> : "—"}</td>
+              <td style={{padding:"10px",color:c.text}}>{r.phone_number || "—"}</td>
+              <td style={{padding:"10px",color:c.text}}>📱 {t("فودافون كاش","Vodafone Cash")}</td>
+              <td style={{padding:"10px"}}>{r.payment_proof ? <a href={r.payment_proof} target="_blank" rel="noreferrer"><img src={r.payment_proof} alt="proof" style={{width:50,height:50,borderRadius:8,objectFit:"cover",border:`1px solid ${c.border}`,cursor:"pointer"}} /></a> : "—"}</td>
               <td style={{padding:"10px"}}>
                 <span style={{padding:"4px 10px",borderRadius:999,fontSize:11,fontWeight:600,
                   background:r.status==="pending"?"rgba(254,212,0,.1)":r.status==="approved"?"rgba(34,197,94,.1)":"rgba(239,68,68,.1)",
@@ -256,6 +262,7 @@ function TopupsTab() {
 /* ========== Build Course Tab ========== */
 function BuildCourseTab() {
   const { t } = useLang();
+  const { colors: c } = useTheme();
   const [form, setForm] = useState({ title_ar:"", title:"", description_ar:"", description:"", category_ar:"", category:"", price:0, difficulty:"beginner" });
   const [msg, setMsg] = useState("");
   const submit = async (e) => {
@@ -266,13 +273,13 @@ function BuildCourseTab() {
       setForm({ title_ar:"", title:"", description_ar:"", description:"", category_ar:"", category:"", price:0, difficulty:"beginner" });
     } catch (e) { setMsg("❌ " + e.message); }
   };
-  const inputStyle = {width:"100%",padding:"12px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",background:"rgba(255,255,255,.03)",color:"#fff",fontSize:14};
+  const inputStyle = {width:"100%",padding:"12px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:c.bgCard,color:c.text,fontSize:14};
   const labelStyle = {color:"#9a95b0",fontSize:13,display:"block",marginBottom:6};
   const fieldWrap = {marginBottom:16};
   return (<div>
     <h2 style={{color:"#e2c275",marginBottom:16,fontSize:22}}>📝 {t("بناء الكورس","Build Course")}</h2>
     {msg && <p style={{marginBottom:12,fontSize:13,color:msg.includes("✅")?"#22c55e":"#ef4444"}}>{msg}</p>}
-    <form onSubmit={submit} style={{background:"rgba(20,16,36,.6)",border:"1px solid rgba(255,255,255,.05)",borderRadius:16,padding:24,maxWidth:800}}>
+    <form onSubmit={submit} style={{background:c.bgCard,border:`1px solid ${c.border}`,borderRadius:16,padding:24,maxWidth:800}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
         <div><label style={labelStyle}>{t("عنوان الكورس (عربي)","Course Title (Arabic)")}</label>
           <input required value={form.title_ar} onChange={(e) => setForm({...form,title_ar:e.target.value})} style={inputStyle} /></div>
@@ -371,9 +378,9 @@ function CoursesListTab() {
     {/* Filters */}
     <div style={{display:"flex",gap:12,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
       <input type="text" placeholder={t("بحث...","Search...")} value={search} onChange={(e) => setSearch(e.target.value)}
-        style={{padding:"10px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",background:"rgba(255,255,255,.03)",color:"#fff",fontSize:13,flex:1,minWidth:200}} />
+        style={{padding:"10px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:c.bgCard,color:c.text,fontSize:13,flex:1,minWidth:200}} />
       <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}
-        style={{padding:"10px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",background:"rgba(20,16,36,.8)",color:"#fff",fontSize:13}}>
+        style={{padding:"10px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:"rgba(20,16,36,.8)",color:c.text,fontSize:13}}>
         <option value="" style={{background:"#1a1530"}}>{t("كل التصنيفات","All Categories")}</option>
         {categories.map((cat) => <option key={cat} value={cat} style={{background:"#1a1530"}}>{cat}</option>)}
       </select>
@@ -385,7 +392,7 @@ function CoursesListTab() {
     <div style={{overflowX:"auto"}}>
       <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
         <thead>
-          <tr style={{borderBottom:"1px solid rgba(255,255,255,.08)"}}>
+          <tr style={{borderBottom:`1px solid ${c.border}`}}>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("صورة","Image")}</th>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("العنوان","Title")}</th>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("التصنيف","Category")}</th>
@@ -398,13 +405,13 @@ function CoursesListTab() {
         <tbody>
           {filtered.map((c) => (
             <React.Fragment key={c.id}>
-              <tr style={{borderBottom:"1px solid rgba(255,255,255,.05)",cursor:"pointer"}} onClick={() => toggleExpand(c.id)}>
+              <tr style={{borderBottom:`1px solid ${c.border}`,cursor:"pointer"}} onClick={() => toggleExpand(c.id)}>
                 <td style={{padding:"8px"}}>
                   {c.featured_image
                     ? <img src={c.featured_image} alt="" style={{width:44,height:44,borderRadius:8,objectFit:"cover"}} />
-                    : <div style={{width:44,height:44,borderRadius:8,background:"rgba(255,255,255,.05)",display:"flex",alignItems:"center",justifyContent:"center",color:"#555",fontSize:10}}>{t("لا توجد صورة","No img")}</div>}
+                    : <div style={{width:44,height:44,borderRadius:8,background:c.bgCard,display:"flex",alignItems:"center",justifyContent:"center",color:"#555",fontSize:10}}>{t("لا توجد صورة","No img")}</div>}
                 </td>
-                <td style={{padding:"8px 10px",color:"#fff",fontWeight:600}}>
+                <td style={{padding:"8px 10px",color:c.text,fontWeight:600}}>
                   <div>{c.title_ar || c.title}</div>
                   <div style={{fontSize:11,color:"#9a95b0",marginTop:2}}>{c.topic_count || 0} {t("مواضيع","topics")} · {c.lesson_count || 0} {t("دروس","lessons")} · {c.quiz_count || 0} {t("اختبارات","quizzes")}</div>
                 </td>
@@ -430,9 +437,9 @@ function CoursesListTab() {
                   {loadingEnrollments ? <p style={{color:"#9a95b0",padding:12}}>{t("جاري التحميل...","Loading...")}</p> : enrollments.length === 0 ? <p style={{color:"#9a95b0",padding:12}}>{t("لا يوجد طلاب مسجلين في هذا الكورس","No students enrolled in this course")}</p> : (
                     <div style={{overflowX:"auto"}}>
                       <p style={{color:"#e2c275",fontSize:13,fontWeight:700,marginBottom:8,marginTop:8}}>🎓 {t("الطلاب المسجلين","Enrolled Students")} ({enrollments.length})</p>
-                      <table style={{width:"100%",borderCollapse:"collapse",fontSize:12,background:"rgba(255,255,255,.02)",borderRadius:12}}>
+                      <table style={{width:"100%",borderCollapse:"collapse",fontSize:12,background:c.bgCard,borderRadius:12}}>
                         <thead>
-                          <tr style={{borderBottom:"1px solid rgba(255,255,255,.06)"}}>
+                          <tr style={{borderBottom:`1px solid ${c.border}`}}>
                             <th style={{padding:"8px",textAlign:"right",color:"#9a95b0"}}>{t("الطالب","Student")}</th>
                             <th style={{padding:"8px",textAlign:"right",color:"#9a95b0"}}>{t("الايميل","Email")}</th>
                             <th style={{padding:"8px",textAlign:"right",color:"#9a95b0"}}>{t("رقم الهاتف","Phone")}</th>
@@ -446,15 +453,15 @@ function CoursesListTab() {
                         </thead>
                         <tbody>
                           {enrollments.map((enr) => (
-                            <tr key={enr.id} style={{borderBottom:"1px solid rgba(255,255,255,.04)"}}>
+                            <tr key={enr.id} style={{borderBottom:`1px solid ${c.border}`}}>
                               {editing === enr.id ? (
                                 <>
-                                  <td style={{padding:"8px",color:"#fff",fontWeight:600}}>{enr.student_name}</td>
+                                  <td style={{padding:"8px",color:c.text,fontWeight:600}}>{enr.student_name}</td>
                                   <td style={{padding:"8px",color:"#9a95b0"}}>{enr.student_email}</td>
-                                  <td style={{padding:"8px",color:"#fff"}}>{enr.student_phone || "—"}</td>
-                                  <td style={{padding:"8px",color:"#fff"}}>{enr.student_rank || "—"}</td>
+                                  <td style={{padding:"8px",color:c.text}}>{enr.student_phone || "—"}</td>
+                                  <td style={{padding:"8px",color:c.text}}>{enr.student_rank || "—"}</td>
                                   <td style={{padding:"8px"}}>
-                                    <select value={editForm.status} onChange={(e) => setEditForm({...editForm,status:e.target.value})} style={{padding:"4px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,.1)",background:"rgba(20,16,36,.8)",color:"#fff",fontSize:11}}>
+                                    <select value={editForm.status} onChange={(e) => setEditForm({...editForm,status:e.target.value})} style={{padding:"4px 8px",borderRadius:6,border:`1px solid ${c.border}`,background:"rgba(20,16,36,.8)",color:c.text,fontSize:11}}>
                                       <option value="" style={{background:"#1a1530"}}>—</option>
                                       <option value="approved" style={{background:"#1a1530"}}>{t("موافق","Approved")}</option>
                                       <option value="pending" style={{background:"#1a1530"}}>{t("قيد الانتظار","Pending")}</option>
@@ -464,7 +471,7 @@ function CoursesListTab() {
                                   <td style={{padding:"8px",color:"#9a95b0"}}>{enr.payment_method}</td>
                                   <td style={{padding:"8px",color:"#9a95b0",fontSize:11}}>{enr.enrolled_at?.slice(0,10)}</td>
                                   <td style={{padding:"8px"}}>
-                                    <input type="date" value={editForm.expires_at} onChange={(e) => setEditForm({...editForm,expires_at:e.target.value})} style={{padding:"4px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,.1)",background:"rgba(20,16,36,.8)",color:"#fff",fontSize:11}} />
+                                    <input type="date" value={editForm.expires_at} onChange={(e) => setEditForm({...editForm,expires_at:e.target.value})} style={{padding:"4px 8px",borderRadius:6,border:`1px solid ${c.border}`,background:"rgba(20,16,36,.8)",color:c.text,fontSize:11}} />
                                   </td>
                                   <td style={{padding:"8px"}}>
                                     <div style={{display:"flex",gap:4}}>
@@ -475,9 +482,9 @@ function CoursesListTab() {
                                 </>
                               ) : (
                                 <>
-                                  <td style={{padding:"8px",color:"#fff",fontWeight:600}}>{enr.student_name}</td>
+                                  <td style={{padding:"8px",color:c.text,fontWeight:600}}>{enr.student_name}</td>
                                   <td style={{padding:"8px",color:"#9a95b0",fontSize:11}}>{enr.student_email}</td>
-                                  <td style={{padding:"8px",color:"#fff",fontSize:11}}>{enr.student_phone || "—"}</td>
+                                  <td style={{padding:"8px",color:c.text,fontSize:11}}>{enr.student_phone || "—"}</td>
                                   <td style={{padding:"8px"}}><span style={{padding:"2px 8px",borderRadius:999,fontSize:10,fontWeight:600,background:"rgba(168,85,247,.1)",color:"#a855f7"}}>{enr.student_rank || "—"}</span></td>
                                   <td style={{padding:"8px"}}>
                                     <span style={{padding:"2px 8px",borderRadius:999,fontSize:10,fontWeight:600,
@@ -514,6 +521,7 @@ function CoursesListTab() {
 /* ========== Results Tab ========== */
 function ResultsTab() {
   const { t } = useLang();
+  const { colors: c } = useTheme();
   const [attempts, setAttempts] = useState([]);
   useEffect(() => { api("/api/courses/attempts").then(setAttempts).catch(() => {}); }, []);
   return (<div>
@@ -521,7 +529,7 @@ function ResultsTab() {
     <div style={{overflowX:"auto"}}>
       <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
         <thead>
-          <tr style={{borderBottom:"1px solid rgba(255,255,255,.08)"}}>
+          <tr style={{borderBottom:`1px solid ${c.border}`}}>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("المستخدم","User")}</th>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الدرجة","Score")}</th>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الناتج","Result")}</th>
@@ -530,8 +538,8 @@ function ResultsTab() {
         </thead>
         <tbody>
           {attempts.length === 0 ? <tr><td colSpan={4} style={{padding:30,textAlign:"center",color:"#9a95b0"}}>{t("لا توجد نتائج","No results")}</td></tr> : attempts.map((a,i) => (
-            <tr key={a.id || i} style={{borderBottom:"1px solid rgba(255,255,255,.05)"}}>
-              <td style={{padding:"10px",color:"#fff"}}>{a.user_id?.slice(0,12)}...</td>
+            <tr key={a.id || i} style={{borderBottom:`1px solid ${c.border}`}}>
+              <td style={{padding:"10px",color:c.text}}>{a.user_id?.slice(0,12)}...</td>
               <td style={{padding:"10px",color:"#e2c275",fontWeight:700}}>{a.earned_marks ?? "—"} / {a.total_marks ?? "—"}</td>
               <td style={{padding:"10px"}}><span style={{padding:"3px 10px",borderRadius:999,fontSize:11,fontWeight:600,background:a.result==="pass"?"rgba(34,197,94,.15)":"rgba(239,68,68,.15)",color:a.result==="pass"?"#22c55e":"#ef4444"}}>{a.result === "pass" ? t("ناجح","Pass") : t("راسب","Fail")}</span></td>
               <td style={{padding:"10px",color:"#9a95b0"}}>{a.created_at?.slice(0,10) || "—"}</td>
@@ -546,6 +554,7 @@ function ResultsTab() {
 /* ========== Students Tab ========== */
 function StudentsTab() {
   const { t } = useLang();
+  const { colors: c } = useTheme();
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   useEffect(() => { api("/api/users/filter/student").then(setUsers).catch(() => {}); }, []);
@@ -553,11 +562,11 @@ function StudentsTab() {
   return (<div>
     <h2 style={{color:"#e2c275",marginBottom:16,fontSize:22}}>🎓 {t("قائمة الطلاب","Students List")}</h2>
     <input type="text" placeholder={t("بحث...","Search...")} value={search} onChange={(e) => setSearch(e.target.value)}
-      style={{width:"100%",maxWidth:400,padding:"10px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",background:"rgba(255,255,255,.03)",color:"#fff",fontSize:13,marginBottom:20}} />
+      style={{width:"100%",maxWidth:400,padding:"10px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:c.bgCard,color:c.text,fontSize:13,marginBottom:20}} />
     <div style={{overflowX:"auto"}}>
       <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
         <thead>
-          <tr style={{borderBottom:"1px solid rgba(255,255,255,.08)"}}>
+          <tr style={{borderBottom:`1px solid ${c.border}`}}>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الاسم","Name")}</th>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الايميل","Email")}</th>
             <th style={{padding:"12px 10px",textAlign:"right",color:"#9a95b0"}}>{t("الرتبة","Rank")}</th>
@@ -567,10 +576,10 @@ function StudentsTab() {
         </thead>
         <tbody>
           {filtered.map((u) => (
-            <tr key={u.id} style={{borderBottom:"1px solid rgba(255,255,255,.05)"}}>
-              <td style={{padding:"10px",color:"#fff",fontWeight:600}}>{u.full_name}</td>
+            <tr key={u.id} style={{borderBottom:`1px solid ${c.border}`}}>
+              <td style={{padding:"10px",color:c.text,fontWeight:600}}>{u.full_name}</td>
               <td style={{padding:"10px",color:"#9a95b0"}}>{u.email}</td>
-              <td style={{padding:"10px",color:"#fff"}}>{u.rank}</td>
+              <td style={{padding:"10px",color:c.text}}>{u.rank}</td>
               <td style={{padding:"10px",color:"#e2c275",fontWeight:700}}>{u.e_money}</td>
               <td style={{padding:"10px",color:"#9a95b0"}}>{u.created_at?.slice(0,10)}</td>
             </tr>

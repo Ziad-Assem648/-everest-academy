@@ -1,23 +1,27 @@
 import { Link } from "react-router-dom";
+import { useTheme } from "../ThemeContext";
+import { useLang } from "../LangContext";
 
 export default function CardPaymentPage() {
+  const { colors: c } = useTheme();
+  const { t } = useLang();
   return (
     <div style={{
       fontFamily: "'Inter', sans-serif",
-      background: "linear-gradient(135deg, #f5bcdb, #602e81)",
+      background: c.bg,
       display: "flex", justifyContent: "center", alignItems: "center",
       minHeight: "100vh", margin: 0, padding: 20
     }}>
       <div className="container" style={{
-        background: "white", width: "90%", maxWidth: 750,
+        background: c.bgCard, width: "90%", maxWidth: 750,
         padding: 40, borderRadius: 24, boxShadow: "0 20px 40px rgba(0,0,0,0.05)"
       }}>
-        <Link to="/payment" style={{ display: "block", marginBottom: 20, textDecoration: "none", color: "#64748b", fontSize: 14 }}>
-          ← العودة لوسائل الدفع
+        <Link to="/payment" style={{ display: "block", marginBottom: 20, textDecoration: "none", color: c.textSoft, fontSize: 14 }}>
+          {t("← العودة لوسائل الدفع", "← Back to Payment Methods")}
         </Link>
         <div style={{ textAlign: "center" }}>
           <div className="header" style={{ fontWeight: 600, color: "#a855f7", marginBottom: 30, borderBottom: "2px solid #a855f7", display: "inline-block" }}>
-            Payment method
+            {t("طريقة الدفع", "Payment method")}
           </div>
         </div>
 
@@ -39,33 +43,33 @@ export default function CardPaymentPage() {
 
           <div className="form-section" style={{ flex: 1, minWidth: 300 }}>
             <div className="input-group" style={{ marginBottom: 20 }}>
-              <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 5 }}>Cardholder Name</label>
-              <input type="text" placeholder="John Doe" style={{ width: "100%", padding: 12, border: "1px solid #e2e8f0", borderRadius: 8, outline: "none", boxSizing: "border-box" }} />
+              <label style={{ display: "block", fontSize: 12, color: c.textSoft, marginBottom: 5 }}>{t("اسم حامل البطاقة", "Cardholder Name")}</label>
+              <input type="text" placeholder="John Doe" style={{ width: "100%", padding: 12, border: `1px solid ${c.border}`, borderRadius: 8, outline: "none", boxSizing: "border-box" }} />
             </div>
             <div className="input-group" style={{ marginBottom: 20 }}>
-              <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 5 }}>Card Number</label>
-              <input type="text" placeholder="0000 0000 0000 0000" style={{ width: "100%", padding: 12, border: "1px solid #e2e8f0", borderRadius: 8, outline: "none", boxSizing: "border-box" }} />
+              <label style={{ display: "block", fontSize: 12, color: c.textSoft, marginBottom: 5 }}>{t("رقم البطاقة", "Card Number")}</label>
+              <input type="text" placeholder="0000 0000 0000 0000" style={{ width: "100%", padding: 12, border: `1px solid ${c.border}`, borderRadius: 8, outline: "none", boxSizing: "border-box" }} />
             </div>
             <div style={{ display: "flex", gap: 15 }}>
               <div className="input-group" style={{ marginBottom: 20, flex: 1 }}>
-                <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 5 }}>Month</label>
-                <input type="text" placeholder="08" style={{ width: "100%", padding: 12, border: "1px solid #e2e8f0", borderRadius: 8, outline: "none", boxSizing: "border-box" }} />
+                <label style={{ display: "block", fontSize: 12, color: c.textSoft, marginBottom: 5 }}>{t("الشهر", "Month")}</label>
+                <input type="text" placeholder="08" style={{ width: "100%", padding: 12, border: `1px solid ${c.border}`, borderRadius: 8, outline: "none", boxSizing: "border-box" }} />
               </div>
               <div className="input-group" style={{ marginBottom: 20, flex: 1 }}>
-                <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 5 }}>Year</label>
-                <input type="text" placeholder="2024" style={{ width: "100%", padding: 12, border: "1px solid #e2e8f0", borderRadius: 8, outline: "none", boxSizing: "border-box" }} />
+                <label style={{ display: "block", fontSize: 12, color: c.textSoft, marginBottom: 5 }}>{t("السنة", "Year")}</label>
+                <input type="text" placeholder="2024" style={{ width: "100%", padding: 12, border: `1px solid ${c.border}`, borderRadius: 8, outline: "none", boxSizing: "border-box" }} />
               </div>
               <div className="input-group" style={{ marginBottom: 20, flex: 1 }}>
-                <label style={{ display: "block", fontSize: 12, color: "#64748b", marginBottom: 5 }}>CVV</label>
-                <input type="text" placeholder="123" style={{ width: "100%", padding: 12, border: "1px solid #e2e8f0", borderRadius: 8, outline: "none", boxSizing: "border-box" }} />
+                <label style={{ display: "block", fontSize: 12, color: c.textSoft, marginBottom: 5 }}>CVV</label>
+                <input type="text" placeholder="123" style={{ width: "100%", padding: 12, border: `1px solid ${c.border}`, borderRadius: 8, outline: "none", boxSizing: "border-box" }} />
               </div>
             </div>
-            <div style={{ margin: "10px 0", fontWeight: 600 }}>Amount: 1234$</div>
+            <div style={{ margin: "10px 0", fontWeight: 600 }}>{t("المبلغ: 1234$", "Amount: 1234$")}</div>
             <button className="pay-btn" style={{
               background: "#a855f7", color: "white", border: "none",
               width: "100%", padding: 14, borderRadius: 8,
               cursor: "pointer", fontWeight: 600, marginTop: 10
-            }}>Confirm Payment</button>
+            }}>{t("تأكيد الدفع", "Confirm Payment")}</button>
           </div>
         </div>
       </div>

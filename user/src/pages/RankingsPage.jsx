@@ -1,72 +1,234 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { useLang } from "../LangContext";
 import { api } from "../App";
 import AppNavbar from "../components/AppNavbar";
+import { useTheme } from "../ThemeContext";
+import CustomerServiceFooter from "../components/CustomerServiceFooter";
 
-const rankIcons = [
-  "⭐", "🚀", "💎", "🏆", "🌍", "⚡", "🔱", "🔥", "🌟", "👑"
-];
+const useIsMobile = () => {
+  const [m, setM] = useState(typeof window !== "undefined" && window.innerWidth <= 768);
+  useEffect(() => {
+    const h = () => setM(window.innerWidth <= 768);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+  return m;
+};
+
+const rankIcons = ["⭐", "🚀", "💎", "🏆", "🌍", "⚡", "🔱", "🔥", "🌟", "👑"];
+
+const rankKeyframes = `
+@keyframes rkFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-20px) rotate(5deg)} }
+@keyframes rkFloat2 { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-15px) rotate(-4deg)} }
+@keyframes rkPulse { 0%,100%{opacity:.4;transform:scale(1)} 50%{opacity:.8;transform:scale(1.05)} }
+@keyframes rkSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes rkSpinReverse { from{transform:rotate(360deg)} to{transform:rotate(0deg)} }
+@keyframes rkOrbit { from{transform:rotate(0deg) translateX(140px) rotate(0deg)} to{transform:rotate(360deg) translateX(140px) rotate(-360deg)} }
+@keyframes rkSlideUp { from{opacity:0;transform:translateY(50px)} to{opacity:1;transform:translateY(0)} }
+@keyframes rkGradientFlow { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+@keyframes rkRotate3d { from{transform:perspective(800px) rotateY(-20deg) rotateX(10deg)} to{transform:perspective(800px) rotateY(20deg) rotateX(-10deg)} }
+@keyframes rkProgressGlow { 0%,100%{box-shadow:0 0 8px rgba(212,175,55,.4)} 50%{box-shadow:0 0 25px rgba(212,175,55,.8)} }
+`;
+
+const salesReq = (r) => r.sales_required !== undefined ? r.sales_required : r.min_direct;
+const bonusVal = (r) => r.bonus !== undefined ? r.bonus : r.weekly_bonus;
 
 export default function RankingsPage() {
   const { t, dir } = useLang();
-  const { user, logout } = useAuth();
-  const nav = useNavigate();
-  const loc = useLocation();
+  const { user } = useAuth();
+  const { colors: c } = useTheme();
+  const m = useIsMobile();
+  const [progress, setProgress] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
-  const [allLeaderboard, setAllLeaderboard] = useState([]);
   const [ranks, setRanks] = useState([]);
   const [tab, setTab] = useState("ranks");
 
   useEffect(() => {
-    api("/api/mlm/leaderboard").then(setLeaderboard).catch(() => {});
-    api("/api/mlm/leaderboard/all").then(setAllLeaderboard).catch(() => {});
+    if (!user?.id) return;
+    // Auto-trigger rank update on page load
+    fetch("/api/ranks/update", { method: "POST" }).then(() => {
+      api(`/api/ranks/progress/${user.id}`).then(setProgress).catch(() => {});
+    }).catch(() => {
+      api(`/api/ranks/progress/${user.id}`).then(setProgress).catch(() => {});
+    });
+    api("/api/ranks/leaderboard").then(setLeaderboard).catch(() => {});
     api("/api/ranks").then((d) => Array.isArray(d) ? setRanks(d) : setRanks([])).catch(() => {});
-  }, []);
+  }, [user?.id]);
 
-  const userRankIndex = ranks.findIndex(r => r.name === user?.rank);
-  const effectiveIndex = userRankIndex >= 0 ? userRankIndex : 0;
-  const nextRank = ranks[effectiveIndex + 1] || null;
-  const currentRankData = ranks[effectiveIndex];
-  const progressTarget = userRankIndex >= 0 ? ranks[userRankIndex + 1] : ranks.find(r => r.min_direct > 0);
-  const progressToNext = progressTarget ? ((user?.total_team_sales || 0) / progressTarget.min_direct) * 100 : 100;
+  const currentRankName = progress?.currentRank || user?.rank || "Star";
+  const userRankIndex = ranks.findIndex(r => r.name === currentRankName);
+  const nextRankName = progress?.nextRank;
+  const nextRankData = ranks.find(r => r.name === nextRankName);
+  const userSales = progress?.totalTeamSales ?? 0;
+  const progressPct = progress?.progress ?? 0;
+  const nextSalesReq = nextRankData ? (salesReq(nextRankData) || 40) : 40;
+
+  const gold = "#d4af37";
 
   return (
-    <div style={{direction: dir }}>
+    <div style={{direction: dir, background: c.bg, minHeight:"100vh" }}>
       <AppNavbar />
 
+      <style>{rankKeyframes + `
+        .rk-hero{position:relative;min-height:92vh;display:flex;align-items:center;overflow:hidden;margin-top:0}
+        .rk-hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,#0a0a1a 0%,#1a0a2e 25%,#0a1628 50%,#15102a 75%,#0f0f13 100%)}
+        .rk-hero-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(212,175,55,.12) 0%,transparent 50%),radial-gradient(circle at 70% 70%,rgba(139,92,246,.08) 0%,transparent 50%);animation:rkPulse 6s ease-in-out infinite}
+        .rk-hero-bg::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(212,175,55,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(212,175,55,.02) 1px,transparent 1px);background-size:50px 50px}
+        .rk-orb{position:absolute;border-radius:50%;filter:blur(70px);animation:rkFloat 8s ease-in-out infinite}
+        .rk-orb-1{width:350px;height:350px;background:rgba(212,175,55,.1);top:-80px;right:-50px}
+        .rk-orb-2{width:280px;height:280px;background:rgba(139,92,246,.08);bottom:-60px;left:-40px;animation-delay:2s}
+        .rk-orb-3{width:180px;height:180px;background:rgba(59,130,246,.06);top:40%;left:15%;animation-delay:4s}
+        .rk-hero-inner{position:relative;z-index:2;width:95%;max-width:1300px;margin:0 auto;padding:40px;display:flex;align-items:center;justify-content:space-between;gap:50px}
+        .rk-hero-left{flex:1;max-width:650px;animation:rkSlideUp 1s ease-out}
+        .rk-hero-left h1{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:900;line-height:1.1;margin-bottom:16px;color:#fff}
+        .rk-hero-left h1 span{background:linear-gradient(135deg,#d4af37 0%,#f0d78c 50%,#d4af37 100%);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rkGradientFlow 3s ease infinite}
+        .rk-hero-left p{font-size:1rem;color:#9a9aae;line-height:1.8;margin-bottom:28px;max-width:480px}
+        .rk-hero-btns{display:flex;gap:14px;margin-bottom:30px}
+        .rk-hero-btn-primary{height:50px;padding:0 28px;border-radius:14px;background:linear-gradient(135deg,#d4af37,#b8922a);color:#0a0a1a;text-decoration:none;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:.3s;box-shadow:0 8px 25px rgba(212,175,55,.3)}
+        .rk-hero-btn-primary:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(212,175,55,.5)}
+        .rk-hero-right{flex:1;display:flex;justify-content:center;align-items:center;position:relative;animation:rkSlideUp 1s ease-out .2s both}
+        .rk-trophy-wrap{position:relative;width:280px;height:280px}
+        .rk-trophy-ring{position:absolute;inset:-20px;border:1.5px dashed rgba(212,175,55,.15);border-radius:50%;animation:rkSpin 20s linear infinite}
+        .rk-trophy-ring2{position:absolute;inset:-50px;border:1px dashed rgba(139,92,246,.1);border-radius:50%;animation:rkSpinReverse 30s linear infinite}
+        .rk-orbit-dot{position:absolute;width:10px;height:10px;background:#d4af37;border-radius:50%;box-shadow:0 0 12px rgba(212,175,55,.6);animation:rkOrbit 10s linear infinite;top:50%;left:50%;margin:-5px}
+        .rk-orbit-dot2{position:absolute;width:7px;height:7px;background:#a855f7;border-radius:50%;box-shadow:0 0 10px rgba(168,85,247,.5);animation:rkOrbit 14s linear infinite reverse;top:50%;left:50%;margin:-3.5px}
+        .rk-trophy-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;animation:rkRotate3d 10s ease-in-out infinite}
+        .rk-trophy-emoji{font-size:90px;filter:drop-shadow(0 15px 40px rgba(212,175,55,.3));animation:rkFloat2 5s ease-in-out infinite}
+        .rk-trophy-label{font-size:.75rem;color:#d4af37;font-weight:700;letter-spacing:3px;margin-top:8px;text-transform:uppercase}
+        .rk-3d-cube{position:absolute;border:1.5px solid rgba(212,175,55,.12);border-radius:10px;animation:rkRotate3d 12s linear infinite;pointer-events:none}
+        .rk-3d-cube:nth-child(1){width:50px;height:50px;top:10%;right:5%;animation-delay:0s}
+        .rk-3d-cube:nth-child(2){width:35px;height:35px;bottom:15%;left:8%;animation-delay:3s;animation-duration:15s;border-color:rgba(139,92,246,.12)}
+        .rk-3d-cube:nth-child(3){width:25px;height:25px;top:20%;left:5%;animation-delay:6s;animation-duration:18s;border-color:rgba(59,130,246,.1)}
+        .rk-stat-row{display:flex;gap:16px;margin-top:5px}
+        .rk-stat-pill{display:flex;align-items:center;gap:8px;padding:10px 18px;background:${c.bgCard};border:1px solid ${c.border};border-radius:14px;backdrop-filter:blur(10px)}
+        .rk-stat-pill-icon{font-size:1.1rem}
+        .rk-stat-pill-val{font-size:1rem;font-weight:800;color:#d4af37}
+        .rk-stat-pill-label{font-size:.7rem;color:#9a9aae;font-weight:500}
+        .rk-progress-wrap{margin-top:22px;background:${c.bgCard};border:1px solid ${c.border};border-radius:18px;padding:18px 22px;max-width:420px;backdrop-filter:blur(10px)}
+        .rk-progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+        .rk-progress-label{font-size:.75rem;color:#9a9aae}
+        .rk-progress-label strong{color:${c.text}}
+        .rk-progress-pct{font-size:1.3rem;font-weight:900;color:#d4af37}
+        .rk-progress-bar{height:8px;background:${c.bgCard};border-radius:99px;overflow:hidden;margin-bottom:6px}
+        .rk-progress-fill{height:100%;background:linear-gradient(90deg,#d4af37,#f0d78c);border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1);animation:rkProgressGlow 2s ease-in-out infinite}
+        .rk-progress-bottom{display:flex;justify-content:space-between;font-size:.7rem;color:#9a9aae}
+        .rk-wave{position:relative;width:100%;overflow:hidden;line-height:0;margin-top:-2px}
+        .rk-wave svg{display:block;width:100%;height:50px}
+        @media(max-width:900px){.rk-hero-inner{flex-direction:column;text-align:center;padding:30px 20px}.rk-hero-left h1{font-size:2rem}.rk-hero-btns{justify-content:center}.rk-stat-row{justify-content:center;flex-wrap:wrap}.rk-progress-wrap{max-width:100%}.rk-trophy-wrap{width:200px;height:200px}.rk-trophy-emoji{font-size:60px}.rk-3d-cube{display:none}}
+      `}</style>
+
       {/* Hero */}
-      <section className="rank-hero">
-        <div className="rank-hero-content">
-          <span className="rank-hero-badge">👋 {t("مرحباً بعودتك", "Welcome Back")}</span>
-          <h1>{t("ترتيبك:", "Your Rank:")} <span>{userRankIndex >= 0 ? <>{rankIcons[userRankIndex]} {user?.rank} <span style={{fontSize:16,color:"#888"}}>#{userRankIndex + 1}/{ranks.length}</span></> : "⭐ Star"}</span></h1>
-          <p>{t("أكمل المهام، وافتح ترتبات جديدة، وكن أحد قادة أكاديمية إيفرست.", "Complete missions, unlock new ranks, and become one of Everest Academy leaders.")}</p>
-          <div className="rank-hero-btns">
-            <Link to="/profile" className="rank-btn-primary">
-              {t("حسابي", "My Profile")} <span>→</span>
-            </Link>
-          </div>
-          {progressTarget && (
-            <div style={{marginTop:20,background:"rgba(255,255,255,.06)",borderRadius:16,padding:"16px 20px",maxWidth:400}}>
-              <p style={{fontSize:13,color:"#aaa",marginBottom:6}}>{userRankIndex >= 0 ? t("الترتيب التالي:", "Next Rank:") : t("أول ترتيب:", "First Rank:")} <strong style={{color:"#fff"}}>{progressTarget.name}</strong> · {user?.total_team_sales || 0}/{progressTarget.min_direct} {t("مبيعات الفريق", "Team Sales")}</p>
-              <div style={{height:6,background:"rgba(255,255,255,.1)",borderRadius:3,overflow:"hidden"}}>
-                <div style={{height:"100%",width:`${Math.min(progressToNext,100)}%`,background:"#d4af37",borderRadius:3,transition:"width .5s"}}></div>
+      <section className="rk-hero">
+        <div className="rk-hero-bg">
+          <div className="rk-orb rk-orb-1"></div>
+          <div className="rk-orb rk-orb-2"></div>
+          <div className="rk-orb rk-orb-3"></div>
+        </div>
+        <div className="rk-hero-inner">
+          <div className="rk-hero-left">
+            <h1>
+              {t("ترتيبك:", "Your Rank:")}{" "}
+              <span>{userRankIndex >= 0 ? `${rankIcons[userRankIndex]} ${progress?.currentRank}` : "⭐ Star"}</span>
+            </h1>
+            <p>{t("أكمل المهام، وافتح ترتبات جديدة، وكن أحد قادة أكاديمية إيفرست.", "Complete missions, unlock new ranks, and become one of Everest Academy leaders.")}</p>
+            <div className="rk-hero-btns">
+              <Link to="/profile" className="rk-hero-btn-primary">
+                {t("حسابي", "My Profile")} <span>→</span>
+              </Link>
+            </div>
+
+            <div className="rk-stat-row">
+              <div className="rk-stat-pill">
+                <span className="rk-stat-pill-icon">👥</span>
+                <div>
+                  <div className="rk-stat-pill-val">{userSales}</div>
+                  <div className="rk-stat-pill-label">{t("مبيعات الفريق", "Team Sales")}</div>
+                </div>
+              </div>
+              <div className="rk-stat-pill">
+                <span className="rk-stat-pill-icon">💰</span>
+                <div>
+                  <div className="rk-stat-pill-val">{user?.e_money || 0}</div>
+                  <div className="rk-stat-pill-label">EM {t("الرصيد", "Balance")}</div>
+                </div>
+              </div>
+              <div className="rk-stat-pill">
+                <span className="rk-stat-pill-icon">{rankIcons[userRankIndex] || "⭐"}</span>
+                <div>
+                  <div className="rk-stat-pill-val">#{userRankIndex >= 0 ? userRankIndex + 1 : "?"}</div>
+                  <div className="rk-stat-pill-label">{t("الترتيب", "Rank")}</div>
+                </div>
               </div>
             </div>
-          )}
-        </div>
-        <div className="rank-hero-img">
-          <div style={{width:"100%",maxWidth:400,height:300,background:"#2a2a2a",borderRadius:30,display:"flex",alignItems:"center",justifyContent:"center",fontSize:80,color:"#444"}}>🏆</div>
+
+            {nextRankName && nextRankData && (
+              <div className="rk-progress-wrap">
+                <div className="rk-progress-top">
+                  <div className="rk-progress-label">
+                    {t("الترتيب التالي:", "Next:")} <strong>{nextRankName}</strong>
+                    {" · "}
+                    {t("المكافأة:", "Bonus:")} <strong style={{color:"#d4af37"}}>{bonusVal(nextRankData)?.toLocaleString()} EM</strong>
+                  </div>
+                  <div className="rk-progress-pct">{progressPct}%</div>
+                </div>
+                <div className="rk-progress-bar">
+                  <div className="rk-progress-fill" style={{width:`${Math.min(100, progressPct)}%`}}></div>
+                </div>
+                <div className="rk-progress-bottom">
+                  <span>{userSales} / {nextSalesReq} {t("مبيعات الفريق", "Team Sales")}</span>
+                  <span>{nextSalesReq - userSales} {t("متبقي", "Remaining")}</span>
+                </div>
+              </div>
+            )}
+
+            {!nextRankName && userRankIndex >= 0 && (
+              <div className="rk-progress-wrap">
+                <p style={{fontSize:13,color:"#22c55e",fontWeight:700}}>✅ {t("لقد وصلت لأعلى رتبة!", "You reached the highest rank!")}</p>
+                <p style={{fontSize:12,color:"#9a9aae",marginTop:6}}>
+                  {t("مبيعات الفريق:", "Team Sales:")} {userSales} · {t("الرصيد:", "Balance:")} {user?.e_money || 0} EM
+                </p>
+              </div>
+            )}
+
+            {!user && (
+              <div className="rk-progress-wrap">
+                <p style={{fontSize:13,color:"#9a9aae"}}>{t("سجّل الدخول لرؤية تقدم رتبتك", "Log in to see your rank progress")}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="rk-hero-right">
+            <div className="rk-3d-cube"></div>
+            <div className="rk-3d-cube"></div>
+            <div className="rk-3d-cube"></div>
+            <div className="rk-trophy-wrap">
+              <div className="rk-trophy-ring"></div>
+              <div className="rk-trophy-ring2"></div>
+              <div className="rk-orbit-dot"></div>
+              <div className="rk-orbit-dot2"></div>
+              <div className="rk-trophy-center">
+                <span className="rk-trophy-emoji">🏆</span>
+                <span className="rk-trophy-label">{progress?.currentRank || "Star"}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Tabs */}
+      {/* Wave Divider */}
+      <div className="rk-wave">
+        <svg viewBox="0 0 1200 50" preserveAspectRatio="none">
+          <path d="M0,25 C200,50 400,0 600,25 C800,50 1000,0 1200,25 L1200,50 L0,50 Z" fill={c.bg} />
+        </svg>
+      </div>
+
       <div className="dash-container" style={{marginTop:30,maxWidth:1100,margin:"30px auto",padding:"0 20px"}}>
         <div style={{display:"flex",gap:10,marginBottom:25,justifyContent:"center"}}>
           {["ranks","leaderboard"].map((tb) => (
             <button key={tb} onClick={() => setTab(tb)}
-              style={{padding:"10px 28px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab===tb?"#111":"#f0f0f0",color:tab===tb?"#d4af37":"#555",transition:".3s"}}
+              style={{padding:"10px 28px",borderRadius:14,border: tab===tb ? `1px solid ${c.borderLight}` : "none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab===tb?c.bgCard:c.bgInput,color:tab===tb?gold:c.textSoft,transition:".3s"}}
             >{tb === "ranks" ? `📊 ${t("جميع الترتبات", "All Ranks")}` : `🏆 ${t("لوحة المتصدرين", "Leaderboard")}`}</button>
           ))}
         </div>
@@ -74,32 +236,39 @@ export default function RankingsPage() {
         {tab === "ranks" && (
           <div style={{display:"grid",gap:12}}>
             {ranks.map((r, i) => {
-              const hasValidRank = userRankIndex >= 0;
-              const isCurrent = hasValidRank && i === userRankIndex;
-              const isNext = !hasValidRank && i === 0;
-              const isUnlocked = hasValidRank && i < userRankIndex;
+              const isCurrent = i === userRankIndex;
+              const nextIdx = progress?.nextRank ? ranks.findIndex(rr => rr.name === progress.nextRank) : userRankIndex + 1;
+              const isNext = i === nextIdx;
+              const isUnlocked = i < userRankIndex;
               return (
                 <div key={r.id} style={{
                   display:"flex",alignItems:"center",justifyContent:"space-between",
-                  background:isCurrent ? "rgba(212,175,55,.08)" : "#fff",
-                  border:isCurrent ? "2px solid #d4af37" : "1px solid #eee",
+                  background:isCurrent ? "rgba(212,175,55,.08)" : c.bgCard,
+                  border:isCurrent ? `2px solid ${gold}` : `1px solid ${c.borderLight}`,
                   borderRadius:16,padding:"16px 20px",transition:".3s"
                 }}>
                   <div style={{display:"flex",alignItems:"center",gap:16}}>
-                    <span style={{fontSize:36}}>{rankIcons[i] || "🏅"}</span>
+                    {r.image ? (
+                      <div style={{width:52,height:52,borderRadius:14,overflow:"hidden",flexShrink:0}}>
+                        <img src={r.image} alt={r.name} style={{width:"100%",height:"100%",objectFit:"cover"}} />
+                      </div>
+                    ) : (
+                      <span style={{fontSize:36}}>{rankIcons[i] || "🏅"}</span>
+                    )}
                     <div>
-                      <h3 style={{fontSize:16,fontWeight:700,margin:0}}>{r.name}</h3>
-                      <p style={{fontSize:13,color:"#888",marginTop:4}}>
-                        {r.min_direct === 0 ? t("انضم وفعّل", "Join & activate") : `${r.min_direct}+ ${t("مبيعات الفريق", "Team Sales")}`}
-                        {r.weekly_bonus > 0 && ` · 🎁 ${r.weekly_bonus} EM ${t("مكافأة", "bonus")}`}
+                      <h3 style={{fontSize:16,fontWeight:700,margin:0,color:c.text}}>{r.name}</h3>
+                      <p style={{fontSize:13,color:c.textMuted,marginTop:4}}>
+                        {i === 0 && `🎯 ${t("انضم للتسجيل", "Join to register")}`}
+                        {i > 0 && salesReq(r) > 0 && `🎯 ${salesReq(r)}+ ${t("مبيعات الفريق", "Team Sales")}`}
+                        {bonusVal(r) > 0 && ` · 🎁 ${bonusVal(r).toLocaleString()} EM`}
                       </p>
                     </div>
                   </div>
                   <div style={{textAlign:"right"}}>
-                    {isCurrent && <span style={{fontSize:12,fontWeight:700,color:"#d4af37"}}>▼ {t("الحالي", "CURRENT")}</span>}
-                    {isNext && <span style={{fontSize:12,fontWeight:700,color:"#d4af37"}}>▼ {t("التالي", "NEXT")}</span>}
-                    {!isCurrent && !isNext && isUnlocked && <span style={{fontSize:12,fontWeight:600,color:"#22c55e"}}>✓ {t("مفتح", "Unlocked")}</span>}
-                    {!isCurrent && !isNext && !isUnlocked && <span style={{fontSize:12,color:"#aaa"}}>🔒 {t("مقفل", "Locked")}</span>}
+                    {isCurrent && <span style={{fontSize:12,fontWeight:700,color:gold}}>▼ {t("الحالي", "CURRENT")}</span>}
+                    {isNext && <span style={{fontSize:12,fontWeight:700,color:gold}}>▶ {t("التالي", "NEXT")}</span>}
+                    {!isCurrent && !isNext && isUnlocked && <span style={{fontSize:12,fontWeight:600,color:"#22c55e"}}>✓ {t("مفتوح", "Unlocked")}</span>}
+                    {!isCurrent && !isNext && !isUnlocked && <span style={{fontSize:12,color:c.textMuted}}>🔒 {t("مقفل", "Locked")}</span>}
                   </div>
                 </div>
               );
@@ -108,31 +277,33 @@ export default function RankingsPage() {
         )}
 
         {tab === "leaderboard" && (
-          <div style={{background:"#fff",borderRadius:20,padding:24,boxShadow:"0 5px 30px rgba(0,0,0,.04)"}}>
-            <h3 style={{marginBottom:20,fontSize:20}}>🏆 {t("أبرز المتميزين", "Top Achievers")}</h3>
-            {allLeaderboard.length === 0 ? (
-              <p style={{color:"#888",textAlign:"center",padding:30}}>{t("لا يوجد أعضاء بعد", "No members yet")}</p>
+          <div style={{background:c.bgCard,borderRadius:20,padding:24,border:`1px solid ${c.borderLight}`,boxShadow:"0 5px 30px rgba(0,0,0,.04)"}}>
+            <h3 style={{marginBottom:20,fontSize:20,color:c.text}}>🏆 {t("أبرز المتميزين", "Top Achievers")}</h3>
+            {leaderboard.length === 0 ? (
+              <p style={{color:c.textMuted,textAlign:"center",padding:30}}>{t("لا يوجد أعضاء بعد", "No members yet")}</p>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                {allLeaderboard.map((u, i) => (
+                {leaderboard.map((u, i) => (
                   <div key={u.id} style={{
                     display:"flex",alignItems:"center",justifyContent:"space-between",
-                    background:i < 3 ? "rgba(212,175,55,.06)" : "#fafafa",
-                    borderRadius:14,padding:"12px 16px"
+                    background:i < 3 ? "rgba(212,175,55,.06)" : c.bgSoft,
+                    border:`1px solid ${c.borderLight}`, borderRadius:14,padding:"12px 16px"
                   }}>
                     <div style={{display:"flex",alignItems:"center",gap:14}}>
-                      <span style={{fontSize:18,fontWeight:800,color:i < 3 ? "#d4af37" : "#aaa",width:30}}>#{i + 1}</span>
-                      <div style={{width:40,height:40,borderRadius:"50%",background:"#eee",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,overflow:"hidden"}}>
-                        {u.avatar && u.avatar.trim() ? <img src={u.avatar} style={{width:"100%",height:"100%",objectFit:"cover"}} /> : <span style={{fontSize:18,fontWeight:800,color:"#d4af37",lineHeight:1}}>{(u.full_name || "U")[0].toUpperCase()}</span>}
+                      <span style={{fontSize:18,fontWeight:800,color:i < 3 ? gold : c.textMuted,width:30}}>#{u.position}</span>
+                      <div style={{width:40,height:40,borderRadius:"50%",background:c.bgInput,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,overflow:"hidden"}}>
+                        {u.avatar && u.avatar.trim() ? <img src={u.avatar} style={{width:"100%",height:"100%",objectFit:"cover"}} /> : <span style={{fontSize:18,fontWeight:800,color:gold,lineHeight:1}}>{(u.full_name || "U")[0].toUpperCase()}</span>}
                       </div>
                       <div>
-                        <p style={{fontWeight:600}}>{u.full_name}{u.id === user?.id && <span style={{fontSize:11,color:"#d4af37",marginLeft:6}}>({t("أنت", "You")})</span>}</p>
-                        <p style={{fontSize:12,color:"#888"}}>{u.rank} · {u.total_team_sales || 0} {t("مبيعات الفريق", "Team Sales")}</p>
+                        <p style={{fontWeight:600,color:c.text}}>{u.full_name}{u.id === user?.id && <span style={{fontSize:11,color:gold,marginRight:6}}>({t("أنت", "You")})</span>}</p>
+                        <p style={{fontSize:12,color:c.textMuted}}>
+                          {(() => { const rk = ranks.find(rr => rr.name === u.rank); return rk?.image ? <img src={rk.image} alt={u.rank} style={{width:18,height:18,borderRadius:4,verticalAlign:"middle",marginRight:4,objectFit:"cover"}} /> : null; })()}
+                          {u.rank} · {u.total_team_sales || 0} {t("مبيعات الفريق", "Team Sales")}
+                        </p>
                       </div>
                     </div>
                     <div style={{textAlign:"right"}}>
-                      <p style={{fontWeight:700,color:"#d4af37"}}>{u.e_money} EM</p>
-                      {u.weekly_bonus > 0 && <p style={{fontSize:11,color:"#888"}}>🎁 {u.weekly_bonus} EM</p>}
+                      <p style={{fontWeight:700,color:gold}}>{u.e_money} EM</p>
                     </div>
                   </div>
                 ))}
@@ -142,29 +313,46 @@ export default function RankingsPage() {
         )}
       </div>
 
-      <footer className="rank-footer">
-        <div className="footer-help">
-          <p>{t("هل تحتاج مساعدة؟", "Need Help?")} {t("زر", "Visit our")} <a href="#">{t("قسم المساعدة", "Help Section")}</a></p>
-        </div>
-        <div className="footer-top">
-          <div className="footer-social">
-            {["instagram","x-twitter","paper-plane","youtube","linkedin-in","facebook-f"].map((s) => (
-              <a key={s} href="#"><i className={`fa-brands fa-${s}`} style={{fontStyle:"normal"}}>◉</i></a>
-            ))}
+      {/* Footer */}
+      <div className="landing-page" style={{paddingTop:0,minHeight:"auto"}}>
+      <footer className="footer">
+        <div className="footer-middle" style={{direction:"ltr",display:"flex",justifyContent:"space-between",alignItems:"center",padding:m?"16px 20px":"18px 40px",borderBottom:"1px solid #eee"}}>
+          <div className="social" style={{display:"flex",gap:16,justifyContent:"center",alignItems:"center"}}>
+            <a href="#" style={{width:48,height:48,borderRadius:"50%",background:"linear-gradient(135deg,#0088cc,#005f8f)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",textDecoration:"none",fontSize:20,transition:"transform .2s,box-shadow .2s",boxShadow:"0 4px 15px rgba(0,136,204,.4)"}}
+              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px) scale(1.1)";e.currentTarget.style.boxShadow="0 8px 25px rgba(0,136,204,.6)";}}
+              onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 15px rgba(0,136,204,.4)";}}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.504-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+            </a>
+            <a href="#" style={{width:48,height:48,borderRadius:"50%",background:"linear-gradient(135deg,#E1306C,#F77737,#FCAF45)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",textDecoration:"none",fontSize:20,transition:"transform .2s,box-shadow .2s",boxShadow:"0 4px 15px rgba(225,48,108,.4)"}}
+              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px) scale(1.1)";e.currentTarget.style.boxShadow="0 8px 25px rgba(225,48,108,.6)";}}
+              onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 15px rgba(225,48,108,.4)";}}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="#fff" stroke="none"/></svg>
+            </a>
+            <a href="#" style={{width:48,height:48,borderRadius:"50%",background:"linear-gradient(135deg,#010101,#333)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",textDecoration:"none",fontSize:20,transition:"transform .2s,box-shadow .2s",boxShadow:"0 4px 15px rgba(0,0,0,.4)"}}
+              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px) scale(1.1)";e.currentTarget.style.boxShadow="0 8px 25px rgba(0,0,0,.6)";}}
+              onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 15px rgba(0,0,0,.4)";}}>
+              <svg width="20" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.88-2.88 2.89 2.89 0 012.88-2.89c.3 0 .59.04.86.12V9.01a6.28 6.28 0 00-.86-.06 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V8.86a8.21 8.21 0 004.86 1.56V6.97a4.84 4.84 0 01-1.1-.28z"/></svg>
+            </a>
           </div>
-          <div className="footer-brand">
-            <span>{t("أكاديمية إيفرست 2026", "Everest Academy 2026")}</span>
+          <div className="brand">
             <h3>E</h3>
+            <span>{t("© 1999 - 2026 Everest Academy", "© 1999 - 2026 Everest Academy")}</span>
           </div>
         </div>
-        <div className="footer-contact">
-          {t("طرق للتواصل معنا:", "More ways to reach us:")} <span>+44 (0) 20 7776 9720 (24/5)</span>
-        </div>
-        <div className="footer-bottom">
-          <div className="footer-item">{t("أكاديمية إيفرست لا تقدم خدمات ل residents...", "Everest Academy doesn't offer services to residents...")}</div>
-          <div className="footer-item">{t("أكاديمية إيفرست هي علامة تجارية مسجلة...", "Everest Academy is a registered trademark utilised under...")}</div>
+        <div className="footer-bottom" style={{textAlign:"center",display:"block",padding:"20px"}}>
+          <CustomerServiceFooter />
         </div>
       </footer>
+
+      {/* Disclaimer */}
+      <section className="disclaimer">
+        <div className="disclaimer-grid">
+          <p><strong>{t("تداول بمسؤولية:", "Trade Responsibly:")}</strong> {t("تداول الأدوات المالية يحمل درجة عالية من المخاطرة...", "Trading financial instruments carry a high level...")}</p>
+          <p>{t("Everest Academy هي علامة تجارية مسجلة تستخدم بموجب...", "Everest Academy is a registered trademark utilised under...")}</p>
+          <p>{t("Everest Academy لا تقدم خدمات للمقيمين في...", "Everest Academy doesn't offer services to residents...")}</p>
+        </div>
+      </section>
+      </div>
     </div>
   );
 }

@@ -1,130 +1,109 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLang } from "../LangContext";
+
+const ADMIN_API = "/api/admin-auth";
+const getHeaders = () => {
+  const s = JSON.parse(localStorage.getItem("admin_session") || "{}");
+  return { "Content-Type": "application/json", "x-user-id": s.userId || "", "x-session-token": s.token || "" };
+};
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState({
-    firstName: "أحمد",
-    lastName: "المستخدم",
-    email: "admin@everest.com",
-    bio: "مدير المنصة التعليمية",
-  });
-  const [balance, setBalance] = useState(6278);
-  const [points] = useState(12400);
-  const [updateType, setUpdateType] = useState("add");
-  const [updateAmount, setUpdateAmount] = useState("");
+  const { t: tFn } = useLang();
+  const t = (ar, en) => tFn(ar, en);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [pw, setPw] = useState("");
+  const [msg, setMsg] = useState("");
 
-  const handleUpdateBalance = () => {
-    const amt = parseFloat(updateAmount) || 0;
-    setBalance((prev) => (updateType === "add" ? prev + amt : prev - amt));
-    setUpdateAmount("");
+  useEffect(() => {
+    fetch(`${ADMIN_API}/me`, { headers: getHeaders() })
+      .then(r => r.json())
+      .then(d => { if (d.error) throw d; setProfile(d); })
+      .catch(e => console.error("Failed to load profile:", e))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setMsg("");
+    try {
+      const body = {
+        full_name: profile.full_name,
+        email: profile.email,
+        phone: profile.phone || "",
+        address: profile.address || "",
+        bio: profile.bio || "",
+      };
+      if (pw) body.password = pw;
+      const r = await fetch(`${ADMIN_API}/me`, { method: "PUT", headers: getHeaders(), body: JSON.stringify(body) });
+      const d = await r.json();
+      if (d.error) throw new Error(d.error);
+      setProfile(d);
+      setPw("");
+      setMsg(t("✅ تم حفظ التغييرات بنجاح", "✅ Changes saved successfully"));
+      setTimeout(() => setMsg(""), 3000);
+    } catch (e) { setMsg("❌ " + e.message); }
+    setSaving(false);
   };
+
+  if (loading) return <p className="text-center py-20 text-gray-400">{t("جاري التحميل...", "Loading...")}</p>;
+  if (!profile) return <p className="text-center py-20 text-red-400">{t("فشل تحميل البيانات", "Failed to load data")}</p>;
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">⚙️ الإعدادات الشخصية والمحفظة</h2>
+      <h2 className="text-2xl font-bold mb-6">{t("⚙️ الإعدادات الشخصية", "⚙️ Profile Settings")}</h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Profile Settings */}
         <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="font-bold mb-4">👤 الملف الشخصي</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <h3 className="font-bold mb-4">{t("👤 الملف الشخصي", "👤 Profile")}</h3>
+          <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">الاسم الأول</label>
-              <input
-                type="text"
-                value={profile.firstName}
-                onChange={(e) => setProfile((p) => ({ ...p, firstName: e.target.value }))}
-                className="w-full px-4 py-2 border rounded-lg mt-1"
-              />
+              <label className="text-sm font-medium">{t("المعرف (ID)", "ID")}</label>
+              <input value={profile.id} disabled className="w-full px-4 py-2 border rounded-lg mt-1 bg-gray-50 text-gray-500" />
             </div>
             <div>
-              <label className="text-sm font-medium">الاسم الأخير</label>
-              <input
-                type="text"
-                value={profile.lastName}
-                onChange={(e) => setProfile((p) => ({ ...p, lastName: e.target.value }))}
-                className="w-full px-4 py-2 border rounded-lg mt-1"
-              />
+              <label className="text-sm font-medium">{t("الاسم", "Full Name")}</label>
+              <input value={profile.full_name || ""} onChange={e => setProfile(p => ({ ...p, full_name: e.target.value }))} className="w-full px-4 py-2 border rounded-lg mt-1" />
             </div>
-          </div>
-          <div className="mb-4">
-            <label className="text-sm font-medium">البريد الإلكتروني</label>
-            <input
-              type="email"
-              value={profile.email}
-              onChange={(e) => setProfile((p) => ({ ...p, email: e.target.value }))}
-              className="w-full px-4 py-2 border rounded-lg mt-1"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="text-sm font-medium">السيرة الذاتية (Bio)</label>
-            <textarea
-              value={profile.bio}
-              onChange={(e) => setProfile((p) => ({ ...p, bio: e.target.value }))}
-              className="w-full px-4 py-2 border rounded-lg mt-1"
-              rows={3}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-2 block">الصورة الشخصية</label>
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-everest-200 rounded-full flex items-center justify-center text-everest-700 font-bold text-xl">
-                {profile.firstName[0]}
-              </div>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
-                رفع صورة
-              </button>
+            <div>
+              <label className="text-sm font-medium">{t("البريد الإلكتروني", "Email")}</label>
+              <input type="email" value={profile.email || ""} onChange={e => setProfile(p => ({ ...p, email: e.target.value }))} className="w-full px-4 py-2 border rounded-lg mt-1" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">{t("الهاتف", "Phone")}</label>
+              <input value={profile.phone || ""} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))} className="w-full px-4 py-2 border rounded-lg mt-1" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">{t("العنوان", "Address")}</label>
+              <input value={profile.address || ""} onChange={e => setProfile(p => ({ ...p, address: e.target.value }))} className="w-full px-4 py-2 border rounded-lg mt-1" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">{t("السيرة الذاتية", "Bio")}</label>
+              <textarea value={profile.bio || ""} onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))} className="w-full px-4 py-2 border rounded-lg mt-1" rows={3} />
             </div>
           </div>
         </div>
 
-        {/* Wallet & Points */}
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border p-6">
-            <h3 className="font-bold mb-4">💰 محفظة إيفرست (E-Money)</h3>
-            <p className="text-3xl font-bold text-amber-600 mb-4">{balance} E-Money</p>
-
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm font-medium mb-3">تحديث الرصيد</p>
-              <div className="flex gap-2 mb-2">
-                <select
-                  value={updateType}
-                  onChange={(e) => setUpdateType(e.target.value)}
-                  className="px-3 py-2 border rounded-lg text-sm bg-white"
-                >
-                  <option value="add">إضافة (+)</option>
-                  <option value="deduct">خصم (-)</option>
-                </select>
-                <input
-                  type="number"
-                  value={updateAmount}
-                  onChange={(e) => setUpdateAmount(e.target.value)}
-                  placeholder="المبلغ"
-                  className="flex-1 px-4 py-2 border rounded-lg text-sm"
-                />
-                <button
-                  onClick={handleUpdateBalance}
-                  className="px-4 py-2 bg-everest-600 text-white rounded-lg text-sm hover:bg-everest-700"
-                >
-                  تحديث
-                </button>
-              </div>
-            </div>
+            <h3 className="font-bold mb-4">{t("🔐 تغيير كلمة المرور", "🔐 Change Password")}</h3>
+            <input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder={t("اتركها فارغة لعدم التغيير", "Leave blank to keep current")} className="w-full px-4 py-2 border rounded-lg" />
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border p-6">
-            <h3 className="font-bold mb-4">🏆 النقاط الأكاديمية (Leaderboard)</h3>
-            <div className="flex items-center gap-3">
-              <span className="text-3xl font-bold text-everest-600">{points.toLocaleString()}</span>
-              <span className="text-gray-500 text-sm">نقطة</span>
+            <h3 className="font-bold mb-4">{t("ℹ️ معلومات الحساب", "ℹ️ Account Info")}</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-gray-400">{t("الدور", "Role")}</span><span className="font-semibold bg-everest-100 text-everest-700 px-2 py-0.5 rounded-full text-xs">{profile.role}</span></div>
+              <div className="flex justify-between"><span className="text-gray-400">{t("تاريخ الإنشاء", "Created")}</span><span className="font-semibold">{profile.created_at ? profile.created_at.slice(0, 10) : "–"}</span></div>
             </div>
-            <div className="mt-4 bg-gray-100 rounded-full h-3 overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-l from-everest-500 to-everest-300 rounded-full transition-all"
-                style={{ width: `${Math.min((points / 20000) * 100, 100)}%` }}
-              />
-            </div>
-            <p className="text-xs text-gray-400 mt-2">من أصل 20,000 نقطة للتقدم للرتبة التالية</p>
           </div>
+
+          {msg && <div className="bg-white rounded-xl shadow-sm border p-4 text-center text-sm font-medium">{msg}</div>}
+
+          <button onClick={handleSave} disabled={saving} className="w-full py-3 bg-everest-600 text-white rounded-xl font-bold hover:bg-everest-700 transition disabled:opacity-50">
+            {saving ? t("جاري الحفظ...", "Saving...") : t("💾 حفظ التغييرات", "💾 Save Changes")}
+          </button>
         </div>
       </div>
     </div>
