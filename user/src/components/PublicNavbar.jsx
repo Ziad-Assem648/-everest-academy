@@ -59,7 +59,7 @@ export default function PublicNavbar({ active }) {
       <div className={`mobile-menu${menuOpen ? " active" : ""}`}>
         <div className="mobile-header">
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <img src="/image/logo-navbar.png" alt="Everest" style={{height:50,width:50,objectFit:"contain"}} />
+            <img src="/image/logo-navbar.png" alt="Everest" style={{height:55,width:55,objectFit:"contain"}} />
             <h2>Everest</h2>
           </div>
           <button onClick={() => setMenuOpen(false)}>&times;</button>
