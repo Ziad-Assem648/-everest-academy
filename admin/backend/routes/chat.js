@@ -73,6 +73,8 @@ const SYSTEM_PROMPT = `أنت مساعد ذكي لمنصة "Everest Academy" (أ
 
 // ─── Call Groq API ───
 async function callGroq(userMessage, history) {
+  // Always try to reload key from DB if current one is empty or fails
+  if (!GROQ_API_KEY) await loadGroqKey();
   if (!GROQ_API_KEY) return null;
 
   const platformCtx = await getPlatformContext();
@@ -85,11 +87,24 @@ async function callGroq(userMessage, history) {
   }
   messages.push({ role: "user", content: userMessage });
 
-  const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  let resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({ model: GROQ_MODEL, messages, temperature: 0.7, max_tokens: 500 }),
   });
+
+  // If 401, reload key from DB and retry once
+  if (resp.status === 401) {
+    console.log("Groq 401 — reloading key from DB...");
+    await loadGroqKey();
+    if (GROQ_API_KEY) {
+      resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: GROQ_MODEL, messages, temperature: 0.7, max_tokens: 500 }),
+      });
+    }
+  }
 
   if (!resp.ok) {
     const errText = await resp.text().catch(() => "");
