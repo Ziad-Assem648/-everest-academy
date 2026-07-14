@@ -907,7 +907,7 @@ video { object-fit:contain; }
   .landing-page .platforms-text { gap: 12px; }
   .landing-page .platforms-text .line { width: 2px; height: 50px; }
   .landing-page .platforms-text p { font-size: 14px; line-height: 1.8; }
-  .landing-page .platform-showcase { width: 95%; margin-bottom: 40px; }
+  .landing-page .platform-showcase { width: 95%; margin-bottom: 15px; }
   .landing-page .showcase-image { margin-bottom: 30px; }
   .landing-page .features-slider { overflow-x: auto; justify-content: flex-start; gap: 14px; padding-bottom: 10px; }
   .landing-page .features-slider::-webkit-scrollbar { display: none; }
