@@ -732,7 +732,7 @@ video { object-fit:contain; }
 .landing-page .platforms-text a { color: #111; text-decoration: underline; text-underline-offset: 3px; }
 
 /* ===== PLATFORM SHOWCASE ===== */
-.landing-page .platform-showcase { width: 92%; max-width: 1300px; margin: 50px auto 480px; height: 300px; }
+.landing-page .platform-showcase { width: 92%; max-width: 1300px; margin: 50px auto 380px; height: 300px; }
 .landing-page .showcase-image { text-align: center; margin-bottom: 50px; }
 .landing-page .showcase-image img { width: 100%; max-width: 900px; display: block; margin: auto; }
 .landing-page .features-slider { display: flex; justify-content: center; gap: 18px; }
@@ -907,7 +907,7 @@ video { object-fit:contain; }
   .landing-page .platforms-text { gap: 12px; }
   .landing-page .platforms-text .line { width: 2px; height: 50px; }
   .landing-page .platforms-text p { font-size: 14px; line-height: 1.8; }
-  .landing-page .platform-showcase { width: 95%; margin-bottom: 200px; }
+  .landing-page .platform-showcase { width: 95%; margin-bottom: 50px; }
   .landing-page .showcase-image { margin-bottom: 30px; }
   .landing-page .features-slider { overflow-x: auto; justify-content: flex-start; gap: 14px; padding-bottom: 10px; }
   .landing-page .features-slider::-webkit-scrollbar { display: none; }
