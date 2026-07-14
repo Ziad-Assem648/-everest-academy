@@ -37,23 +37,14 @@ export default function PublicNavbar({ active }) {
           ))}
         </div>
         <div className="nav-right" style={{marginRight:8}}>
-          <div style={{display:"flex",alignItems:"center",gap:6,padding:"4px 8px",background:c.bgInput,borderRadius:12,border:`1px solid ${c.borderLight || c.border}`}}>
-            <span style={{fontSize:11,fontWeight:600,color:c.textMuted,marginRight:2}}>{t("الإعدادات","Settings")}</span>
-            <button onClick={toggleLang} style={{width:36,height:36,borderRadius:8,border:"none",background:c.bgCard,cursor:"pointer",fontSize:13,fontWeight:700,color:c.text,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}} title={lang === "ar" ? "English" : "العربية"}>
-              {lang === "ar" ? "EN" : "ع"}
-            </button>
-            <button onClick={toggleTheme} style={{width:36,height:36,borderRadius:8,border:"none",background:c.bgCard,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}} title={theme === "dark" ? "Light Mode" : "Dark Mode"}>
-              {theme === "dark" ? "\u2600\uFE0F" : "\uD83C\uDF19"}
-            </button>
-          </div>
           <div className="auth-buttons">
             <Link to="/login" className="login-btn">{t("تسجيل الدخول", "Login")}</Link>
             <Link to="/register" className="signup-btn">{t("إنشاء حساب", "Sign Up")}</Link>
           </div>
-          <button className="menu-btn" onClick={() => setMenuOpen(!menuOpen)} aria-label="menu" style={{display:"flex",flexDirection:"column",gap:5,padding:0}}>
-            <span style={{width:20,height:2,background:c.textSoft,borderRadius:2,display:"block"}} />
-            <span style={{width:20,height:2,background:c.textSoft,borderRadius:2,display:"block"}} />
-            <span style={{width:20,height:2,background:c.textSoft,borderRadius:2,display:"block"}} />
+          <button className="menu-btn" onClick={() => setMenuOpen(!menuOpen)} aria-label="menu" style={{display:"flex",flexDirection:"column",gap:5,padding:8,background:"transparent",border:"none"}}>
+            <span style={{width:20,height:2,background:"#000",borderRadius:2,display:"block"}} />
+            <span style={{width:20,height:2,background:"#000",borderRadius:2,display:"block"}} />
+            <span style={{width:20,height:2,background:"#000",borderRadius:2,display:"block"}} />
           </button>
         </div>
       </nav>
