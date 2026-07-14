@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
 import PublicNavbar from "../components/PublicNavbar";
+import { api } from "../App";
 
 export default function PendingActivationPage() {
   const { t, lang } = useLang();
@@ -11,8 +12,7 @@ export default function PendingActivationPage() {
   const [csEmail, setCsEmail] = useState("");
 
   useEffect(() => {
-    fetch("/api/settings")
-      .then((r) => r.json())
+    api("/api/settings")
       .then((d) => {
         setCsWhatsapp(d.customer_service_whatsapp || "");
         setCsEmail(d.customer_service_email || "");

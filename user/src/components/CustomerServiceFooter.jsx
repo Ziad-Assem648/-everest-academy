@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
+import { api } from "../App";
 
 export default function CustomerServiceFooter() {
   const { t } = useLang();
@@ -9,7 +10,7 @@ export default function CustomerServiceFooter() {
   const [email, setEmail] = useState("");
 
   useEffect(() => {
-    fetch("/api/settings").then(r => r.json()).then(d => {
+    api("/api/settings").then(d => {
       setWhatsapp(d.customer_service_whatsapp || "");
       setEmail(d.customer_service_email || "");
     }).catch(() => {});

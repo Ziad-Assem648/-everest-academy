@@ -25,7 +25,7 @@ export default function DashboardPage() {
   }, [user]);
 
   useEffect(() => {
-    fetch("/api/settings").then(r => r.json()).then(d => {
+    api("/api/settings").then(d => {
       setCsWhatsapp(d.customer_service_whatsapp || "");
       setCsEmail(d.customer_service_email || "");
     }).catch(() => {});
