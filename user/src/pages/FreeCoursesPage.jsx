@@ -1,40 +1,19 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useLang } from "../LangContext";
-import { useTheme } from "../ThemeContext";
 import PublicNavbar from "../components/PublicNavbar";
 import FooterSection from "../components/FooterSection";
 
 const api = (path, opts = {}) =>
   fetch(path, { headers: { "Content-Type": "application/json" }, ...opts }).then((r) => r.json());
 
-const keyframes = `
-@keyframes float { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(5deg); } }
-@keyframes pulse { 0%,100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.05); } }
-@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(60px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes gradientFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-@keyframes glow { 0%,100% { box-shadow: 0 0 20px rgba(212,175,55,0.3); } 50% { box-shadow: 0 0 40px rgba(212,175,55,0.6); } }
-@keyframes rotate3d { from { transform: perspective(1000px) rotateY(-15deg) rotateX(5deg); } to { transform: perspective(1000px) rotateY(15deg) rotateX(-5deg); } }
-@keyframes orbit { from { transform: rotate(0deg) translateX(120px) rotate(0deg); } to { transform: rotate(360deg) translateX(120px) rotate(-360deg); } }
-@keyframes fadeInScale { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-`;
-
-function CountUp({ target, suffix = "" }) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    let c = 0; const speed = Math.max(1, target / 60);
-    const anim = () => { c += speed; if (c < target) { setCount(Math.floor(c)); requestAnimationFrame(anim); } else setCount(target); };
-    anim();
-  }, [target]);
-  return <>{count.toLocaleString()}{suffix}</>;
-}
-
 export default function FreeCoursesPage() {
-  const { t } = useLang();
-  const { colors: c } = useTheme();
+  const { t, dir } = useLang();
   const [lessons, setLessons] = useState([]);
   const [coursesMap, setCoursesMap] = useState({});
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [popupLesson, setPopupLesson] = useState(null);
 
   useEffect(() => {
     api("/api/courses/free-lessons").then((data) => {
@@ -61,225 +40,306 @@ export default function FreeCoursesPage() {
   }, []);
 
   const uniqueCourses = Object.values(coursesMap);
-  const m = typeof window !== "undefined" && window.innerWidth <= 768;
+
+  const filteredLessons = lessons.filter((l) => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || (l.title || "").toLowerCase().includes(q) || (l.title_ar || "").includes(q) || (l.course_title || "").toLowerCase().includes(q) || (l.course_title_ar || "").includes(q);
+    return matchSearch;
+  });
+
+  const groupedByCourse = {};
+  filteredLessons.forEach((l) => {
+    if (!groupedByCourse[l.course_id]) groupedByCourse[l.course_id] = [];
+    groupedByCourse[l.course_id].push(l);
+  });
+
+  const cats = [
+    { id: "all", emoji: "\uD83C\uDF10", label: t("الكل", "All") },
+    { id: "trading", emoji: "\uD83D\uDCC8", label: t("التداول", "Trading") },
+    { id: "marketing", emoji: "\uD83D\uDCA1", label: t("التسويق", "Marketing") },
+    { id: "dev", emoji: "\uD83D\uDCBB", label: t("البرمجة", "Programming") },
+    { id: "ai", emoji: "\uD83E\uDD16", label: t("الذكاء الاصطناعي", "AI") },
+    { id: "freelance", emoji: "\uD83D\uDC4D", label: t("العمل الحر", "Freelancing") },
+  ];
+
+  const categories = [
+    { id: "trading", type: "trading" },
+    { id: "marketing", type: "marketing" },
+    { id: "dev", type: "dev" },
+    { id: "ai", type: "ai" },
+    { id: "freelance", type: "freelance" },
+  ];
+
+  const getDiffLabel = (d) => {
+    if (d === "beginner") return t("مبتدئ", "Beginner");
+    if (d === "intermediate") return t("متوسط", "Intermediate");
+    return t("متقدم", "Advanced");
+  };
+  const getDiffColor = (d) => {
+    if (d === "beginner") return "#22c55e";
+    if (d === "intermediate") return "#f59e0b";
+    return "#ef4444";
+  };
 
   return (
-    <div style={{ background: c.bg, minHeight: "100vh", overflow: "hidden" }}>
-      <style>{keyframes + `
-        .fc-hero { position: relative; min-height: ${m ? "60vh" : "100vh"}; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .fc-hero-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 30%, #0a1628 60%, #0f0f13 100%); }
-        .fc-hero-bg::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 30% 40%, rgba(212,175,55,0.15) 0%, transparent 50%), radial-gradient(circle at 70% 60%, rgba(139,92,246,0.1) 0%, transparent 50%); animation: pulse 6s ease-in-out infinite; }
-        .fc-orb { position: absolute; border-radius: 50%; filter: blur(60px); animation: float 8s ease-in-out infinite; }
-        .fc-orb-1 { width: 400px; height: 400px; background: rgba(212,175,55,0.08); top: -100px; right: -100px; animation-delay: 0s; }
-        .fc-orb-2 { width: 300px; height: 300px; background: rgba(139,92,246,0.08); bottom: -50px; left: -50px; animation-delay: 2s; }
-        .fc-orb-3 { width: 200px; height: 200px; background: rgba(59,130,246,0.06); top: 30%; left: 20%; animation-delay: 4s; }
-        .fc-grid-lines { position: absolute; inset: 0; background-image: linear-gradient(rgba(212,175,55,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.03) 1px, transparent 1px); background-size: 60px 60px; }
-        .fc-hero-content { position: relative; z-index: 2; text-align: center; padding: ${m ? "120px 20px 40px" : "140px 20px 80px"}; max-width: 900px; margin: 0 auto; animation: slideUp 1s ease-out; }
-        .fc-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3); border-radius: 999px; color: #d4af37; font-size: 0.85rem; font-weight: 600; margin-bottom: 24px; animation: glow 3s ease-in-out infinite; }
-        .fc-badge-dot { width: 8px; height: 8px; background: #d4af37; border-radius: 50%; animation: pulse 2s infinite; }
-        .fc-hero h1 { font-size: clamp(2rem, 5vw, 4rem); font-weight: 900; line-height: 1.1; margin-bottom: 20px; background: linear-gradient(135deg, #ffffff 0%, #d4af37 50%, #f0d78c 100%); background-size: 200% 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientFlow 4s ease infinite; }
-        .fc-hero p { font-size: 1.1rem; color: #9a9aae; max-width: 600px; margin: 0 auto 40px; line-height: 1.8; }
-        .fc-hero-cta { display: inline-flex; align-items: center; gap: 10px; padding: 16px 36px; background: linear-gradient(135deg, #d4af37, #b8922a); color: #0a0a1a; font-size: 1rem; font-weight: 800; border-radius: 999px; text-decoration: none; transition: all 0.3s; box-shadow: 0 8px 30px rgba(212,175,55,0.3); }
-        .fc-hero-cta:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 12px 40px rgba(212,175,55,0.5); }
-        .fc-3d-shapes { position: absolute; inset: 0; pointer-events: none; }
-        .fc-3d-cube { position: absolute; width: 60px; height: 60px; border: 2px solid rgba(212,175,55,0.15); border-radius: 12px; animation: rotate3d 12s linear infinite; }
-        .fc-3d-cube:nth-child(1) { top: 15%; right: 10%; }
-        .fc-3d-cube:nth-child(2) { bottom: 20%; left: 8%; width: 40px; height: 40px; animation-delay: 3s; animation-duration: 15s; border-color: rgba(139,92,246,0.15); }
-        .fc-orbit-ring { position: absolute; width: 250px; height: 250px; border: 1px dashed rgba(212,175,55,0.1); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .fc-orbit-dot { position: absolute; width: 12px; height: 12px; background: #d4af37; border-radius: 50%; box-shadow: 0 0 15px rgba(212,175,55,0.5); animation: orbit 10s linear infinite; top: 50%; left: 50%; margin: -6px; }
-        .fc-stats { display: flex; justify-content: center; gap: 60px; padding: 40px 20px; position: relative; z-index: 2; animation: slideUp 1s ease-out 0.2s both; }
-        .fc-stat { text-align: center; }
-        .fc-stat-num { font-size: 2.5rem; font-weight: 900; color: #d4af37; line-height: 1; }
-        .fc-stat-label { font-size: 0.85rem; color: #9a9aae; margin-top: 8px; font-weight: 500; }
-        .fc-courses-section { position: relative; padding: 60px 5%; max-width: 1300px; margin: 0 auto; }
-        .fc-section-header { text-align: center; margin-bottom: 50px; animation: slideUp 0.8s ease-out; }
-        .fc-section-header h2 { font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 900; color: ${c.text}; margin-bottom: 12px; }
-        .fc-section-header p { color: ${c.textMuted}; font-size: 1rem; max-width: 550px; margin: 0 auto; }
-        .fc-course-group { margin-bottom: 50px; animation: slideUp 0.6s ease-out; }
-        .fc-course-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding: 16px 20px; background: ${c.bgCard}; border: 1px solid ${c.borderLight}; border-radius: 16px; }
-        .fc-course-header img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; }
-        .fc-course-header-no-img { width: 64px; height: 64px; border-radius: 12px; background: linear-gradient(135deg, #1a1a2e, #16213e); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; }
-        .fc-course-info { flex: 1; }
-        .fc-course-info h3 { font-size: 1.1rem; font-weight: 800; color: ${c.text}; margin: 0 0 4px 0; }
-        .fc-course-info p { font-size: 0.8rem; color: ${c.textMuted}; margin: 0; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-        .fc-course-buy { padding: 10px 22px; background: linear-gradient(135deg, #d4af37, #b8922a); color: #0a0a1a; font-weight: 800; font-size: 0.85rem; border-radius: 999px; text-decoration: none; transition: all 0.3s; white-space: nowrap; }
-        .fc-course-buy:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(212,175,55,0.4); }
-        .fc-lessons-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .fc-lesson-card { position: relative; border-radius: 20px; overflow: hidden; background: ${c.bgCard}; border: 1px solid ${c.borderLight}; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; text-decoration: none; display: block; }
-        .fc-lesson-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(212,175,55,0.2); border-color: rgba(212,175,55,0.3); }
-        .fc-lesson-top { padding: 20px 24px 12px; }
-        .fc-lesson-tag { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.05)); border: 1px solid rgba(212,175,55,0.2); border-radius: 999px; font-size: 0.7rem; font-weight: 700; color: #d4af37; margin-bottom: 12px; }
-        .fc-lesson-title { font-size: 1.1rem; font-weight: 800; color: ${c.text}; margin-bottom: 6px; line-height: 1.4; }
-        .fc-lesson-course { font-size: 0.8rem; color: ${c.textMuted}; display: flex; align-items: center; gap: 6px; }
-        .fc-lesson-course-dot { width: 5px; height: 5px; background: #d4af37; border-radius: 50%; flex-shrink: 0; }
-        .fc-lesson-bottom { padding: 14px 24px; border-top: 1px solid ${c.borderLight}; display: flex; align-items: center; justify-content: space-between; }
-        .fc-lesson-difficulty { font-size: 0.75rem; color: ${c.textMuted}; display: flex; align-items: center; gap: 5px; }
-        .fc-lesson-diff-dot { width: 6px; height: 6px; border-radius: 50%; }
-        .fc-lesson-watch { font-size: 0.8rem; color: #d4af37; font-weight: 700; display: flex; align-items: center; gap: 4px; }
-        .fc-lesson-watch svg { transition: transform 0.3s; }
-        .fc-lesson-card:hover .fc-lesson-watch svg { transform: translateX(4px); }
-        .fc-empty { text-align: center; padding: 80px 20px; }
-        .fc-empty-icon { font-size: 4rem; margin-bottom: 16px; animation: float 3s ease-in-out infinite; }
-        .fc-empty h3 { color: ${c.text}; font-size: 1.5rem; margin-bottom: 8px; }
-        .fc-empty p { color: ${c.textMuted}; font-size: 0.95rem; }
-        .fc-wave-divider { width: 100%; overflow: hidden; line-height: 0; margin-top: -2px; }
-        .fc-wave-divider svg { display: block; width: 100%; height: 60px; }
-        @media (max-width: 768px) {
-          .fc-stats { gap: 24px; flex-wrap: wrap; }
-          .fc-stat-num { font-size: 1.8rem; }
-          .fc-lessons-grid { grid-template-columns: 1fr; }
-          .fc-orbit-ring, .fc-3d-cube { display: none; }
-          .fc-course-header { flex-direction: column; text-align: center; }
-          .fc-course-header img, .fc-course-header-no-img { margin: 0 auto; }
-          .fc-course-buy { margin: 0 auto; }
+    <div style={{ background: "#fafafa", minHeight: "100vh", fontFamily: "'Cairo', sans-serif", direction: dir }}>
+      <style>{`
+        .fcp-hero{min-height:40vh;display:flex;align-items:center;justify-content:center;padding:140px 20px 80px;background:radial-gradient(circle at top right,rgba(212,175,55,.18),transparent 35%),radial-gradient(circle at bottom left,rgba(212,175,55,.1),transparent 35%),#fafafa}
+        .fcp-hero-inner{width:min(100%,900px);text-align:center}
+        .fcp-hero-badge{display:inline-block;padding:8px 16px;border-radius:999px;background:#fff;border:1px solid rgba(212,175,55,.25);color:#b8860b;font-size:.85rem;font-weight:700;margin-bottom:24px}
+        .fcp-hero h1{font-size:clamp(2.5rem,7vw,5.5rem);line-height:1;color:#111;margin:0 0 24px;font-weight:800}
+        .fcp-hero p{max-width:650px;margin:auto;color:#666;line-height:1.8;font-size:1.05rem}
+        .fcp-search-box{margin-top:40px;background:#fff;border-radius:999px;padding:10px;display:flex;gap:10px;box-shadow:0 15px 40px rgba(0,0,0,.06);max-width:700px;margin-inline:auto}
+        .fcp-search-box input{flex:1;border:none;outline:none;padding:16px 20px;font-size:1rem;background:transparent;font-family:'Cairo',sans-serif}
+        .fcp-search-box button{border:none;background:#111;color:#fff;padding:0 28px;border-radius:999px;cursor:pointer;font-weight:700;font-family:'Cairo',sans-serif;transition:.3s}
+        .fcp-search-box button:hover{transform:translateY(-2px)}
+        .fcp-categories{padding:40px 10px;background:#fff}
+        .fcp-cats-wrap{max-width:1100px;margin:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:16px}
+        .fcp-cat-btn{border:none;padding:16px 26px;border-radius:999px;background:#e1dada;color:#111;font-weight:700;cursor:pointer;transition:.3s;font-size:.95rem;font-family:'Cairo',sans-serif}
+        .fcp-cat-btn:hover{transform:translateY(-4px);background:#111;color:#fff}
+        .fcp-cat-btn.active{background:#d4af37;color:#111}
+        .fcp-trending{padding:100px 20px;background:#faf8f3}
+        .fcp-section-heading{text-align:center;margin-bottom:50px}
+        .fcp-section-heading span{color:#c7a44c;font-weight:700;letter-spacing:1px;font-size:.9rem}
+        .fcp-section-heading h2{margin-top:10px;font-size:clamp(2rem,4vw,3rem);color:#111}
+        .fcp-cards-row{max-width:1300px;margin:auto;display:flex;gap:22px;overflow-x:auto;scroll-behavior:smooth;padding-bottom:10px;scrollbar-width:none}
+        .fcp-cards-row::-webkit-scrollbar{display:none}
+        .fcp-trend-card{min-width:250px;max-width:250px;background:#fff;border-radius:26px;overflow:hidden;position:relative;flex-shrink:0;box-shadow:0 12px 30px rgba(0,0,0,.05);transition:.35s}
+        .fcp-trend-card:hover{transform:translateY(-8px)}
+        .fcp-trend-card img{width:100%;height:180px;object-fit:cover}
+        .fcp-free-tag{position:absolute;top:14px;right:14px;background:#059669;color:#fff;padding:6px 12px;border-radius:999px;font-size:.75rem;font-weight:700}
+        .fcp-trend-info{padding:18px}
+        .fcp-trend-info h3{color:#111;margin:0 0 10px;font-size:1rem;font-weight:700}
+        .fcp-trend-info p{color:#777;font-size:.9rem;line-height:1.6;height:45px;margin:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+        .fcp-course-meta{display:flex;justify-content:space-between;margin-top:15px;font-size:.85rem;color:#555}
+        .fcp-card-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:20px}
+        .fcp-price-text{color:#c7a44c;font-weight:800;font-size:1rem}
+        .fcp-card-actions{display:flex;gap:10px;margin-top:18px}
+        .fcp-preview-btn{flex:1;height:42px;border:none;border-radius:12px;background:#f5f5f5;color:#111;cursor:pointer;font-weight:700;font-family:'Cairo',sans-serif;transition:.2s}
+        .fcp-preview-btn:hover{background:#ececec}
+        .fcp-buy-btn{flex:1;height:42px;border:none;border-radius:12px;background:linear-gradient(135deg,#d4af37,#f5d76e);color:#111;cursor:pointer;font-weight:800;font-family:'Cairo',sans-serif;transition:.3s;text-decoration:none;display:flex;align-items:center;justify-content:center}
+        .fcp-buy-btn:hover{transform:translateY(-2px)}
+        .fcp-premium-section{max-width:1300px;margin:70px auto;padding:70px;border-radius:40px;background:linear-gradient(135deg,#0f0f0f,#1c1c1c);color:#fff;display:flex;justify-content:space-between;align-items:center;gap:60px;overflow:hidden;position:relative}
+        .fcp-premium-section::before{content:'';position:absolute;width:500px;height:500px;background:#d4af37;opacity:.07;border-radius:50%;top:-250px;right:-150px}
+        .fcp-premium-label{color:#d4af37;font-weight:700;letter-spacing:2px;font-size:.85rem}
+        .fcp-premium-content h2{margin:18px 0;font-size:clamp(2rem,5vw,3.5rem);line-height:1.2}
+        .fcp-premium-content p{max-width:600px;color:#d0d0d0;line-height:1.8}
+        .fcp-premium-features{margin-top:35px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+        .fcp-feature{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);padding:14px 18px;border-radius:16px;font-size:.9rem}
+        .fcp-premium-card{min-width:320px;background:rgba(255,255,255,.05);backdrop-filter:blur(18px);border:1px solid rgba(212,175,55,.2);border-radius:30px;padding:40px;text-align:center}
+        .fcp-premium-card span{color:#d4af37;font-weight:700;font-size:.85rem}
+        .fcp-premium-card h3{margin:15px 0;font-size:3rem;color:#fff}
+        .fcp-premium-card>p{color:#cfcfcf;margin-bottom:30px}
+        .fcp-start-btn{width:100%;height:58px;display:flex;align-items:center;justify-content:center;border-radius:18px;background:#d4af37;color:#111;text-decoration:none;font-weight:800;transition:.3s;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:1rem}
+        .fcp-start-btn:hover{transform:translateY(-3px)}
+        .fcp-emp{text-align:center;padding:80px 20px;color:#999}
+        .fcp-emp h3{color:#666;margin:0 0 8px}
+        .fcp-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(10px);z-index:3000;display:flex;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:.3s;padding:15px}
+        .fcp-modal-overlay.open{opacity:1;pointer-events:auto}
+        .fcp-modal-box{width:min(900px,92%);max-height:85vh;overflow:auto;background:#fff;border-radius:32px;transform:translateY(20px);transition:.3s}
+        .fcp-modal-overlay.open .fcp-modal-box{transform:translateY(0)}
+        .fcp-modal-header{display:flex;justify-content:space-between;align-items:center;padding:24px 28px;border-bottom:1px solid #f0f0f0}
+        .fcp-modal-header h3{font-size:1.5rem;color:#111;margin:0}
+        .fcp-modal-close{width:44px;height:44px;border:none;border-radius:50%;background:#f4f4f4;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center}
+        .fcp-modal-body{padding:28px}
+        .fcp-modal-img{width:100%;height:220px;object-fit:cover;border-radius:20px}
+        .fcp-modal-title{font-size:1.5rem;color:#111;margin:20px 0 10px}
+        .fcp-modal-desc{color:#777;line-height:1.8;margin-bottom:20px}
+        .fcp-modal-perks{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+        .fcp-modal-perk{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:16px;background:#fafafa;font-size:.9rem;color:#444}
+        .fcp-modal-perk i{color:#d4af37}
+        .fcp-modal-start{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:18px;background:#d4af37;color:#111;text-decoration:none;font-weight:800;transition:.3s;border:none;cursor:pointer;font-family:'Cairo',sans-serif}
+        .fcp-modal-start:hover{transform:translateY(-2px)}
+        @media(max-width:768px){
+          .fcp-hero{padding:120px 20px 60px;min-height:auto}
+          .fcp-hero h1{font-size:2.4rem}
+          .fcp-search-box{flex-direction:column;border-radius:28px}
+          .fcp-search-box button{height:52px}
+          .fcp-categories{padding:30px 10px}
+          .fcp-cats-wrap{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+          .fcp-cats-wrap::-webkit-scrollbar{display:none}
+          .fcp-cat-btn{white-space:nowrap;flex-shrink:0}
+          .fcp-trending{padding:60px 16px}
+          .fcp-cards-row{gap:16px;padding:0 0 10px}
+          .fcp-trend-card{min-width:240px;max-width:240px}
+          .fcp-premium-section{flex-direction:column;padding:40px 24px;text-align:center;margin:40px 16px}
+          .fcp-premium-features{grid-template-columns:1fr}
+          .fcp-premium-card{width:100%;min-width:auto}
+          .fcp-modal-overlay{align-items:flex-end;padding:0}
+          .fcp-modal-box{width:100%;max-height:90vh;border-radius:20px 20px 0 0}
         }
+        @media(min-width:769px) and (max-width:1024px){.fcp-premium-features{grid-template-columns:1fr}}
+        .fcp-card-img-wrap{position:relative;overflow:hidden}
+        .fcp-card-img-wrap img{transition:transform .5s}
+        .fcp-trend-card:hover .fcp-card-img-wrap img{transform:scale(1.05)}
       `}</style>
 
       <PublicNavbar active="courses" />
 
-      {/* Hero Section */}
-      <div className="fc-hero">
-        <div className="fc-hero-bg">
-          <div className="fc-grid-lines"></div>
-          <div className="fc-orb fc-orb-1"></div>
-          <div className="fc-orb fc-orb-2"></div>
-          <div className="fc-orb fc-orb-3"></div>
-        </div>
-        <div className="fc-3d-shapes">
-          <div className="fc-3d-cube"></div>
-          <div className="fc-3d-cube"></div>
-          <div className="fc-orbit-ring">
-            <div className="fc-orbit-dot"></div>
+      {/* ===== HERO ===== */}
+      <section className="fcp-hero">
+        <div className="fcp-hero-inner">
+          <span className="fcp-hero-badge">{t("كورسات خارجية للعرض", "EXTERNAL COURSES FOR PREVIEW")}</span>
+          <h1>{t("جرّب مجاناً قبل ما تشتري", "Try Before You Buy")}</h1>
+          <p>{t("استكشف دروساً مجانية من كورسات مدفوعة — تعرّف على المحتوى والأسلوب قبل الاشتراك.", "Explore free lessons from paid courses — experience the content and style before subscribing.")}</p>
+          <div className="fcp-search-box">
+            <input
+              type="text"
+              placeholder={t("ابحث عن أي موضوع...", "Search for any topic...")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <button>{t("بحث", "Search")}</button>
           </div>
         </div>
-        <div className="fc-hero-content">
-          <div className="fc-badge">
-            <span className="fc-badge-dot"></span>
-            {t("دروس مجانية — جرّب قبل ما تشترى", "FREE PREVIEW — TRY BEFORE YOU BUY")}
-          </div>
-          <h1>{t("جرّب مجاناً قبل ما تشتري", "Try Free Lessons Before You Buy")}</h1>
-          <p>{t("اكتشف دروس مجانية من كورسات مدفوعة — تعرّف على المحتوى والأسلوب قبل الاشتراك. كل درس مجاني يوضح الكورس اللي ينتمي له.", "Discover free preview lessons from paid courses — experience the content and style before subscribing. Each free lesson shows its parent course.")}</p>
-          <a href="#lessons" className="fc-hero-cta">
-            {t("تصفح الدروس المجانية", "Browse Free Lessons")}
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
-          </a>
-        </div>
-      </div>
+      </section>
 
-      {/* Stats */}
-      <div className="fc-stats">
-        <div className="fc-stat">
-          <div className="fc-stat-num"><CountUp target={lessons.length || 0} /></div>
-          <div className="fc-stat-label">{t("درس مجاني", "Free Lessons")}</div>
+      {/* ===== CATEGORIES ===== */}
+      <section className="fcp-categories">
+        <div className="fcp-cats-wrap">
+          {cats.map((cat) => (
+            <button
+              key={cat.id}
+              className={`fcp-cat-btn ${filter === cat.id ? "active" : ""}`}
+              onClick={() => setFilter(filter === cat.id ? "all" : cat.id)}
+            >
+              {cat.emoji} {cat.label}
+            </button>
+          ))}
         </div>
-        <div className="fc-stat">
-          <div className="fc-stat-num"><CountUp target={uniqueCourses.length || 0} /></div>
-          <div className="fc-stat-label">{t("كورس متاح", "Available Courses")}</div>
-        </div>
-        <div className="fc-stat">
-          <div className="fc-stat-num"><CountUp target={500} suffix="+" /></div>
-          <div className="fc-stat-label">{t("طالب مسجل", "Enrolled Students")}</div>
-        </div>
-        <div className="fc-stat">
-          <div className="fc-stat-num"><CountUp target={24} suffix="/7" /></div>
-          <div className="fc-stat-label">{t("دعم متواصل", "24/7 Support")}</div>
-        </div>
-      </div>
+      </section>
 
-      {/* Wave Divider */}
-      <div className="fc-wave-divider">
-        <svg viewBox="0 0 1200 60" preserveAspectRatio="none">
-          <path d="M0,30 C200,60 400,0 600,30 C800,60 1000,0 1200,30 L1200,60 L0,60 Z" fill={c.bg} />
-        </svg>
-      </div>
-
-      {/* Free Lessons Section */}
-      <div className="fc-courses-section" id="lessons">
-        <div className="fc-section-header">
-          <h2>{t("الدروس المجانية", "Free Preview Lessons")}</h2>
-          <p>{t("دروس مجانية من كورسات مدفوعة — اشترِ الكورس للمشاهدة الكاملة", "Free lessons from paid courses — buy the course for full access")}</p>
+      {/* ===== FREE LESSONS TRENDING ===== */}
+      <section className="fcp-trending" id="lessons">
+        <div className="fcp-section-heading">
+          <span>{t("دروس مجانية", "FREE LESSONS")}</span>
+          <h2>{t("جرّب قبل ما تشتري", "Preview Before You Buy")}</h2>
         </div>
 
-        {uniqueCourses.length === 0 ? (
-          <div className="fc-empty">
-            <div className="fc-empty-icon">📚</div>
-            <h3>{t("قريباً...", "Coming Soon...")}</h3>
-            <p>{t("لا توجد دروس مجانية متاحة حالياً — تابعونا للتحديثات", "No free lessons available yet — stay tuned for updates")}</p>
+        {filteredLessons.length === 0 ? (
+          <div className="fcp-emp">
+            <div style={{fontSize:48,marginBottom:16}}>📚</div>
+            <h3>{t("لا توجد دروس مجانية متاحة", "No Free Lessons Available")}</h3>
+            <p>{t("جرّب كلمات بحث مختلفة أو عدّ لاحقاً", "Try different search terms or check back later")}</p>
           </div>
         ) : (
-          uniqueCourses.map((course) => (
-            <div key={course.id} className="fc-course-group">
-              <div className="fc-course-header">
-                {course.image ? (
-                  <img src={course.image} alt={course.title_ar || course.title} />
-                ) : (
-                  <div className="fc-course-header-no-img">🎓</div>
-                )}
-                <div className="fc-course-info">
-                  <h3>{course.title_ar || course.title}</h3>
-                  <p>{course.description_ar || course.description}</p>
+          Object.entries(
+            Object.keys(groupedByCourse).reduce((acc, cid) => {
+              if (!acc[cid]) acc[cid] = [];
+              acc[cid] = groupedByCourse[cid];
+              return acc;
+            }, {})
+          ).map(([courseId, courseLessons]) => {
+            const first = courseLessons[0];
+            const course = coursesMap[courseId] || {};
+            return (
+              <div key={courseId} style={{marginBottom:50}}>
+                <div className="fcp-cards-row">
+                  {courseLessons.map((lesson) => (
+                    <div key={lesson.id} className="fcp-trend-card">
+                      <div className="fcp-free-tag">🔓 {t("مجاني", "Free")}</div>
+                      <div className="fcp-card-img-wrap">
+                        {course.image ? (
+                          <img src={course.image} alt={lesson.title_ar || lesson.title} />
+                        ) : (
+                          <div style={{width:"100%",height:180,background:"#f0f0f0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,color:"#ddd"}}>📚</div>
+                        )}
+                      </div>
+                      <div className="fcp-trend-info">
+                        <h3 style={{cursor:"pointer"}} onClick={() => setPopupLesson({ ...lesson, courseTitle: course.title_ar || course.title, courseDesc: course.description_ar || course.description, courseImage: course.image, coursePrice: course.price, courseDifficulty: course.difficulty })}>
+                          {lesson.title_ar || lesson.title}
+                        </h3>
+                        <p>{course.description_ar || course.description || ""}</p>
+                        <div className="fcp-course-meta">
+                          <span style={{display:"flex",alignItems:"center",gap:5}}>
+                            <span style={{width:6,height:6,borderRadius:"50%",background:getDiffColor(course.difficulty),display:"inline-block"}}></span>
+                            {getDiffLabel(course.difficulty)}
+                          </span>
+                          <span>{course.freeCount} {t("مجانية", "Free")}</span>
+                        </div>
+                        <div className="fcp-card-bottom">
+                          <span className="fcp-price-text">{Number(course.price).toLocaleString()} E-Money</span>
+                        </div>
+                        <div className="fcp-card-actions">
+                          <button className="fcp-preview-btn" onClick={() => setPopupLesson({ ...lesson, courseTitle: course.title_ar || course.title, courseDesc: course.description_ar || course.description, courseImage: course.image, coursePrice: course.price, courseDifficulty: course.difficulty })}>
+                            {t("معاينة", "Preview")}
+                          </button>
+                          <Link to={`/courses/${courseId}`} className="fcp-buy-btn">
+                            {t("اشتري الآن", "Buy Now")}
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <Link to={`/courses/${course.id}`} className="fc-course-buy">
-                  {t(`اشترِ الكورس — ${course.price} E-Money`, `Buy Course — ${course.price} E-Money`)}{course.price_egp > 0 ? t(` / ${course.price_egp} ج.م`, ` / ${course.price_egp} EGP`) : ""}
+              </div>
+            );
+          })
+        )}
+      </section>
+
+      {/* ===== WHY EVEREST ===== */}
+      <section className="fcp-premium-section">
+        <div className="fcp-premium-content">
+          <span className="fcp-premium-label">{t("لماذا إيفرست؟", "WHY EVEREST?")}</span>
+          <h2>{t("أكثر من مجرد تعلم", "More Than Just Learning")}</h2>
+          <p>{t("نقدم تجربة تعليمية متكاملة مصممة لمساعدة الطلاب على النمو والحفاظ على حماسهم وتحقيق نتائج حقيقية من خلال محتوى عملي ودعم مستمر.", "We provide a complete learning experience designed to help students grow, stay motivated and achieve real results through practical content and continuous support.")}</p>
+          <div className="fcp-premium-features">
+            <div className="fcp-feature">{t("🎯 مسار تعليمي شخصي", "Personalized Learning Journey")}</div>
+            <div className="fcp-feature">{t("🚀 حماس مستمر", "Continuous Motivation")}</div>
+            <div className="fcp-feature">{t("📚 محتوى محدث", "Updated Content")}</div>
+            <div className="fcp-feature">{t("💎 نظام E-Money مرن", "Flexible E-Money System")}</div>
+            <div className="fcp-feature">{t("🤝 دعم الطلاب", "Student Support")}</div>
+            <div className="fcp-feature">{t("🌟 مكافآت الإحالة", "Referral Rewards")}</div>
+          </div>
+        </div>
+        <div className="fcp-premium-card">
+          <span>{t("مجتمعنا", "OUR COMMUNITY")}</span>
+          <h3>{uniqueCourses.length * 30}+</h3>
+          <p>{t("جلسة تعليمية فاخرة", "Premium Learning Sessions")}</p>
+          <button className="fcp-start-btn" onClick={() => window.scrollTo({top:0,behavior:'smooth'})}>{t("ابدأ التعلم", "Start Learning")}</button>
+        </div>
+      </section>
+
+      {/* ===== LESSON PREVIEW MODAL ===== */}
+      <div className={`fcp-modal-overlay ${popupLesson ? "open" : ""}`} onClick={(e) => { if (e.target.classList.contains("fcp-modal-overlay")) setPopupLesson(null); }}>
+        {popupLesson && (
+          <div className="fcp-modal-box">
+            <div className="fcp-modal-header">
+              <h3>{popupLesson.title_ar || popupLesson.title}</h3>
+              <button className="fcp-modal-close" onClick={() => setPopupLesson(null)}>✕</button>
+            </div>
+            <div className="fcp-modal-body">
+              {popupLesson.courseImage ? (
+                <img src={popupLesson.courseImage} alt="" className="fcp-modal-img" />
+              ) : (
+                <div style={{width:"100%",height:220,background:"#f0f0f0",borderRadius:20,display:"flex",alignItems:"center",justifyContent:"center",fontSize:50}}>📚</div>
+              )}
+              <h3 className="fcp-modal-title">{popupLesson.title_ar || popupLesson.title}</h3>
+              <p className="fcp-modal-desc">
+                <strong>{popupLesson.courseTitle}</strong> — {popupLesson.courseDesc}
+              </p>
+              <div className="fcp-modal-perks">
+                <div className="fcp-modal-perk">
+                  <i className="fa-solid fa-shield-halved"></i>
+                  {t("هذا درس مجاني — اشترِ الكورس للمشاهدة الكاملة", "This is a free lesson — buy the course for full access")}
+                </div>
+                <div className="fcp-modal-perk">
+                  <i className="fa-solid fa-trophy"></i>
+                  {t("شهادة مهنية معتمدة فور إتمام المسار", "Professional certificate upon path completion")}
+                </div>
+              </div>
+              <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+                <Link to={`/courses/${popupLesson.course_id}?lesson=${popupLesson.id}`} className="fcp-modal-start" onClick={() => setPopupLesson(null)}>
+                  {t("شاهد الدرس الآن", "Watch Lesson Now")}
+                </Link>
+                <Link to={`/courses/${popupLesson.course_id}`} className="fcp-modal-start" style={{background:"#111",color:"#fff"}} onClick={() => setPopupLesson(null)}>
+                  {t("عرض الكورس", "View Course")}
                 </Link>
               </div>
-
-              <div className="fc-lessons-grid">
-                {lessons.filter((l) => l.course_id === course.id).map((lesson, idx) => (
-                  <Link key={lesson.id} to={`/courses/${lesson.course_id}?lesson=${lesson.id}`} className="fc-lesson-card"
-                    style={{ animation: `slideUp 0.5s ease-out ${idx * 0.08}s both` }}>
-                    <div className="fc-lesson-top">
-                      <div className="fc-lesson-tag">
-                        ▶ {t("درس مجاني", "FREE LESSON")}
-                      </div>
-                      <div className="fc-lesson-title">{lesson.title_ar || lesson.title}</div>
-                      <div className="fc-lesson-course">
-                        <span className="fc-lesson-course-dot"></span>
-                        {course.title_ar || course.title}
-                      </div>
-                    </div>
-                    <div className="fc-lesson-bottom">
-                      <div className="fc-lesson-difficulty">
-                        <span className="fc-lesson-diff-dot" style={{
-                          background: course.difficulty === "beginner" ? "#22c55e" : course.difficulty === "intermediate" ? "#f59e0b" : "#ef4444"
-                        }}></span>
-                        {course.difficulty === "beginner" ? t("مبتدئ", "Beginner") : course.difficulty === "intermediate" ? t("متوسط", "Intermediate") : t("متقدم", "Advanced")}
-                      </div>
-                      <div className="fc-lesson-watch">
-                        {t("اشاهد الآن", "Watch Now")}
-                        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
             </div>
-          ))
+          </div>
         )}
-      </div>
-
-      {/* CTA Section */}
-      <div style={{ padding: "60px 5%", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(212,175,55,0.05), rgba(139,92,246,0.03))" }}></div>
-        <div style={{ position: "relative", zIndex: 1 }}>
-          <h2 style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)", fontWeight: 900, color: c.text, marginBottom: 16 }}>
-            {t("أعجبك المحتوى؟", "Liked the Content?")}
-          </h2>
-          <p style={{ color: c.textMuted, fontSize: "1rem", marginBottom: 32, maxWidth: 500, margin: "0 auto 32px" }}>
-            {t("اشترك في الكورس الكامل واستمتع بجميع الدروس والاختبارات", "Subscribe to the full course and enjoy all lessons & quizzes")}
-          </p>
-          <Link to="/register" style={{
-            display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 40px",
-            background: "linear-gradient(135deg, #d4af37, #b8922a)", color: "#0a0a1a",
-            fontSize: "1rem", fontWeight: 800, borderRadius: 999, textDecoration: "none",
-            boxShadow: "0 8px 30px rgba(212,175,55,0.3)", transition: "all 0.3s"
-          }}
-          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.03)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(212,175,55,0.5)"; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(212,175,55,0.3)"; }}>
-            {t("إنشاء حساب", "Create Account")}
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </Link>
-        </div>
       </div>
 
       <FooterSection />
