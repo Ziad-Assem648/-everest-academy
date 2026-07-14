@@ -170,7 +170,17 @@ initDb().then(async () => {
       console.log("🔑 Loaded Gemini keys from settings DB");
     }
   } catch {}
-  // Load Groq API key from settings DB
+  // Load Groq API key from settings DB (insert env default if not set)
+  try {
+    const existing = await query("SELECT value FROM settings WHERE key = 'groq_api_key'");
+    if (existing.length === 0 || !existing[0].value) {
+      const defaultKey = process.env.GROQ_API_KEY || "";
+      if (defaultKey) {
+        await execute("INSERT INTO settings (key, value) VALUES ('groq_api_key', ?)", [defaultKey]);
+        console.log("🔑 Default Groq API key inserted into settings DB");
+      }
+    }
+  } catch {}
   await loadGroqKey();
   // Clean up orphaned sessions
   try { await execute("DELETE FROM user_sessions WHERE user_id NOT IN (SELECT id FROM users)"); } catch(e) {}
