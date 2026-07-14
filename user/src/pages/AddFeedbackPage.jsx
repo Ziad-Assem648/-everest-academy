@@ -5,6 +5,7 @@ import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
 import { api } from "../App";
 import AppNavbar from "../components/AppNavbar";
+import FooterSection from "../components/FooterSection";
 
 const getStyles = (c) => ({
   wrapper: { minHeight: "100vh", background: "linear-gradient(135deg, #141024 0%, #1a1630 100%)" },
@@ -122,6 +123,7 @@ export default function AddFeedbackPage() {
           )}
         </div>
       </div>
+      <FooterSection />
     </div>
   );
 }

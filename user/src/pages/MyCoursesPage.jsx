@@ -5,6 +5,7 @@ import { useLang } from "../LangContext";
 import { api } from "../App";
 import AppNavbar from "../components/AppNavbar";
 import { useTheme } from "../ThemeContext";
+import FooterSection from "../components/FooterSection";
 
 const useIsMobile = () => {
   const [m, setM] = useState(typeof window !== "undefined" && window.innerWidth <= 768);
@@ -82,6 +83,7 @@ export default function MyCoursesPage() {
           </div>
         )}
       </div>
+      <FooterSection />
     </div>
   );
 }

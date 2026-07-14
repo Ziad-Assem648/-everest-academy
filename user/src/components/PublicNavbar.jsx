@@ -48,9 +48,9 @@ export default function PublicNavbar({ active }) {
             <Link to="/register" className="signup-btn">{t("إنشاء حساب", "Sign Up")}</Link>
           </div>
           <button className="menu-btn" onClick={() => setMenuOpen(!menuOpen)} aria-label="menu" style={{display:"flex",flexDirection:"column",gap:5,padding:8,background:"transparent",border:"none"}}>
-            <span style={{width:20,height:2,background:"#000",borderRadius:2,display:"block"}} />
-            <span style={{width:20,height:2,background:"#000",borderRadius:2,display:"block"}} />
-            <span style={{width:20,height:2,background:"#000",borderRadius:2,display:"block"}} />
+            <span style={{width:20,height:2,background:c.text,borderRadius:2,display:"block"}} />
+            <span style={{width:20,height:2,background:c.text,borderRadius:2,display:"block"}} />
+            <span style={{width:20,height:2,background:c.text,borderRadius:2,display:"block"}} />
           </button>
         </div>
       </nav>

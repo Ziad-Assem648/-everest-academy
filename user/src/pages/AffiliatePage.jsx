@@ -5,6 +5,7 @@ import { useLang } from "../LangContext";
 import { api } from "../App";
 import AppNavbar from "../components/AppNavbar";
 import { useTheme } from "../ThemeContext";
+import FooterSection from "../components/FooterSection";
 
 const GOLD = "#d4af37";
 
@@ -765,14 +766,7 @@ export default function AffiliatePage() {
         )}
       </div>
 
-      <footer className="dash-footer">
-        <p>{t("© 2026 Everest Academy. جميع الحقوق محفوظة.", "© 2026 Everest Academy. All Rights Reserved.")}</p>
-        <div className="footer-links">
-          <a href="#">{t("الدعم", "Support")}</a>
-          <a href="#">{t("الخصوصية", "Privacy")}</a>
-          <a href="#">{t("الشروط", "Terms")}</a>
-        </div>
-      </footer>
+      <FooterSection />
 
       <style>{`
         @media (max-width: 600px) {

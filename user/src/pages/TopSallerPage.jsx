@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
 import AppNavbar from "../components/AppNavbar";
 import { useTheme } from "../ThemeContext";
+import FooterSection from "../components/FooterSection";
 
 const useIsMobile = () => {
   const [m, setM] = useState(typeof window !== "undefined" && window.innerWidth <= 768);
@@ -201,6 +202,7 @@ export default function TopSallerPage() {
           </>
         )}
       </div>
+      <FooterSection />
       <style>{`
         @keyframes fadeInUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
         @keyframes podiumRise { from { opacity:0; transform:translateY(40px) scale(.9); } to { opacity:1; transform:translateY(0) scale(1); } }

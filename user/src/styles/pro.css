@@ -1644,12 +1644,13 @@ video { object-fit:contain; }
 [data-theme="dark"] .navbar .nav-links a.active { color: #d4af37 !important; }
 [data-theme="dark"] .navbar .login-btn { background: #e8e8ec !important; color: #111 !important; border: 1px solid rgba(255,255,255,0.08) !important; }
 [data-theme="dark"] .navbar .signup-btn { background: #d4af37 !important; color: #111 !important; }
-[data-theme="dark"] .navbar .menu-btn { color: #e8e8ec !important; }
+[data-theme="dark"] .navbar .menu-btn span { background: #e8e8ec !important; }
+[data-theme="dark"] .navbar .menu-btn { background: transparent !important; }
 [data-theme="dark"] .navbar .mobile-menu { background: #1a1a24 !important; }
-[data-theme="dark"] .navbar .lang-btn { background: #252538 !important; color: #e8e8ec !important; }
-[data-theme="dark"] .navbar .lang-menu { background: #1e1e2e !important; }
-[data-theme="dark"] .navbar .lang-menu a { color: #e8e8ec !important; }
-[data-theme="dark"] .navbar .lang-menu a:hover { background: #252538 !important; }
+[data-theme="dark"] .navbar .mobile-menu .mobile-header { background: #1a1a24 !important; color: #e8e8ec !important; }
+[data-theme="dark"] .navbar .mobile-menu .mobile-header h2 { color: #e8e8ec !important; }
+[data-theme="dark"] .navbar .mobile-menu .mobile-header button { color: #e8e8ec !important; }
+[data-theme="dark"] .navbar .auth-buttons button { background: #252538 !important; color: #e8e8ec !important; border-color: rgba(255,255,255,0.08) !important; }
 
 /* LANDING PAGE */
 [data-theme="dark"] .landing-page .tracks-card { background: #1e1e2e !important; box-shadow: 0 25px 60px rgba(0,0,0,0.3) !important; }

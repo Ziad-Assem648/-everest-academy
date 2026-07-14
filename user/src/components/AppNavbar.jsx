@@ -79,7 +79,7 @@ export default function AppNavbar() {
           boxShadow: c.shadow, direction: dir,
         }}>
           <Link to="/home" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <img src="/image/logo-navbar.png" alt="Logo" style={{ height: 38 }} />
+            <img src="/image/logo-navbar.png" alt="Logo" style={{ height: 48 }} />
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {user && <NotificationBell userId={user.id} />}
@@ -110,30 +110,10 @@ export default function AppNavbar() {
         boxShadow: c.shadow, direction: dir
       }}>
         <Link to="/home" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <img src="/image/logo-navbar.png" alt="Logo" style={{ height: 64 }} />
+          <img src="/image/logo-navbar.png" alt="Logo" style={{ height: 80 }} />
         </Link>
 
-        <nav style={{ display: "flex", alignItems: "center", gap: 0 }}>
-          {navItems.filter(item => !item.studentOnly || isStudentAccount(user)).map((item) => {
-            const active = isActive(item.to);
-            return (
-              <Link key={item.to + item.label_en} to={item.to}
-                style={{
-                  padding: "8px 14px", borderRadius: 8, fontSize: 13.5, fontWeight: 600,
-                  textDecoration: "none", color: active ? c.text : c.textSoft,
-                  background: "transparent", whiteSpace: "nowrap",
-                  borderBottom: active ? `2px solid ${c.primary}` : "2px solid transparent",
-                  marginBottom: -2, letterSpacing: "0.2px"
-              }}>
-                {t(item.label_ar, item.label_en)}
-              </Link>
-            );
-          })}
-        </nav>
-
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {user && <NotificationBell userId={user.id} />}
-          <ThemeToggle c={c} />
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => nav("/profile")}>
               <div style={{ width: 38, height: 38, borderRadius: "50%", border: "2px solid #d4af37", display: "flex", alignItems: "center", justifyContent: "center" }}>
