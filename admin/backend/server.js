@@ -34,6 +34,7 @@ if (fs.existsSync(adminDist)) {
 const userDist = join(__dirname, "../../user/dist");
 const userPublic = join(__dirname, "../../user/public");
 if (fs.existsSync(userDist)) {
+  app.use("/assets", express.static(join(userDist, "assets"), { maxAge: 0, etag: false, lastModified: false }));
   app.use(express.static(userDist, { maxAge: 0, etag: false, lastModified: false, index: false }));
   const buildVersion = Date.now().toString(36);
   const serveUser = (req, res) => {
@@ -50,6 +51,15 @@ if (fs.existsSync(userDist)) {
   app.get("/", serveUser);
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api") || req.path.startsWith("/uploads") || req.path.startsWith("/admin")) return next();
+    if (req.path.startsWith("/assets/")) {
+      const fParam = req.query.f;
+      if (fParam) {
+        const filePath = join(userDist, "assets", fParam);
+        if (fs.existsSync(filePath)) {
+          return res.sendFile(filePath);
+        }
+      }
+    }
     serveUser(req, res);
   });
   console.log("✅ Serving user frontend from", userDist);
