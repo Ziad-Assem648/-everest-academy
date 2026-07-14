@@ -1,10 +1,252 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
 import PublicNavbar from "../components/PublicNavbar";
 import FooterSection from "../components/FooterSection";
 
+const pscStyles = `
+@keyframes pscFadeUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pscIconPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+.psc-track::-webkit-scrollbar { display:none; }
+.psc-track { -ms-overflow-style:none; scrollbar-width:none; scroll-snap-type:x mandatory; cursor:grab; }
+.psc-track:active { cursor:grabbing; }
+.psc-card { scroll-snap-align:start; }
+.psc-card:hover .psc-icon-box { transform:translateY(-4px) scale(1.06); box-shadow:0 12px 32px rgba(212,175,55,0.3); }
+.psc-card:hover { transform:translateY(-6px); box-shadow:0 20px 50px rgba(0,0,0,0.1); }
+.psc-dot { transition:all 0.3s ease; }
+.psc-dot.active { width:28px; background:#d4af37; }
+`;
+
+function AnimatedNumber({ target, suffix, isVisible }) {
+  const [val, setVal] = useState(0);
+  const done = useRef(false);
+  useEffect(() => {
+    if (!isVisible || done.current) return;
+    done.current = true;
+    const raw = String(target).replace(/[^0-9]/g, "");
+    const num = parseInt(raw, 10);
+    if (isNaN(num)) return;
+    let start = 0;
+    const dur = 1200;
+    const step = (ts) => {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / dur, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      setVal(Math.round(ease * num));
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [isVisible, target]);
+  return <span>{val.toLocaleString()}{suffix}</span>;
+}
+
+function PremiumStatsCarousel({ stats, t, c }) {
+  const scrollRef = useRef(null);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const sectionRef = useRef(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const hasScrolled = useRef(false);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold: 0.15 });
+    if (sectionRef.current) obs.observe(sectionRef.current);
+    return () => obs.disconnect();
+  }, []);
+
+  const items = [
+    {
+      icon: "fa-solid fa-building-shield",
+      num: "5",
+      suffix: "",
+      title: t("التراخيص", "Regulations"),
+      desc: t("مرخصة في عدة جهات قضائية مع حماية قوية للمستثمرين.", "Regulated across multiple jurisdictions with strong investor protection."),
+      accent: "#6366f1",
+    },
+    {
+      icon: "fa-solid fa-star",
+      num: stats.totalFeedbacks >= 5 ? (stats.satisfactionRate / 20).toFixed(1) : "5",
+      suffix: stats.totalFeedbacks >= 5 ? " \u2605" : "-star",
+      title: stats.totalFeedbacks >= 5 ? t("تقييم المنصة", "Platform Rating") : t("خدمة العملاء", "Customer Service"),
+      desc: stats.totalFeedbacks >= 5
+        ? t(`متوسط ${stats.totalFeedbacks} تقييم من الطلاب`, `Average of ${stats.totalFeedbacks} student reviews`)
+        : t("فريق دعم متعدد اللغات متاح 24/5 بجودة خدمة استثنائية.", "Multilingual support team available 24/5 with exceptional service quality."),
+      accent: "#d4af37",
+    },
+    {
+      icon: "fa-solid fa-award",
+      num: "142",
+      suffix: "+",
+      title: t("الجوائز", "Awards"),
+      desc: t("معترف بها عالمياً مع أكثر من 142 جائزة دولية.", "Recognized globally with more than 142 international awards."),
+      accent: "#f59e0b",
+    },
+    {
+      icon: "fa-solid fa-users",
+      num: stats.totalMembers >= 100 ? String(stats.totalMembers) : "1,000",
+      suffix: "",
+      title: t("حسابات العملاء", "Client Accounts"),
+      desc: t("تقديم خدمات التداول عبر الإنترنت منذ 1999 في أكثر من 170 دولة.", "Providing online trading services since 1999 across 170+ countries."),
+      accent: "#10b981",
+    },
+  ];
+
+  const onScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const card = el.children[0];
+    if (!card) return;
+    const cardW = card.offsetWidth;
+    const style = getComputedStyle(el);
+    const gap = parseInt(style.gap || "20", 10);
+    const idx = Math.round(el.scrollLeft / (cardW + gap));
+    const newIdx = Math.min(Math.max(idx, 0), items.length - 1);
+    setActiveIdx(newIdx);
+    if (!hasScrolled.current && el.scrollLeft > 10) hasScrolled.current = true;
+  }, [items.length]);
+
+  const scrollTo = (i) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const card = el.children[0];
+    if (!card) return;
+    const cardW = card.offsetWidth;
+    const style = getComputedStyle(el);
+    const gap = parseInt(style.gap || "20", 10);
+    el.scrollTo({ left: i * (cardW + gap), behavior: "smooth" });
+  };
+
+  const onMouseDown = (e) => {
+    isDragging.current = true;
+    startX.current = e.pageX - scrollRef.current.offsetLeft;
+    scrollLeftRef.current = scrollRef.current.scrollLeft;
+    scrollRef.current.style.cursor = "grabbing";
+  };
+  const onMouseUp = () => {
+    isDragging.current = false;
+    if (scrollRef.current) scrollRef.current.style.cursor = "grab";
+  };
+  const onMouseMove = (e) => {
+    if (!isDragging.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    scrollRef.current.scrollLeft = scrollLeftRef.current - (x - startX.current) * 1.2;
+  };
+
+  return (
+    <section ref={sectionRef} style={{ padding: "80px 0", background: "linear-gradient(180deg,#fafbff 0%,#f0eeff 100%)", direction: "ltr", overflow: "hidden" }}>
+      <style>{pscStyles}</style>
+
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%" }}>
+        {/* Header */}
+        <div style={{
+          textAlign: "center", marginBottom: 48,
+          opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(30px)",
+          transition: "all 0.7s cubic-bezier(.4,0,.2,1)",
+        }}>
+          <span style={{
+            display: "inline-block", fontSize: 12, fontWeight: 700, letterSpacing: 3,
+            color: "#d4af37", textTransform: "uppercase", marginBottom: 14,
+            background: "rgba(212,175,55,0.1)", padding: "6px 18px", borderRadius: 99,
+          }}>
+            {t("لماذا إيفرست", "WHY EVEREST")}
+          </span>
+          <h2 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 800, color: "#111", margin: "14px 0 0", lineHeight: 1.2 }}>
+            {t("أرقام تتحدث عن جودتنا", "Numbers That Speak For Us")}
+          </h2>
+        </div>
+
+        {/* Carousel */}
+        <div
+          ref={scrollRef}
+          className="psc-track"
+          style={{
+            display: "flex", gap: 20, overflowX: "auto", padding: "10px 4px 30px",
+          }}
+          onScroll={onScroll}
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          onMouseLeave={onMouseUp}
+          onMouseMove={onMouseMove}
+        >
+          {items.map((item, i) => (
+            <div
+              key={i}
+              className="psc-card"
+              style={{
+                flex: "0 0 280px",
+                background: "#fff",
+                borderRadius: 24,
+                padding: "36px 28px 30px",
+                border: "1px solid rgba(0,0,0,0.05)",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.04)",
+                display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
+                transition: "all 0.35s cubic-bezier(.4,0,.2,1)",
+                animation: visible ? `pscFadeUp 0.6s ease ${i * 0.12}s both` : "none",
+              }}
+            >
+              {/* Icon */}
+              <div className="psc-icon-box" style={{
+                width: 64, height: 64, borderRadius: 20,
+                background: `linear-gradient(135deg, ${item.accent}18, ${item.accent}30)`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                marginBottom: 24, transition: "all 0.35s ease",
+              }}>
+                <i className={item.icon} style={{ fontSize: 26, color: item.accent }}></i>
+              </div>
+
+              {/* Number */}
+              <h2 style={{
+                fontSize: 40, fontWeight: 800, color: "#111", margin: 0, lineHeight: 1,
+                fontFamily: "'Poppins','Cairo',sans-serif",
+              }}>
+                <AnimatedNumber target={item.num} suffix={item.suffix} isVisible={visible} />
+              </h2>
+
+              {/* Title */}
+              <h3 style={{
+                fontSize: 16, fontWeight: 700, color: "#333", margin: "12px 0 10px",
+                letterSpacing: 0.3,
+              }}>
+                {item.title}
+              </h3>
+
+              {/* Divider */}
+              <div style={{ width: 40, height: 3, borderRadius: 3, background: `${item.accent}30`, marginBottom: 14 }} />
+
+              {/* Description */}
+              <p style={{
+                fontSize: 13, lineHeight: 1.7, color: "#888", margin: 0,
+                maxWidth: 240,
+              }}>
+                {item.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Dots */}
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 8 }}>
+          {items.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => scrollTo(i)}
+              className={`psc-dot${i === activeIdx ? " active" : ""}`}
+              style={{
+                width: i === activeIdx ? 28 : 10, height: 10, borderRadius: 99,
+                background: i === activeIdx ? "#d4af37" : "#d0d0d0",
+                border: "none", cursor: "pointer", padding: 0,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function LandingPage() {
   const { t, lang } = useLang();
@@ -121,41 +363,11 @@ export default function LandingPage() {
         <div className="features-slider"></div>
       </section>
 
-      {/* Stats */}
-      <section className="stats-section">
-        <div className="stats-wrapper">
-          <div className="stat-card">
-            <i className="fa-solid fa-building-shield"></i>
-            <h2 className="stat-number">5</h2>
-            <h3 className="stat-title">{t("التراخيص", "Regulations")}</h3>
-            <p className="stat-desc">{t("مرخصة في عدة جهات قضائية مع حماية قوية للمستثمرين.", "Regulated across multiple jurisdictions with strong investor protection.")}</p>
-          </div>
-          <div className="stat-card">
-            <i className="fa-solid fa-star"></i>
-            <h2 className="stat-number">{stats.totalFeedbacks >= 5 ? `${(stats.satisfactionRate / 20).toFixed(1)} ★` : "5-star"}</h2>
-            <h3 className="stat-title">{stats.totalFeedbacks >= 5 ? t("تقييم المنصة", "Platform Rating") : t("خدمة العملاء", "Customer Service")}</h3>
-            <p className="stat-desc">{stats.totalFeedbacks >= 5 ? t(`متوسط ${stats.totalFeedbacks} تقييم من الطلاب`, `Average of ${stats.totalFeedbacks} student reviews`) : t("فريق دعم متعدد اللغات متاح 24/5 بجودة خدمة استثنائية.", "Multilingual support team available 24/5 with exceptional service quality.")}</p>
-          </div>
-          <div className="stat-card">
-            <i className="fa-solid fa-award"></i>
-            <h2 className="stat-number">142+</h2>
-            <h3 className="stat-title">{t("الجوائز", "Awards")}</h3>
-            <p className="stat-desc">{t("معترف بها عالمياً مع أكثر من 142 جائزة دولية.", "Recognized globally with more than 142 international awards.")}</p>
-          </div>
-          <div className="stat-card">
-            <i className="fa-solid fa-user"></i>
-            <h2 className="stat-number">{stats.totalMembers >= 100 ? stats.totalMembers.toLocaleString() : "1,000"}</h2>
-            <h3 className="stat-title">{t("حسابات العملاء", "Client Accounts")}</h3>
-            <p className="stat-desc">{t("تقديم خدمات التداول عبر الإنترنت منذ 1999 في أكثر من 170 دولة.", "Providing online trading services since 1999 across 170+ countries.")}</p>
-          </div>
-        </div>
-      </section>
+      {/* Stats Carousel */}
+      <PremiumStatsCarousel stats={stats} t={t} c={c} />
 
       {/* Footer */}
       <FooterSection />
-
-      
-        </div>
-    
+    </div>
   );
 }
