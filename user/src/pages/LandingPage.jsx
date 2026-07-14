@@ -351,7 +351,7 @@ export default function LandingPage() {
       <PremiumStatsCarousel stats={stats} t={t} c={c} />
 
       {/* Footer */}
-      <FooterSection />
+      <FooterSection showCTA />
     </div>
   );
 }

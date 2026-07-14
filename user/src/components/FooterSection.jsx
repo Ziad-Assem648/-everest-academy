@@ -219,7 +219,7 @@ const styles = `
 }
 `;
 
-export default function FooterSection() {
+export default function FooterSection({ showCTA }) {
   const { t } = useLang();
   const [email, setEmail] = useState("");
 
@@ -234,6 +234,7 @@ export default function FooterSection() {
       <style>{styles}</style>
 
       {/* CTA Banner */}
+      {showCTA && (
       <div className="fs-cta-wrapper">
         <div className="fs-cta">
           <div className="fs-cta-bg" />
@@ -264,6 +265,7 @@ export default function FooterSection() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Footer */}
       <footer className="fs-footer">
