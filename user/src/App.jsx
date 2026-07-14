@@ -83,13 +83,13 @@ export default function App() {
       <ScreenProtection />
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/home" element={<HomePage />} />
+        <Route path="/home" element={<Guard><HomePage /></Guard>} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/dashboard" element={<Guard><DashboardPage /></Guard>} />
         <Route path="/courses" element={<Guard><CoursesPage /></Guard>} />
         <Route path="/my-courses" element={<Guard><MyCoursesPage /></Guard>} />
-        <Route path="/courses/:id" element={<CourseViewPage />} />
+        <Route path="/courses/:id" element={<Guard><CourseViewPage /></Guard>} />
         <Route path="/profile" element={<Guard><ProfilePage /></Guard>} />
         <Route path="/rankings" element={<Guard><RankingsPage /></Guard>} />
         <Route path="/affiliate" element={<Guard><AffiliatePage /></Guard>} />
