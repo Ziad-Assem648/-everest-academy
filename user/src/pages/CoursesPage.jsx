@@ -142,7 +142,7 @@ export default function CoursesPage() {
       <section className="cp-hero">
         <div className="cp-hero-inner">
           <span className="cp-hero-badge">{t("مكتبة إيفرست المحتوى", "EVEREST CONTENT LIBRARY")}</span>
-          <h1>{t("استكشف الدروس الفاخرة", "Explore Premium")}</h1>
+        
           <p>{t("استكشف دروساً تعليمية فاخرة، واكتشف مهارات جديدة، وابدأ دروسك الأولى مجاناً.", "Explore premium learning sessions, discover new skills, and start your first lessons for free.")}</p>
           <div className="cp-search-box">
             <input
