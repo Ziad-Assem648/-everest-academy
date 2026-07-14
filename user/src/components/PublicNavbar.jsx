@@ -28,15 +28,15 @@ export default function PublicNavbar({ active }) {
   return (
     <>
       <nav className="navbar" ref={navRef}>
-        <div className="nav-left">
-          <Link to="/" className="logo"><img src="/image/logo-navbar.png" alt="Everest" /></Link>
+        <div className="nav-left" style={{marginLeft:8}}>
+          <Link to="/" className="logo"><img src="/image/logo-navbar.png" alt="Everest" style={{width:90,height:90,objectFit:"contain",mixBlendMode:"multiply"}} /></Link>
         </div>
         <div className="nav-links">
           {links.map((l) => (
             <Link key={l.key} to={l.to} className={active === l.key ? "active" : ""}>{l.label}</Link>
           ))}
         </div>
-        <div className="nav-right">
+        <div className="nav-right" style={{marginRight:8}}>
           <button onClick={toggleLang} style={{width:42,height:42,borderRadius:999,border:"none",background:c.bgInput,cursor:"pointer",fontSize:14,fontWeight:700,color:c.text,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}} title={lang === "ar" ? "English" : "العربية"}>
             {lang === "ar" ? "EN" : "ع"}
           </button>
