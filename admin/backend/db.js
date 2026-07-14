@@ -269,6 +269,7 @@ function createSchema(driver, isTursoDb) {
         await driver.execute("UPDATE users SET account_type = 'registration' WHERE role = 'registration' AND account_type = 'student'");
         await driver.execute("UPDATE users SET account_type = 'student' WHERE role NOT IN ('registration', 'admin', 'ghost') AND account_type = 'student'");
       } catch(e) {}
+      try { await driver.execute("UPDATE ranks SET sales_required = 2 WHERE name = 'Star' AND sales_required = 0"); } catch(e) {}
       await seedDataTurso(driver, exec);
     })();
   }
@@ -298,6 +299,7 @@ function createSchema(driver, isTursoDb) {
     driver.run("UPDATE users SET account_type = 'registration' WHERE role = 'registration' AND account_type = 'student'");
     driver.run("UPDATE users SET account_type = 'student' WHERE role NOT IN ('registration', 'admin', 'ghost') AND account_type = 'student'");
   } catch(e) {}
+  try { driver.run("UPDATE ranks SET sales_required = 2 WHERE name = 'Star' AND sales_required = 0"); } catch(e) {}
   seedDataLocal(driver);
 }
 
@@ -305,7 +307,7 @@ async function seedDataTurso(driver, exec) {
   const rankRes = await exec("SELECT COUNT(*) as c FROM ranks");
   if (!rankRes.length || rankRes[0].c === 0) {
     const ranks = [
-      ["r1","Star",0,0,0],["r2","Executive",5,1500,1],["r3","Executive Star",10,3000,2],
+      ["r1","Star",2,0,0],["r2","Executive",5,1500,1],["r3","Executive Star",10,3000,2],
       ["r4","Team Leader",20,5000,3],["r5","Senior Leader",40,8000,4],
       ["r6","Regional Leader",70,12000,5],["r7","Everest Elite",120,18000,6],
       ["r8","Everest Master",200,28000,7],["r9","Everest Legend",350,45000,8],
@@ -326,7 +328,7 @@ function seedDataLocal(driver) {
   const rankExists = driver.exec("SELECT COUNT(*) as c FROM ranks");
   if (!rankExists.length || !rankExists[0].values.length || rankExists[0].values[0][0] === 0) {
     const ranks = [
-      ["r1","Star",0,0,0],["r2","Executive",5,1500,1],["r3","Executive Star",10,3000,2],
+      ["r1","Star",2,0,0],["r2","Executive",5,1500,1],["r3","Executive Star",10,3000,2],
       ["r4","Team Leader",20,5000,3],["r5","Senior Leader",40,8000,4],
       ["r6","Regional Leader",70,12000,5],["r7","Everest Elite",120,18000,6],
       ["r8","Everest Master",200,28000,7],["r9","Everest Legend",350,45000,8],

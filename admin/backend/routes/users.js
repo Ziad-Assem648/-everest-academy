@@ -152,7 +152,7 @@ router.put("/:id/approve-registration", async (req, res) => {
     expires.setDate(expires.getDate() + days);
     const expiresStr = expires.toISOString().slice(0, 19).replace("T", " ");
 
-    await execute("UPDATE users SET status = 'active', role = ?, account_type = ?, membership_expires_at = ?, rank = CASE WHEN (rank IS NULL OR rank = '') THEN 'Star' ELSE rank END, updated_at = datetime('now','localtime') WHERE id = ?", [role, accountType, expiresStr, req.params.id]);
+    await execute("UPDATE users SET status = 'active', role = ?, account_type = ?, membership_expires_at = ?, updated_at = datetime('now','localtime') WHERE id = ?", [role, accountType, expiresStr, req.params.id]);
     console.log("[approve-registration] Updated:", req.params.id, "role:", role, "account_type:", accountType);
 
     // If approved as student AND has a sponsor → pay commissions to uplines (skip non-student uplines)

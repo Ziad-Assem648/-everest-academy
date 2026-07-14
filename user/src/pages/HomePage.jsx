@@ -56,21 +56,22 @@ const makeStyles = (c, m) => ({
 });
 
 const ranks = [
-  { icon: "⭐", name: "Star", req: "Join and activate your account.", reward: "Community access & recognition." },
-  { icon: "🚀", name: "Executive", req: "5 Team Sales.", reward: "1,500 EGP Bonus." },
-  { icon: "💎", name: "Executive Star", req: "10 Team Sales.", reward: "3,000 EGP Bonus." },
-  { icon: "🏆", name: "Senior Leader", req: "40 Team Sales.", reward: "8,000 EGP Bonus." },
-  { icon: "🌍", name: "Regional Leader", req: "70 Team Sales.", reward: "12,000 EGP Bonus." },
-  { icon: "⚡", name: "Everest Elite", req: "120 Team Sales.", reward: "18,000 EGP Bonus." },
-  { icon: "🔱", name: "Everest Master", req: "200 Team Sales.", reward: "28,000 EGP Bonus." },
-  { icon: "🔥", name: "Everest Legend", req: "350 Team Sales.", reward: "45,000 EGP Bonus." },
-  { icon: "🌟", name: "Everest Ambassador", req: "600 Team Sales.", reward: "75,000 EGP Bonus." },
+  { icon: "⭐", name: "Star", req: "2 ينضمو من خلال الكود بتاعك", reqEn: "2 joins through your referral code", reward: "دخول المجتمع والتقدير", rewardEn: "Community access & recognition." },
+  { icon: "🚀", name: "Executive", req: "5 مبيعات الفريق", reqEn: "5 Team Sales.", reward: "مكافأة 1,500 جنيه", rewardEn: "1,500 EGP Bonus." },
+  { icon: "💎", name: "Executive Star", req: "10 مبيعات الفريق", reqEn: "10 Team Sales.", reward: "مكافأة 3,000 جنيه", rewardEn: "3,000 EGP Bonus." },
+  { icon: "👑", name: "Team Leader", req: "20 مبيعات الفريق", reqEn: "20 Team Sales.", reward: "مكافأة 5,000 جنيه", rewardEn: "5,000 EGP Bonus." },
+  { icon: "🏆", name: "Senior Leader", req: "40 مبيعات الفريق", reqEn: "40 Team Sales.", reward: "مكافأة 8,000 جنيه", rewardEn: "8,000 EGP Bonus." },
+  { icon: "🌍", name: "Regional Leader", req: "70 مبيعات الفريق", reqEn: "70 Team Sales.", reward: "مكافأة 12,000 جنيه", rewardEn: "12,000 EGP Bonus." },
+  { icon: "⚡", name: "Everest Elite", req: "120 مبيعات الفريق", reqEn: "120 Team Sales.", reward: "مكافأة 18,000 جنيه", rewardEn: "18,000 EGP Bonus." },
+  { icon: "🔱", name: "Everest Master", req: "200 مبيعات الفريق", reqEn: "200 Team Sales.", reward: "مكافأة 28,000 جنيه", rewardEn: "28,000 EGP Bonus." },
+  { icon: "🔥", name: "Everest Legend", req: "350 مبيعات الفريق", reqEn: "350 Team Sales.", reward: "مكافأة 45,000 جنيه", rewardEn: "45,000 EGP Bonus." },
+  { icon: "🌟", name: "Everest Ambassador", req: "600 مبيعات الفريق", reqEn: "600 Team Sales.", reward: "مكافأة 75,000 جنيه", rewardEn: "75,000 EGP Bonus." },
 ];
 
 const rankClassMap = {
   "Everest Ambassador":"ambassador","Everest Legend":"legend","Everest Master":"master",
   "Everest Elite":"elite","Regional Leader":"regional","Senior Leader":"senior",
-  "Executive Star":"elite","Executive":"senior"
+  "Executive Star":"elite","Executive":"senior","Team Leader":"senior"
 };
 
 const rankColors = {
@@ -294,10 +295,10 @@ export default function HomePage() {
                       <h3 style={{ fontSize:15,fontWeight:800,color:c.text,margin:0 }}>{r.name}</h3>
                     </div>
                     <p style={{ fontSize:13,color:c.textMuted,lineHeight:1.7,margin:0 }}>
-                      <strong style={{ color:colors.color }}>{t("المتطلبات:","Requirement:")}</strong> {r.req}
+                      <strong style={{ color:colors.color }}>{t("المتطلبات:","Requirement:")}</strong> {lang === "ar" ? r.req : r.reqEn}
                     </p>
                     <p style={{ fontSize:13,color:c.textMuted,lineHeight:1.7,margin:"4px 0 0" }}>
-                      <strong style={{ color:colors.color }}>{t("المكافأة:","Reward:")}</strong> {r.reward}
+                      <strong style={{ color:colors.color }}>{t("المكافأة:","Reward:")}</strong> {lang === "ar" ? r.reward : r.rewardEn}
                     </p>
                   </div>
                 </div>

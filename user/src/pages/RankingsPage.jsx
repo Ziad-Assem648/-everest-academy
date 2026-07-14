@@ -258,7 +258,7 @@ export default function RankingsPage() {
                     <div>
                       <h3 style={{fontSize:16,fontWeight:700,margin:0,color:c.text}}>{r.name}</h3>
                       <p style={{fontSize:13,color:c.textMuted,marginTop:4}}>
-                        {i === 0 && `🎯 ${t("انضم للتسجيل", "Join to register")}`}
+                        {i === 0 && `🎯 ${salesReq(r)}+ ${t("أعضاء فريقك", "Team Members")}`}
                         {i > 0 && salesReq(r) > 0 && `🎯 ${salesReq(r)}+ ${t("مبيعات الفريق", "Team Sales")}`}
                         {bonusVal(r) > 0 && ` · 🎁 ${bonusVal(r).toLocaleString()} EM`}
                       </p>
