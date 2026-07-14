@@ -270,14 +270,14 @@ export default function HomePage() {
             <h2 style={{ fontSize:"clamp(1.8rem,4vw,3rem)",lineHeight:1.1,color:c.text,marginBottom:12 }}>{t("كيف تصل إلى","How To Reach")} <span style={{ position:"relative",color:c.text }}>{t("رتبتك التالية","Your Next Rank")}</span></h2>
             <p style={{ color:c.textSoft,lineHeight:1.7,maxWidth:600,margin:"auto" }}>{t("تعرف على متطلبات ومكافآت كل رتبة في إيفرست.","Learn the requirements and rewards for every Everest rank.")}</p>
           </div>
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:20 }}>
+          <div style={{ display:"grid",gridTemplateColumns:m?"1fr":"repeat(auto-fill,minmax(320px,1fr))",gap:20, ...(m ? {display:"flex",overflowX:"auto",scrollSnapType:"x mandatory",WebkitOverflowScrolling:"touch",scrollbarWidth:"none",msOverflowStyle:"none",paddingBottom:8} : {}) }}>
             {ranks.map((r, i) => {
               const dbRank = dbRanks.find(dr => dr.name === r.name);
               const imgSrc = dbRank?.image || `/RanksImages/${r.name}.jpeg`;
               const key = rankClassMap[r.name] || "senior";
               const colors = rankColors[key] || { color:"#fb923c", bg:"rgba(251,146,60,0.08)", border:"1px solid rgba(251,146,60,0.18)" };
               return (
-                <div key={i} style={{ background:c.bgCard,borderRadius:20,overflow:"hidden",boxShadow:c.shadow,transition:"0.35s",cursor:"default",border:`1px solid ${c.borderLight}` }}
+                <div key={i} style={{ background:c.bgCard,borderRadius:20,overflow:"hidden",boxShadow:c.shadow,transition:"0.35s",cursor:"default",border:`1px solid ${c.borderLight}`,flex:"0 0 280px",scrollSnapAlign:"start",...(m ? {} : {}) }}
                   onMouseEnter={e => e.currentTarget.style.transform="translateY(-6px)"}
                   onMouseLeave={e => e.currentTarget.style.transform="none"}>
                   <div style={{ width:"100%",background:`linear-gradient(135deg,${colors.bg},${c.bgCard})`,display:"flex",alignItems:"center",justifyContent:"center" }}>
