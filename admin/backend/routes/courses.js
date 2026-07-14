@@ -273,10 +273,29 @@ router.post("/", async (req, res) => {
 });
 
 router.put("/:id", async (req, res) => {
-  const { title, description, title_ar, description_ar, category_ar, difficulty, is_public, price, price_egp, is_free, category, tags, featured_image, intro_video, status } = req.body;
+  const existing = await queryOne("SELECT * FROM courses WHERE id = ?", [req.params.id]);
+  if (!existing) return res.status(404).json({ error: "Course not found" });
+  const b = req.body;
   await execute(
     "UPDATE courses SET title=?, description=?, title_ar=?, description_ar=?, category_ar=?, difficulty=?, is_public=?, price=?, price_egp=?, is_free=?, category=?, tags=?, featured_image=?, intro_video=?, status=?, updated_at=datetime('now','localtime') WHERE id=?",
-    [title, description, title_ar, description_ar, category_ar, difficulty, is_public, price, price_egp || 0, is_free, category, tags, featured_image, intro_video, status, req.params.id]
+    [
+      b.title ?? existing.title,
+      b.description ?? existing.description,
+      b.title_ar ?? existing.title_ar,
+      b.description_ar ?? existing.description_ar,
+      b.category_ar ?? existing.category_ar,
+      b.difficulty ?? existing.difficulty,
+      b.is_public ?? existing.is_public,
+      b.price ?? existing.price,
+      b.price_egp ?? existing.price_egp ?? 0,
+      b.is_free ?? existing.is_free,
+      b.category ?? existing.category,
+      b.tags ?? existing.tags,
+      b.featured_image ?? existing.featured_image,
+      b.intro_video ?? existing.intro_video,
+      b.status ?? existing.status,
+      req.params.id
+    ]
   );
   const course = await queryOne("SELECT * FROM courses WHERE id = ?", [req.params.id]);
   res.json(course);
