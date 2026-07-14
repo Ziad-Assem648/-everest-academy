@@ -57,7 +57,24 @@ export default function ProfilePage() {
     const file = e.target.files?.[0]; if (!file) return;
     setUploading(true);
     try {
-      const fd = new FormData(); fd.append("file", file);
+      const compressed = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const max = 800;
+            let w = img.width, h = img.height;
+            if (w > max || h > max) { if (w > h) { h = Math.round(h * max / w); w = max; } else { w = Math.round(w * max / h); h = max; } }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+            canvas.toBlob((blob) => resolve(new File([blob], file.name, { type: "image/jpeg" })), "image/jpeg", 0.8);
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+      const fd = new FormData(); fd.append("file", compressed);
       const { url } = await uploadApi(fd);
       const updated = await api(`/api/users/${user.id}`, { method: "PUT", body: JSON.stringify({ avatar: url }) });
       setProfile(updated);
