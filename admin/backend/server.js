@@ -32,6 +32,7 @@ if (fs.existsSync(adminDist)) {
 }
 // User frontend at root
 const userDist = join(__dirname, "../../user/dist");
+const userPublic = join(__dirname, "../../user/public");
 if (fs.existsSync(userDist)) {
   app.use(express.static(userDist));
   app.get("*", (req, res, next) => {
@@ -39,6 +40,11 @@ if (fs.existsSync(userDist)) {
     res.sendFile(join(userDist, "index.html"));
   });
   console.log("✅ Serving user frontend from", userDist);
+}
+// Serve public assets (images, videos) as fallback
+if (fs.existsSync(userPublic)) {
+  app.use(express.static(userPublic));
+  console.log("✅ Serving public assets from", userPublic);
 }
 
 import sessionAuth from "./middleware/sessionAuth.js";

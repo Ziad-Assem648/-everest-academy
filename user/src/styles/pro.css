@@ -489,6 +489,7 @@ video { object-fit:contain; }
    Based on pro/style.css — exact match
    ============================================= */
 .landing-page * { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+.landing-page i, .landing-page i::before { font-family: "Font Awesome 6 Free" !important; font-weight: 900 !important; }
 .landing-page { padding-top: 60px; font-family: 'Cairo', sans-serif; min-height: 200vh; }
 
 /* ===== NAVBAR (shared across all pages) ===== */
@@ -932,6 +933,7 @@ video { object-fit:contain; }
 
 /* ===== FEEDBACK PAGE ===== */
 .feedback-page * { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+.feedback-page i, .feedback-page i::before { font-family: "Font Awesome 6 Free" !important; font-weight: 900 !important; }
 .feedback-page { padding-top: 60px; font-family: 'Cairo', sans-serif; }
 
 .feedback-page .feedback-hero { position: relative; min-height: 100vh; overflow: hidden; }
@@ -1011,6 +1013,7 @@ video { object-fit:contain; }
 
 /* ===== ABOUT PAGE ===== */
 .about-page * { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+.about-page i, .about-page i::before { font-family: "Font Awesome 6 Free" !important; font-weight: 900 !important; }
 .about-page { padding-top: 60px; font-family: 'Cairo', sans-serif; }
 
 .about-page .about-hero { position: relative; min-height: 100vh; overflow: hidden; }
