@@ -29,7 +29,7 @@ export default function PublicNavbar({ active }) {
     <>
       <nav className="navbar" ref={navRef}>
         <div className="nav-left" style={{marginLeft:8}}>
-          <Link to="/" className="logo"><img src="/image/logo-navbar.png" alt="Everest" style={{width:90,height:90,objectFit:"contain"}} /></Link>
+          <Link to="/" className="logo"><img src="/image/logo-navbar.png" alt="Everest" style={{width:90,height:90,objectFit:"contain",mixBlendMode:"multiply"}} /></Link>
         </div>
         <div className="nav-links">
           {links.map((l) => (
