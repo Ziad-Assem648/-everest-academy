@@ -108,7 +108,7 @@ export default function UsersPage() {
     }
   };
 
-  const filtered = users.filter((u) =>
+  const filtered = users.filter((u) => u.role !== "admin" && u.role !== "manager").filter((u) =>
     u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase()) ||
     u.id?.toLowerCase().includes(search.toLowerCase())
@@ -118,7 +118,7 @@ export default function UsersPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">{t("👤 إدارة المستخدمين", "👤 User Management")}</h2>
-        <span className="text-sm text-gray-400 bg-white px-3 py-1.5 rounded-lg border">{users.length} {t("مستخدم", "users")}</span>
+        <span className="text-sm text-gray-400 bg-white px-3 py-1.5 rounded-lg border">{filtered.length} {t("مستخدم", "users")}</span>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-6">
