@@ -159,12 +159,12 @@ router.put("/:id/approve-registration", async (req, res) => {
         if (!uplineUser) break;
         const next = await queryOne("SELECT referred_by FROM users WHERE id = ?", [upline]);
         upline = next?.referred_by || null;
-        // Skip non-student uplines — they don't earn commissions
-        if (uplineUser.account_type !== "student") {
+        // Skip non-student uplines — they don't earn commissions (NULL = old student account)
+        if (uplineUser.account_type && uplineUser.account_type !== "student") {
           level++;
           continue;
         }
-        const uplineDirects = uplineUser.direct_count;
+        const uplineDirects = uplineUser.direct_count || 0;
         if (uplineDirects > lastDirects) {
           const comId = uuidv4();
           await execute("INSERT INTO commissions (id, from_user_id, to_user_id, level, amount) VALUES (?, ?, ?, ?, ?)",
