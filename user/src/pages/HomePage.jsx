@@ -188,9 +188,12 @@ export default function HomePage() {
 
       {/* Hero */}
       <section style={{...s.hero,marginBottom:25}}>
-        <div style={{position:"absolute",top:m?12:20,right:m?12:20,zIndex:2}}>
-          <button onClick={toggleLang} style={{display:"flex",alignItems:"center",gap:6,padding:m?"6px 12px":"8px 16px",borderRadius:10,background:c.goldLight,border:`1px solid ${c.borderLight}`,cursor:"pointer",fontSize:m?12:13,fontWeight:700,color:c.blue,transition:"0.3s",fontFamily:"inherit"}}>
-            <span style={{fontSize:m?13:14}}>{lang === "ar" ? "🇺🇸" : "🇸🇦"}</span> {lang === "ar" ? "EN" : "عربي"}
+        <div style={{position:"fixed",top:m?64:16,right:16,zIndex:100}}>
+          <button onClick={toggleLang} title={lang === "ar" ? "Switch to English" : "التبديل إلى العربية"} style={{width:m?40:44,height:m?40:44,borderRadius:"50%",background:c.goldLight,border:`1px solid ${c.borderLight}`,cursor:"pointer",fontSize:m?18:20,display:"flex",alignItems:"center",justifyContent:"center",transition:"0.3s",boxShadow:"0 2px 12px rgba(0,0,0,0.15)"}}
+            onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.1)";e.currentTarget.style.boxShadow="0 4px 20px rgba(212,175,55,0.4)";}}
+            onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,0.15)";}}
+          >
+            {lang === "ar" ? "🇺🇸" : "🇸🇦"}
           </button>
         </div>
         <div style={s.heroContent}>
