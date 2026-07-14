@@ -732,7 +732,7 @@ video { object-fit:contain; }
 .landing-page .platforms-text a { color: #111; text-decoration: underline; text-underline-offset: 3px; }
 
 /* ===== PLATFORM SHOWCASE ===== */
-.landing-page .platform-showcase { width: 92%; max-width: 1300px; margin: 50px auto 250px; height: 300px; }
+.landing-page .platform-showcase { width: 92%; max-width: 1300px; margin: 50px auto 550px; height: 300px; }
 .landing-page .showcase-image { text-align: center; margin-bottom: 50px; }
 .landing-page .showcase-image img { width: 100%; max-width: 900px; display: block; margin: auto; }
 .landing-page .features-slider { display: flex; justify-content: center; gap: 18px; }
