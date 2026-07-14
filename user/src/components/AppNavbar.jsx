@@ -60,6 +60,8 @@ export default function AppNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const m = useIsMobile();
 
+  if (!user) return null;
+
   const isActive = (path) => {
     const p = path.split("?")[0];
     return loc.pathname === p;
