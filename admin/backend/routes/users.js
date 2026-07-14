@@ -44,9 +44,15 @@ router.get("/:id", async (req, res) => {
 });
 
 router.put("/:id", async (req, res) => {
-  const { full_name, email, phone, address, role, bio, avatar } = req.body;
-  await execute("UPDATE users SET full_name=?, email=?, phone=?, address=?, role=?, bio=?, avatar=?, updated_at=datetime('now','localtime') WHERE id=?",
-    [full_name, email, phone, address, role, bio, avatar, req.params.id]);
+  const fields = [];
+  const vals = [];
+  for (const key of ["full_name","email","phone","address","role","bio","avatar"]) {
+    if (req.body[key] !== undefined) { fields.push(`${key}=?`); vals.push(req.body[key]); }
+  }
+  if (fields.length === 0) return res.json(await queryOne("SELECT * FROM users WHERE id=?", [req.params.id]));
+  fields.push("updated_at=datetime('now','localtime')");
+  vals.push(req.params.id);
+  await execute(`UPDATE users SET ${fields.join(",")} WHERE id=?`, vals);
   const user = await queryOne("SELECT * FROM users WHERE id = ?", [req.params.id]);
   res.json(user);
 });
