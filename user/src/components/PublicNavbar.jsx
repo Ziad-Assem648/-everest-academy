@@ -112,7 +112,7 @@ export default function PublicNavbar({ active }) {
         </div>
 
         {/* Auth Buttons */}
-        <div style={{marginTop:"auto",display:"flex",flexDirection:"column",gap:10}}>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
           <Link to="/login" onClick={() => setMenuOpen(false)} style={{
             display:"flex",alignItems:"center",justifyContent:"center",height:50,borderRadius:14,
             textDecoration:"none",fontSize:15,fontWeight:700,
