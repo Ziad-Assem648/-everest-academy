@@ -43,7 +43,13 @@ export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
   const inputRefs = useRef([]);
 
-  // Removed auto-redirect so landing page users can access register
+  // Redirect browser back to landing page instead of previous history
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    const onBack = () => nav("/", { replace: true });
+    window.addEventListener("popstate", onBack);
+    return () => window.removeEventListener("popstate", onBack);
+  }, [nav]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

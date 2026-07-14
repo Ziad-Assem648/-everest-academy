@@ -36,7 +36,13 @@ export default function LoginPage() {
   const emailRef = useRef(null);
   const passRef = useRef(null);
 
-  // Removed auto-redirect so landing page users can access login
+  // Redirect browser back to landing page instead of previous history
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    const onBack = () => nav("/", { replace: true });
+    window.addEventListener("popstate", onBack);
+    return () => window.removeEventListener("popstate", onBack);
+  }, [nav]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
