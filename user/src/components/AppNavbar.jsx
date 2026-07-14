@@ -110,7 +110,7 @@ export default function AppNavbar() {
         boxShadow: c.shadow, direction: dir
       }}>
         <Link to="/home" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <img src="/image/logo-navbar.png" alt="Logo" style={{ height: 48 }} />
+          <img src="/image/logo-navbar.png" alt="Logo" style={{ height: 64 }} />
         </Link>
 
         <nav style={{ display: "flex", alignItems: "center", gap: 0 }}>
