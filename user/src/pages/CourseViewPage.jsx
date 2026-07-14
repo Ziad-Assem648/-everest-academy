@@ -224,16 +224,31 @@ export default function CourseViewPage() {
     <div className="courses-body" style={{background:c.bg}}>
       <AppNavbar />
       <main className="courses-main">
-        <div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:20,padding:m?16:24,marginBottom:20}}>
-          <h2 style={{fontSize:m?"1.3rem":"1.8rem",fontWeight:800,background:"linear-gradient(135deg,#fdfbfb,#e2c275,#b38728)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:8}}>
-            {course.title_ar || course.title}
-          </h2>
-          <p style={{color:c.textMuted,fontSize:m?12:14}}>{course.description_ar || course.description}</p>
-          <div style={{display:"flex",gap:m?8:15,marginTop:15,fontSize:m?11:13,color:c.textMuted,flexWrap:"wrap",alignItems:"center"}}>
-            <span><strong style={{color:"#e2c275"}}>{t("المستوى:", "Level:")}</strong> {course.difficulty === "beginner" ? t("مبتدئ", "Beginner") : course.difficulty === "intermediate" ? t("متوسط", "Intermediate") : t("متقدم", "Advanced")}</span>
-            <span><strong style={{color:"#e2c275"}}>{t("السعر:", "Price:")}</strong> {!isFree && `${course.price} E-Money`}{!isFree && course.price_egp > 0 ? ` — ${course.price_egp} ${t("ج.م", "EGP")}` : ""}{isFree && t("مجاني", "Free")}</span>
-            <span><strong style={{color:"#e2c275"}}>{t("الدروس:", "Lessons:")}</strong> {allLessons.length}</span>
-            {reviewData.avg_rating > 0 && <span style={{color:"#f59e0b",fontWeight:600}}>⭐ {reviewData.avg_rating} <span style={{color:c.textMuted,fontWeight:400}}>({reviewData.count} {t("تقييم", "reviews")})</span></span>}
+        <div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:20,overflow:"hidden",marginBottom:20}}>
+          {course.featured_image && <img src={course.featured_image} alt="" style={{width:"100%",height:m?160:240,objectFit:"cover"}} />}
+          <div style={{padding:m?16:24}}>
+            <h2 style={{fontSize:m?"1.2rem":"1.8rem",fontWeight:800,background:"linear-gradient(135deg,#fdfbfb,#e2c275,#b38728)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:8,lineHeight:1.3}}>
+              {course.title_ar || course.title}
+            </h2>
+            {(course.description_ar || course.description) && (
+              <p style={{color:c.textMuted,fontSize:m?12:14,lineHeight:1.7,marginBottom:16}}>{course.description_ar || course.description}</p>
+            )}
+            <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+              <span style={{padding:m?"6px 12px":"6px 16px",background:"rgba(212,175,55,.08)",border:"1px solid rgba(212,175,55,.15)",borderRadius:10,fontSize:m?11:13,fontWeight:600,color:"#e2c275",display:"inline-flex",alignItems:"center",gap:6}}>
+                📊 {course.difficulty === "beginner" ? t("مبتدئ", "Beginner") : course.difficulty === "intermediate" ? t("متوسط", "Intermediate") : t("متقدم", "Advanced")}
+              </span>
+              <span style={{padding:m?"6px 12px":"6px 16px",background:isFree ? "rgba(34,197,94,.08)" : "rgba(212,175,55,.08)",border:isFree ? "1px solid rgba(34,197,94,.15)" : "1px solid rgba(212,175,55,.15)",borderRadius:10,fontSize:m?11:13,fontWeight:700,color:isFree ? "#22c55e" : "#e2c275",display:"inline-flex",alignItems:"center",gap:6}}>
+                {isFree ? "🎁 " : "💳 "}{isFree ? t("مجاني", "Free") : `${course.price} EM`}{!isFree && course.price_egp > 0 ? ` / ${course.price_egp} ${t("ج.م","EGP")}` : ""}
+              </span>
+              <span style={{padding:m?"6px 12px":"6px 16px",background:"rgba(139,92,246,.08)",border:"1px solid rgba(139,92,246,.15)",borderRadius:10,fontSize:m?11:13,fontWeight:600,color:"#a78bfa",display:"inline-flex",alignItems:"center",gap:6}}>
+                🎬 {allLessons.length} {t("درس", "Lessons")}
+              </span>
+              {reviewData.avg_rating > 0 && (
+                <span style={{padding:m?"6px 12px":"6px 16px",background:"rgba(245,158,11,.08)",border:"1px solid rgba(245,158,11,.15)",borderRadius:10,fontSize:m?11:13,fontWeight:600,color:"#f59e0b",display:"inline-flex",alignItems:"center",gap:6}}>
+                  ⭐ {reviewData.avg_rating} ({reviewData.count})
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
