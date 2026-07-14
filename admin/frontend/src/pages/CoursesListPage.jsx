@@ -793,7 +793,7 @@ export default function CoursesListPage() {
                 <td className="p-3 text-xs">{c.author_name || "—"}</td>
                 <td className="p-3">
                   <select value={c.status || "draft"} onChange={async (e) => {
-                    await api(`/api/courses/${c.id}`, { method: "PUT", body: JSON.stringify({ ...c, status: e.target.value }) });
+                    await api(`/api/courses/${c.id}`, { method: "PUT", body: JSON.stringify({ status: e.target.value }) });
                     load();
                   }} className="px-2 py-1 border rounded text-xs">
                     {statusOpts.map((o) => <option key={o.val} value={o.val}>{lang === "ar" ? o.ar : o.en}</option>)}

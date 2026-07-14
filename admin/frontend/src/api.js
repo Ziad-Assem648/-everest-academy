@@ -32,7 +32,7 @@ export async function uploadApi(formData) {
   const s = getAdminSession();
   if (s.userId) headers["x-user-id"] = s.userId;
   if (s.token) headers["x-session-token"] = s.token;
-  const r = await fetch("/api/upload/base64", { method: "POST", headers, body: JSON.stringify({ filename: file.name, data: base64 }) });
+  const r = await fetch(`${BACKEND_URL}/api/upload/base64`, { method: "POST", headers, body: JSON.stringify({ filename: file.name, data: base64 }) });
   if (!r.ok) throw new Error("Upload failed");
   return r.json();
 }

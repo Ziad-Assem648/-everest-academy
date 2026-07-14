@@ -276,24 +276,25 @@ router.put("/:id", async (req, res) => {
   const existing = await queryOne("SELECT * FROM courses WHERE id = ?", [req.params.id]);
   if (!existing) return res.status(404).json({ error: "Course not found" });
   const b = req.body;
+  const safe = (val, old) => (val !== undefined && val !== null && val !== "") ? val : old;
   await execute(
     "UPDATE courses SET title=?, description=?, title_ar=?, description_ar=?, category_ar=?, difficulty=?, is_public=?, price=?, price_egp=?, is_free=?, category=?, tags=?, featured_image=?, intro_video=?, status=?, updated_at=datetime('now','localtime') WHERE id=?",
     [
-      b.title ?? existing.title,
-      b.description ?? existing.description,
-      b.title_ar ?? existing.title_ar,
-      b.description_ar ?? existing.description_ar,
-      b.category_ar ?? existing.category_ar,
-      b.difficulty ?? existing.difficulty,
-      b.is_public ?? existing.is_public,
-      b.price ?? existing.price,
-      b.price_egp ?? existing.price_egp ?? 0,
-      b.is_free ?? existing.is_free,
-      b.category ?? existing.category,
-      b.tags ?? existing.tags,
-      b.featured_image ?? existing.featured_image,
-      b.intro_video ?? existing.intro_video,
-      b.status ?? existing.status,
+      safe(b.title, existing.title),
+      safe(b.description, existing.description),
+      safe(b.title_ar, existing.title_ar),
+      safe(b.description_ar, existing.description_ar),
+      safe(b.category_ar, existing.category_ar),
+      safe(b.difficulty, existing.difficulty),
+      safe(b.is_public, existing.is_public),
+      safe(b.price, existing.price),
+      safe(b.price_egp, existing.price_egp) || 0,
+      safe(b.is_free, existing.is_free),
+      safe(b.category, existing.category),
+      safe(b.tags, existing.tags),
+      safe(b.featured_image, existing.featured_image),
+      safe(b.intro_video, existing.intro_video),
+      safe(b.status, existing.status),
       req.params.id
     ]
   );

@@ -53,16 +53,17 @@ const api = async (path, opts = {}) => {
 
 const uploadApi = async (formData) => {
   const file = formData.get("file");
+  const reader = new FileReader();
   const base64 = await new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.readAsDataURL(file);
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.readAsDataURL(file);
   });
   const uid = localStorage.getItem("everest_user");
   const stoken = localStorage.getItem("everest_session_token");
   const headers = { "Content-Type": "application/json" };
   if (uid && stoken) { try { headers["x-user-id"] = JSON.parse(uid).id; headers["x-session-token"] = stoken; } catch {} }
-  const res = await fetch("/api/upload/base64", { method: "POST", headers, body: JSON.stringify({ filename: file.name, data: base64 }) });
+  const res = await fetch(`${BACKEND_URL}/api/upload/base64`, { method: "POST", headers, body: JSON.stringify({ filename: file.name, data: base64 }) });
   if (!res.ok) throw new Error("Upload failed");
   return res.json();
 };
