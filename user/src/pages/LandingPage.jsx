@@ -116,7 +116,7 @@ export default function LandingPage() {
       {/* Platform Showcase */}
       <section className="platform-showcase">
         <div className="showcase-image reveal">
-          <img src="image/Screenshot_2026-06-26_043217-removebg-preview.png" alt="" />
+          <img src="image/home-image.jpeg" alt="" />
         </div>
         <div className="features-slider"></div>
       </section>
