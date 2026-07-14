@@ -30,7 +30,17 @@ export default function CourseViewPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
-    api(`/api/courses/${id}`).then(setCourse).catch(() => setErr(t("الكورس غير موجود", "Course not found")));
+    api(`/api/courses/${id}`).then((data) => {
+      setCourse(data);
+      const params = new URLSearchParams(loc.search);
+      const lessonId = params.get("lesson");
+      if (lessonId && data?.topics) {
+        for (const topic of data.topics) {
+          const found = (topic.lessons || []).find(l => l.id === lessonId);
+          if (found) { setPlaying({ ...found, topicTitle: topic.title_ar || topic.title, topicId: topic.id }); break; }
+        }
+      }
+    }).catch(() => setErr(t("الكورس غير موجود", "Course not found")));
   }, [id]);
 
   useEffect(() => {

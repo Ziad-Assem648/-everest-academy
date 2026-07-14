@@ -226,7 +226,7 @@ export default function FreeCoursesPage() {
 
               <div className="fc-lessons-grid">
                 {lessons.filter((l) => l.course_id === course.id).map((lesson, idx) => (
-                  <Link key={lesson.id} to={`/courses/${lesson.course_id}`} className="fc-lesson-card"
+                  <Link key={lesson.id} to={`/courses/${lesson.course_id}?lesson=${lesson.id}`} className="fc-lesson-card"
                     style={{ animation: `slideUp 0.5s ease-out ${idx * 0.08}s both` }}>
                     <div className="fc-lesson-top">
                       <div className="fc-lesson-tag">
