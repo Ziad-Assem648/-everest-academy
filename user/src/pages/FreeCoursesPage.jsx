@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useLang } from "../LangContext";
+import { useTheme } from "../ThemeContext";
 import PublicNavbar from "../components/PublicNavbar";
 import FooterSection from "../components/FooterSection";
 
@@ -9,6 +10,7 @@ const api = (path, opts = {}) =>
 
 export default function FreeCoursesPage() {
   const { t, dir } = useLang();
+  const { theme } = useTheme();
   const [lessons, setLessons] = useState([]);
   const [coursesMap, setCoursesMap] = useState({});
   const [search, setSearch] = useState("");
@@ -82,7 +84,7 @@ export default function FreeCoursesPage() {
   };
 
   return (
-    <div style={{ background: "#fafafa", minHeight: "100vh", fontFamily: "'Cairo', sans-serif", direction: dir }}>
+    <div style={{ background: theme === "dark" ? "#1a1a2e" : "#fafafa", minHeight: "100vh", fontFamily: "'Cairo', sans-serif", direction: dir }}>
       <style>{`
         .fcp-hero{min-height:40vh;display:flex;align-items:center;justify-content:center;padding:140px 20px 80px;background:radial-gradient(circle at top right,rgba(212,175,55,.18),transparent 35%),radial-gradient(circle at bottom left,rgba(212,175,55,.1),transparent 35%),#fafafa}
         .fcp-hero-inner{width:min(100%,900px);text-align:center}
@@ -172,6 +174,33 @@ export default function FreeCoursesPage() {
         .fcp-card-img-wrap{position:relative;overflow:hidden}
         .fcp-card-img-wrap img{transition:transform .5s}
         .fcp-trend-card:hover .fcp-card-img-wrap img{transform:scale(1.05)}
+        [data-theme="dark"] .fcp-hero{background:radial-gradient(circle at top right,rgba(212,175,55,.12),transparent 35%),radial-gradient(circle at bottom left,rgba(212,175,55,.08),transparent 35%),#1a1a2e}
+        [data-theme="dark"] .fcp-hero-badge{background:#2a2a3e;color:#d4af37;border-color:rgba(212,175,55,.3)}
+        [data-theme="dark"] .fcp-hero h1{color:#f0f0f0}
+        [data-theme="dark"] .fcp-hero p{color:#aaa}
+        [data-theme="dark"] .fcp-search-box{background:#2a2a3e;box-shadow:0 15px 40px rgba(0,0,0,.3)}
+        [data-theme="dark"] .fcp-search-box input{color:#f0f0f0}
+        [data-theme="dark"] .fcp-search-box button{background:#d4af37;color:#111}
+        [data-theme="dark"] .fcp-categories{background:#1a1a2e}
+        [data-theme="dark"] .fcp-cat-btn{background:#2a2a3e;color:#ccc}
+        [data-theme="dark"] .fcp-cat-btn:hover{background:#d4af37;color:#111}
+        [data-theme="dark"] .fcp-trending{background:#16213e}
+        [data-theme="dark"] .fcp-section-heading h2{color:#f0f0f0}
+        [data-theme="dark"] .fcp-trend-card{background:#1e1e2f;box-shadow:0 12px 30px rgba(0,0,0,.3)}
+        [data-theme="dark"] .fcp-trend-info h3{color:#f0f0f0}
+        [data-theme="dark"] .fcp-trend-info p{color:#aaa}
+        [data-theme="dark"] .fcp-course-meta{color:#aaa}
+        [data-theme="dark"] .fcp-preview-btn{background:#2a2a3e;color:#f0f0f0}
+        [data-theme="dark"] .fcp-preview-btn:hover{background:#3a3a4e}
+        [data-theme="dark"] .fcp-emp h3{color:#aaa}
+        [data-theme="dark"] .fcp-modal-overlay{background:rgba(0,0,0,.7)}
+        [data-theme="dark"] .fcp-modal-box{background:#1e1e2f}
+        [data-theme="dark"] .fcp-modal-header{border-bottom-color:#333}
+        [data-theme="dark"] .fcp-modal-header h3{color:#f0f0f0}
+        [data-theme="dark"] .fcp-modal-close{background:#2a2a3e;color:#f0f0f0}
+        [data-theme="dark"] .fcp-modal-title{color:#f0f0f0}
+        [data-theme="dark"] .fcp-modal-desc{color:#aaa}
+        [data-theme="dark"] .fcp-modal-perk{background:#2a2a3e;color:#ccc}
       `}</style>
 
       <PublicNavbar active="courses" />

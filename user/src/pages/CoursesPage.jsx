@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { useLang } from "../LangContext";
+import { useTheme } from "../ThemeContext";
 import { api } from "../App";
 import AppNavbar from "../components/AppNavbar";
 import FooterSection from "../components/FooterSection";
 
 export default function CoursesPage() {
   const { t, dir } = useLang();
+  const { theme } = useTheme();
   const { user } = useAuth();
   const nav = useNavigate();
   const [courses, setCourses] = useState([]);
@@ -37,7 +39,7 @@ export default function CoursesPage() {
   const catCourses = filter !== "all" ? filteredCourses : [];
 
   return (
-    <div style={{ background: "#fafafa", minHeight: "100vh", fontFamily: "'Cairo', sans-serif", direction: dir }}>
+    <div style={{ background: theme === "dark" ? "#1a1a2e" : "#fafafa", minHeight: "100vh", fontFamily: "'Cairo', sans-serif", direction: dir }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
         .cp-hero{min-height:40vh;display:flex;align-items:center;justify-content:center;padding:140px 20px 80px;background:radial-gradient(circle at top right,rgba(212,175,55,.18),transparent 35%),radial-gradient(circle at bottom left,rgba(212,175,55,.1),transparent 35%),#fafafa}
@@ -134,6 +136,34 @@ export default function CoursesPage() {
         .cp-card-img-wrap{position:relative;overflow:hidden}
         .cp-card-img-wrap img{transition:transform .5s}
         .cp-trend-card:hover .cp-card-img-wrap img{transform:scale(1.05)}
+        [data-theme="dark"] .cp-hero{background:radial-gradient(circle at top right,rgba(212,175,55,.12),transparent 35%),radial-gradient(circle at bottom left,rgba(212,175,55,.08),transparent 35%),#1a1a2e}
+        [data-theme="dark"] .cp-hero-badge{background:#2a2a3e;color:#d4af37;border-color:rgba(212,175,55,.3)}
+        [data-theme="dark"] .cp-hero h1{color:#f0f0f0}
+        [data-theme="dark"] .cp-hero p{color:#aaa}
+        [data-theme="dark"] .cp-search-box{background:#2a2a3e;box-shadow:0 15px 40px rgba(0,0,0,.3)}
+        [data-theme="dark"] .cp-search-box input{color:#f0f0f0}
+        [data-theme="dark"] .cp-search-box button{background:#d4af37;color:#111}
+        [data-theme="dark"] .cp-categories{background:#1a1a2e}
+        [data-theme="dark"] .cp-cat-btn{background:#2a2a3e;color:#ccc}
+        [data-theme="dark"] .cp-cat-btn:hover{background:#d4af37;color:#111}
+        [data-theme="dark"] .cp-trending{background:#16213e}
+        [data-theme="dark"] .cp-section-heading h2{color:#f0f0f0}
+        [data-theme="dark"] .cp-trend-card{background:#1e1e2f;box-shadow:0 12px 30px rgba(0,0,0,.3)}
+        [data-theme="dark"] .cp-trend-info h3{color:#f0f0f0}
+        [data-theme="dark"] .cp-trend-info p{color:#aaa}
+        [data-theme="dark"] .cp-course-meta{color:#aaa}
+        [data-theme="dark"] .cp-preview-btn{background:#2a2a3e;color:#f0f0f0}
+        [data-theme="dark"] .cp-preview-btn:hover{background:#3a3a4e}
+        [data-theme="dark"] .cp-emp h3{color:#aaa}
+        [data-theme="dark"] .cp-emp i{color:#555}
+        [data-theme="dark"] .cp-modal-overlay{background:rgba(0,0,0,.7)}
+        [data-theme="dark"] .cp-modal-box{background:#1e1e2f}
+        [data-theme="dark"] .cp-modal-header{border-bottom-color:#333}
+        [data-theme="dark"] .cp-modal-header h3{color:#f0f0f0}
+        [data-theme="dark"] .cp-modal-close{background:#2a2a3e;color:#f0f0f0}
+        [data-theme="dark"] .cp-modal-title{color:#f0f0f0}
+        [data-theme="dark"] .cp-modal-desc{color:#aaa}
+        [data-theme="dark"] .cp-modal-perk{background:#2a2a3e;color:#ccc}
       `}</style>
 
       <AppNavbar />
