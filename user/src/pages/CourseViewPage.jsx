@@ -245,26 +245,99 @@ export default function CourseViewPage() {
               <img src="./new_logo-removebg-preview.png" alt="Logo" style={{height:m?44:60,objectFit:"contain"}} />
             </Link>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:m?8:12}}>
-            <Link to="/login" style={{
-              padding:m?"8px 16px":"10px 24px",background:"linear-gradient(135deg,#b38728,#e2c275)",
-              borderRadius:10,color:"#05030a",fontWeight:800,fontSize:m?12:14,textDecoration:"none",
-              transition:"all 0.3s"
-            }}>
-              {t("تسجيل الدخول", "Login")}
-            </Link>
-            <Link to="/register" style={{
-              padding:m?"8px 16px":"10px 24px",background:"transparent",
-              border:`1px solid ${c.borderLight}`,borderRadius:10,color:c.text,
-              fontWeight:700,fontSize:m?12:14,textDecoration:"none",transition:"all 0.3s"
-            }}>
-              {t("إنشاء حساب", "Register")}
-            </Link>
-          </div>
         </header>
       )}
 
-      <main className="courses-main" style={{maxWidth:1000,margin:"0 auto",padding:(!user && m)?"14px 14px 16px":m?"0 14px 16px":"90px 5% 40px"}}>
+      {/* Non-logged-in: clean purchase page */}
+      {!user ? (
+        <main style={{maxWidth:600,margin:"0 auto",padding:m?"20px 14px 40px":"60px 5% 40px",display:"flex",alignItems:"center",justifyContent:"center",minHeight:"calc(100vh - 80px)"}}>
+          <div style={{width:"100%",textAlign:"center"}}>
+            {/* Course card */}
+            <div style={{
+              background:c.bgCard,border:`1px solid ${c.borderLight}`,
+              borderRadius:m?16:20,padding:m?"28px 20px":"40px 36px",
+              boxShadow:"0 4px 30px rgba(0,0,0,.08)"
+            }}>
+              {/* Decorative top accent */}
+              <div style={{width:60,height:4,borderRadius:2,background:"linear-gradient(135deg,#b38728,#e2c275)",margin:"0 auto 24px"}} />
+
+              {/* Course title */}
+              <h1 style={{
+                fontSize:m?"1.1rem":"1.35rem",fontWeight:800,lineHeight:1.6,
+                background:"linear-gradient(135deg,#fdfbfb,#e2c275,#b38728)",
+                WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",
+                margin:"0 0 20px",padding:"0 8px"
+              }}>
+                {course.title_ar || course.title}
+              </h1>
+
+              {/* Price */}
+              {!isFree ? (
+                <div style={{
+                  background:c.bgInput,borderRadius:12,
+                  padding:m?"14px 16px":"18px 24px",marginBottom:28
+                }}>
+                  <p style={{fontSize:m?11:12,color:c.textMuted,margin:"0 0 6px",fontWeight:600}}>
+                    {t("سعر الكورس", "Course Price")}
+                  </p>
+                  <p style={{fontSize:m?18:22,fontWeight:800,color:c.text,margin:0}}>
+                    {course.price} E-Money
+                    {course.price_egp > 0 && <span style={{fontSize:m?13:15,fontWeight:600,color:c.textMuted}}> / {course.price_egp} {t("ج.م", "EGP")}</span>}
+                  </p>
+                </div>
+              ) : (
+                <div style={{
+                  background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.2)",
+                  borderRadius:12,padding:m?"14px 16px":"18px 24px",marginBottom:28
+                }}>
+                  <p style={{fontSize:m?16:20,fontWeight:800,color:"#22c55e",margin:0}}>
+                    🎉 {t("مجاني", "FREE")}
+                  </p>
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                <Link to="/login" style={{
+                  display:"flex",alignItems:"center",justifyContent:"center",gap:10,
+                  padding:m?"14px 20px":"16px 28px",
+                  background:"linear-gradient(135deg,#b38728,#e2c275)",
+                  borderRadius:14,color:"#05030a",fontWeight:800,fontSize:m?15:16,
+                  textDecoration:"none",transition:"all 0.3s",boxShadow:"0 4px 15px rgba(179,135,40,.3)"
+                }}>
+                  🔑 {t("تسجيل الدخول لشراء الكورس", "Login to Buy")}
+                </Link>
+                <Link to="/register" style={{
+                  display:"flex",alignItems:"center",justifyContent:"center",gap:10,
+                  padding:m?"14px 20px":"16px 28px",
+                  background:"transparent",border:`1px solid ${c.borderLight}`,
+                  borderRadius:14,color:c.text,fontWeight:700,fontSize:m?14:15,
+                  textDecoration:"none",transition:"all 0.3s"
+                }}>
+                  ✨ {t("إنشاء حساب جديد", "Create Account")}
+                </Link>
+              </div>
+
+              {/* Subtext */}
+                <p style={{fontSize:m?11:12,color:c.textMuted,margin:0,marginTop:20,lineHeight:1.6}}>
+                {t("سجّل دخولك للوصول إلى جميع الدروس والمحتوى التعليمي", "Sign in to access all lessons and educational content")}
+              </p>
+            </div>
+
+            {/* Back link */}
+            <button onClick={() => nav(-1)} style={{
+              marginTop:20,padding:"10px 24px",background:"transparent",
+              border:"none",color:c.textMuted,fontSize:m?13:14,cursor:"pointer",
+              fontWeight:600,display:"inline-flex",alignItems:"center",gap:6
+            }}>
+              {dir === "rtl" ? "→" : "←"} {t("العودة للفائت", "Go Back")}
+            </button>
+          </div>
+        </main>
+
+        ) : (
+
+        <main className="courses-main" style={{maxWidth:1000,margin:"0 auto",padding:m?"0 14px 16px":"90px 5% 40px"}}>
 
         {isRegistration && !isEnrolled && (
           <div style={{background:"rgba(179,135,40,.1)",border:"1px solid rgba(179,135,40,.2)",borderRadius:14,padding:m?12:16,marginBottom:m?12:20,color:"#e2c275",fontSize:m?13:14}}>
@@ -419,44 +492,6 @@ export default function CourseViewPage() {
           )}
         </div>
 
-        {/* 1.5 Purchase CTA for non-logged-in users */}
-        {!user && (
-          <div style={{
-            background:"linear-gradient(135deg,rgba(179,135,40,.08),rgba(212,175,55,.12))",
-            border:`1px solid rgba(212,175,55,.2)`,borderRadius:m?12:16,
-            padding:m?18:24,marginBottom:m?12:20,textAlign:"center"
-          }}>
-            <h3 style={{fontSize:m?15:18,fontWeight:800,color:"#e2c275",marginBottom:6}}>
-              {course.title_ar || course.title}
-            </h3>
-            <p style={{fontSize:m?12:14,color:c.textMuted,marginBottom:m?6:10}}>
-              {course.description_ar || course.description}
-            </p>
-            {!isFree && (
-              <p style={{fontSize:m?14:16,fontWeight:800,color:c.text,marginBottom:m?14:18}}>
-                💰 {course.price} E-Money{course.price_egp > 0 ? ` / ${course.price_egp} ${t("ج.م", "EGP")}` : ""}
-              </p>
-            )}
-            <div style={{display:"flex",gap:m?8:12,justifyContent:"center",flexWrap:"wrap"}}>
-              <Link to="/login" style={{
-                padding:m?"12px 30px":"14px 36px",background:"linear-gradient(135deg,#b38728,#e2c275)",
-                borderRadius:12,color:"#05030a",fontWeight:800,fontSize:m?13:15,textDecoration:"none",
-                display:"inline-flex",alignItems:"center",gap:8
-              }}>
-                🔑 {t("سجّل دخولك لشراء الكورس", "Login to Buy")}
-              </Link>
-              <Link to="/register" style={{
-                padding:m?"12px 30px":"14px 36px",background:c.bgCard,
-                border:`1px solid ${c.borderLight}`,borderRadius:12,color:c.text,
-                fontWeight:700,fontSize:m?13:15,textDecoration:"none",
-                display:"inline-flex",alignItems:"center",gap:8
-              }}>
-                ✨ {t("إنشاء حساب جديد", "Create Account")}
-              </Link>
-            </div>
-          </div>
-        )}
-
         {/* 2. Course Content */}
         <div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:m?12:16,padding:m?14:20,marginBottom:m?12:20}}>
           <h3 style={{fontSize:m?14:15,fontWeight:700,color:"#e2c275",marginBottom:m?12:16,letterSpacing:1}}>{t("محتوى الكورس", "COURSE CONTENT")}</h3>
@@ -603,6 +638,7 @@ export default function CourseViewPage() {
         )}
 
       </main>
+        )}
 
       {activeQuiz && (
         <QuizModal quiz={activeQuiz} onClose={() => setActiveQuiz(null)} onPassed={onQuizPassed} />
