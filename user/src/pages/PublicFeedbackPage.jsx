@@ -152,13 +152,12 @@ export default function PublicFeedbackPage() {
 
   useEffect(() => {
     api(`/api/feedbacks?page=${page}&limit=50`).then(data => {
-      setFeedbacks(data.feedbacks); setPages(data.pages);
+      if (data && data.feedbacks) { setFeedbacks(data.feedbacks); setPages(data.pages || 1); }
     }).catch(() => {});
-    api("/api/proofs").then(setProofs).catch(() => {});
+    api("/api/proofs").then(d => { if (Array.isArray(d)) setProofs(d); }).catch(() => {});
     api("/api/dashboard/public-stats").then(data => {
-      console.log("Stats from API:", data);
-      setStats(data);
-    }).catch(e => console.error("Stats error:", e));
+      if (data && data.totalMembers) setStats(data);
+    }).catch(() => {});
   }, [page]);
 
   return (

@@ -16,8 +16,8 @@ export default async function sessionAuth(req, res, next) {
     // GET /chat/keys-status, /chat/test-groq etc require auth — fall through
   }
 
-  // Browse-only: GET requests to courses/ranks/leaders are public (for landing page display)
-  if (req.method === "GET" && (req.path.startsWith("/courses") || req.path.startsWith("/ranks") || req.path.startsWith("/leaders"))) {
+  // Browse-only: GET requests to courses/ranks/leaders/feedbacks/proofs/dashboard are public (for landing page display)
+  if (req.method === "GET" && (req.path.startsWith("/courses") || req.path.startsWith("/ranks") || req.path.startsWith("/leaders") || req.path.startsWith("/feedbacks") || req.path.startsWith("/proofs") || req.path.startsWith("/dashboard"))) {
     return next();
   }
 
