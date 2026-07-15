@@ -1274,8 +1274,9 @@ video { object-fit:contain; }
   .free-course-view-page, .course-view-page {
     padding-bottom: 90px !important;
   }
-  /* Hide desktop navbar on mobile */
-  header[style*="sticky"] { display: none !important; }
+  .course-view-page .courses-main { padding-top: 8px !important; }
+  /* Hide desktop navbar on mobile - but NOT the AppNavbar mobile header */
+  .courses-header { display: none !important; }
 }
 
 /* ---------- GLOBAL MOBILE UTILITIES ---------- */
@@ -1729,6 +1730,7 @@ video { object-fit:contain; }
 
 /* COURSES PAGE */
 [data-theme="dark"] .courses-body { background: #0f0f13 !important; }
+[data-theme="dark"] .course-view-page { background: #0f0f13 !important; }
 [data-theme="dark"] .courses-header { background: rgba(15,15,19,0.92) !important; }
 [data-theme="dark"] .courses-search input { background: rgba(255,255,255,0.03) !important; color: #e8e8ec !important; }
 [data-theme="dark"] .card-body h3 { color: #e8e8ec !important; }
