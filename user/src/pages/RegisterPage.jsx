@@ -383,14 +383,7 @@ export default function RegisterPage() {
 
           {/* Brand text */}
           <div style={{ position: "relative", zIndex: 2, textAlign: "center", marginTop: 32, animation: "regFadeIn 0.8s ease-out 0.3s both" }}>
-            <h2 style={{
-              fontSize: 30, fontWeight: 900, marginBottom: 8,
-              background: "linear-gradient(135deg, #d4af37, #f0d060, #d4af37)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-            }}>Everest Academy</h2>
-            <p style={{ color: "rgba(255,255,255,.5)", fontSize: 14, fontWeight: 500, maxWidth: 300 }}>
-              {t("انضم الآن إلى آلاف الطلاب who يحققون أحلامهم", "Join thousands of students achieving their dreams")}
-            </p>
+          
           </div>
 
           {/* Floating dots */}

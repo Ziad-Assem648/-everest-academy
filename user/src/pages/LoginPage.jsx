@@ -296,15 +296,8 @@ export default function LoginPage() {
             position: "relative", zIndex: 2, textAlign: "center", marginTop: 36,
             animation: "loginFadeIn 0.8s ease-out 0.3s both",
           }}>
-            <h2 style={{
-              fontSize: 32, fontWeight: 900, color: "#fff",
-              background: "linear-gradient(135deg, #d4af37, #f0d060, #d4af37)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              marginBottom: 8,
-            }}>Everest Academy</h2>
-            <p style={{ color: "rgba(255,255,255,.5)", fontSize: 15, fontWeight: 500 }}>
-              {t("ابدأ رحلتك التعليمية معنا", "Start your learning journey with us")}
-            </p>
+          
+          
           </div>
 
           {/* Floating dots */}
