@@ -27,21 +27,23 @@ function AnimatedNumber({ target, suffix, isVisible }) {
     const raw = String(target).replace(/[^0-9]/g, "");
     const num = parseInt(raw, 10);
     if (isNaN(num)) return;
+    const hasDecimal = String(target).includes(".");
     let start = 0;
     const dur = 1200;
     const step = (ts) => {
       if (!start) start = ts;
       const p = Math.min((ts - start) / dur, 1);
       const ease = 1 - Math.pow(1 - p, 3);
-      setVal(Math.round(ease * num));
+      const current = Math.round(ease * num);
+      setVal(hasDecimal ? (current / 10).toFixed(1) : current);
       if (p < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
   }, [isVisible, target]);
-  return <span>{val.toLocaleString()}{suffix}</span>;
+  return <span>{typeof val === "string" ? val : val.toLocaleString()}{suffix}</span>;
 }
 
-function PremiumStatsCarousel({ stats, t, c }) {
+function PremiumStatsCarousel({ stats, t, c, theme }) {
   const scrollRef = useRef(null);
   const [activeIdx, setActiveIdx] = useState(0);
   const [visible, setVisible] = useState(false);
@@ -59,37 +61,35 @@ function PremiumStatsCarousel({ stats, t, c }) {
 
   const items = [
     {
-      icon: "fa-solid fa-building-shield",
-      num: "5",
-      suffix: "",
-      title: t("التراخيص", "Regulations"),
-      desc: t("مرخصة في عدة جهات قضائية مع حماية قوية للمستثمرين.", "Regulated across multiple jurisdictions with strong investor protection."),
+      icon: "fa-solid fa-star",
+      num: "3",
+      suffix: ".6 ★",
+      title: t("تقييم الاكاديميه", "Academy Rating"),
+      desc: t("متوسط تقييم الطلاب لأكاديمية إيفرست.", "Average student rating for Everest Academy."),
       accent: "#6366f1",
     },
     {
-      icon: "fa-solid fa-star",
-      num: stats.totalFeedbacks >= 5 ? (stats.satisfactionRate / 20).toFixed(1) : "5",
-      suffix: stats.totalFeedbacks >= 5 ? " \u2605" : "-star",
-      title: stats.totalFeedbacks >= 5 ? t("تقييم المنصة", "Platform Rating") : t("خدمة العملاء", "Customer Service"),
-      desc: stats.totalFeedbacks >= 5
-        ? t(`متوسط ${stats.totalFeedbacks} تقييم من الطلاب`, `Average of ${stats.totalFeedbacks} student reviews`)
-        : t("فريق دعم متعدد اللغات متاح 24/5 بجودة خدمة استثنائية.", "Multilingual support team available 24/5 with exceptional service quality."),
+      icon: "fa-solid fa-clock",
+      num: "6",
+      suffix: "K+",
+      title: t("ساعه تعليميه", "Educational Hours"),
+      desc: t("محتوى تعليمي غني بأكثر من 6 آلاف ساعة.", "Rich educational content with over 6,000 hours."),
       accent: "#d4af37",
     },
     {
-      icon: "fa-solid fa-award",
-      num: "142",
+      icon: "fa-solid fa-graduation-cap",
+      num: "114",
       suffix: "+",
-      title: t("الجوائز", "Awards"),
-      desc: t("معترف بها عالمياً مع أكثر من 142 جائزة دولية.", "Recognized globally with more than 142 international awards."),
+      title: t("دوره تعليميه", "Educational Courses"),
+      desc: t("مجموعة متنوعة من الدورات لتنمية المهارات.", "A diverse range of courses to develop your skills."),
       accent: "#f59e0b",
     },
     {
       icon: "fa-solid fa-users",
-      num: stats.totalMembers >= 100 ? String(stats.totalMembers) : "1,000",
-      suffix: "",
-      title: t("حسابات العملاء", "Client Accounts"),
-      desc: t("تقديم خدمات التداول عبر الإنترنت منذ 1999 في أكثر من 170 دولة.", "Providing online trading services since 1999 across 170+ countries."),
+      num: "19",
+      suffix: "K+",
+      title: t("متدرب", "Trainees"),
+      desc: t("طلاب و متدربين يثقون بأكاديمية إيفرست.", "Students and trainees who trust Everest Academy."),
       accent: "#10b981",
     },
   ];
@@ -137,7 +137,7 @@ function PremiumStatsCarousel({ stats, t, c }) {
   };
 
   return (
-    <section ref={sectionRef} style={{ padding: "80px 0", background: "linear-gradient(180deg,#fafbff 0%,#f0eeff 100%)", direction: "ltr", overflow: "hidden" }}>
+    <section ref={sectionRef} style={{ padding: "50px 0", background: theme === "dark" ? "linear-gradient(180deg,#1a1a2e 0%,#16213e 100%)" : "linear-gradient(180deg,#fafbff 0%,#f0eeff 100%)", direction: "ltr", overflow: "hidden" }}>
       <style>{pscStyles}</style>
 
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%" }}>
@@ -154,7 +154,7 @@ function PremiumStatsCarousel({ stats, t, c }) {
           }}>
             {t("لماذا إيفرست", "WHY EVEREST")}
           </span>
-          <h2 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 800, color: "#111", margin: "14px 0 0", lineHeight: 1.2 }}>
+          <h2 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 800, color: theme === "dark" ? "#f0f0f0" : "#111", margin: "14px 0 0", lineHeight: 1.2 }}>
             {t("أرقام تتحدث عن جودتنا", "Numbers That Speak For Us")}
           </h2>
         </div>
@@ -178,11 +178,11 @@ function PremiumStatsCarousel({ stats, t, c }) {
               className="psc-card"
               style={{
                 flex: "0 0 280px",
-                background: "#fff",
+                background: theme === "dark" ? "#1e1e2f" : "#fff",
                 borderRadius: 24,
-                padding: "36px 28px 30px",
-                border: "1px solid rgba(0,0,0,0.05)",
-                boxShadow: "0 4px 24px rgba(0,0,0,0.04)",
+                padding: "30px 24px 24px",
+                border: theme === "dark" ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.05)",
+                boxShadow: theme === "dark" ? "0 4px 24px rgba(0,0,0,0.2)" : "0 4px 24px rgba(0,0,0,0.04)",
                 display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
                 transition: "all 0.35s cubic-bezier(.4,0,.2,1)",
                 animation: visible ? `pscFadeUp 0.6s ease ${i * 0.12}s both` : "none",
@@ -200,7 +200,7 @@ function PremiumStatsCarousel({ stats, t, c }) {
 
               {/* Number */}
               <h2 style={{
-                fontSize: 40, fontWeight: 800, color: "#111", margin: 0, lineHeight: 1,
+                fontSize: 36, fontWeight: 800, color: theme === "dark" ? "#f0f0f0" : "#111", margin: 0, lineHeight: 1,
                 fontFamily: "'Poppins','Cairo',sans-serif",
               }}>
                 <AnimatedNumber target={item.num} suffix={item.suffix} isVisible={visible} />
@@ -208,7 +208,7 @@ function PremiumStatsCarousel({ stats, t, c }) {
 
               {/* Title */}
               <h3 style={{
-                fontSize: 16, fontWeight: 700, color: "#333", margin: "12px 0 10px",
+                fontSize: 15, fontWeight: 700, color: theme === "dark" ? "#e0e0e0" : "#333", margin: "12px 0 10px",
                 letterSpacing: 0.3,
               }}>
                 {item.title}
@@ -219,7 +219,7 @@ function PremiumStatsCarousel({ stats, t, c }) {
 
               {/* Description */}
               <p style={{
-                fontSize: 13, lineHeight: 1.7, color: "#888", margin: 0,
+                fontSize: 13, lineHeight: 1.7, color: theme === "dark" ? "#aaa" : "#888", margin: 0,
                 maxWidth: 240,
               }}>
                 {item.desc}
@@ -348,7 +348,7 @@ export default function LandingPage() {
       </section>
 
       {/* Stats Carousel */}
-      <PremiumStatsCarousel stats={stats} t={t} c={c} />
+      <PremiumStatsCarousel stats={stats} t={t} c={c} theme={theme} />
 
       {/* Footer */}
       <FooterSection showCTA />

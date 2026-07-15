@@ -72,10 +72,7 @@ export default function PublicNavbar({ active }) {
         <div className="pdm-header">
           <div className="pdm-brand">
             <img className="pdm-logo-img" src="/image/logo3.png" alt="Everest" />
-            <div>
-              <h2>Everest Academy</h2>
-              <span>{t("منصة تعليمية متميزة", "Premium Learning Platform")}</span>
-            </div>
+           
           </div>
           <button className="pdm-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>

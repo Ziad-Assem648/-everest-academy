@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLang } from "../LangContext";
+import { useTheme } from "../ThemeContext";
 
 const styles = `
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
@@ -217,6 +218,20 @@ const styles = `
   .fs-socials { justify-content: center; }
   .fs-logo { justify-content: center; }
 }
+
+/* Dark Mode */
+[data-theme="dark"] .footer-section .fs-footer { background: #1a1a2e; }
+[data-theme="dark"] .footer-section .fs-logo-text { color: #f0f0f0; }
+[data-theme="dark"] .footer-section .fs-brand-desc { color: #aaa; }
+[data-theme="dark"] .footer-section .fs-social-icon { border-color: #333; color: #aaa; }
+[data-theme="dark"] .footer-section .fs-social-icon:hover { color: #d4af37; border-color: #d4af37; }
+[data-theme="dark"] .footer-section .fs-col-title { color: #f0f0f0; }
+[data-theme="dark"] .footer-section .fs-col-link { color: #aaa; }
+[data-theme="dark"] .footer-section .fs-col-link:hover { color: #d4af37; }
+[data-theme="dark"] .footer-section .fs-bottom { border-top-color: #333; }
+[data-theme="dark"] .footer-section .fs-bottom p { color: #888; }
+[data-theme="dark"] .footer-section .fs-email-input { color: #f0f0f0; }
+[data-theme="dark"] .footer-section .fs-email-input::placeholder { color: #666; }
 `;
 
 export default function FooterSection({ showCTA }) {
