@@ -228,24 +228,13 @@ export default function ProfilePage() {
 
             {/* Account Type & Upgrade */}
             {p.account_type && p.account_type !== "student" && (
-              <div style={{marginBottom:16,padding:"14px 18px",borderRadius:14,background:c.goldLight,border:`1px solid ${c.borderLight}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
-                <div>
-                  <span style={{fontSize:14,fontWeight:700,color:c.text}}>
-                    {p.account_type === "registration_sponsor" ? "🤝 Registration (Sponsor)" : "👤 Registration"}
-                  </span>
-                  <p style={{fontSize:12,color:c.textMuted,margin:"4px 0 0"}}>
-                    {t("قم بالترقية للحصول على جميع مميزات المنصة", "Upgrade to get all platform features")}
-                  </p>
-                </div>
-                <button onClick={async () => {
-                  if (!confirm(t("هل تريد الترقية إلى Student Account؟", "Upgrade to Student Account?"))) return;
-                  try {
-                    await fetch(`/api/users/${p.id}/upgrade-account`, { method: "POST", headers: {"Content-Type":"application/json"} });
-                    window.location.reload();
-                  } catch (e) { alert(e.message); }
-                }} style={{padding:"10px 22px",borderRadius:12,background:"linear-gradient(135deg,#d4af37,#b8922a)",color:"#0a0a1a",border:"none",fontWeight:700,fontSize:13,cursor:"pointer"}}>
-                  ⬆️ {t("ترقية إلى Student", "Upgrade to Student")}
-                </button>
+              <div style={{marginBottom:16,padding:"14px 18px",borderRadius:14,background:c.goldLight,border:`1px solid ${c.borderLight}`,display:"flex",alignItems:"center",gap:10}}>
+                <span style={{fontSize:14,fontWeight:700,color:c.text}}>
+                  {p.account_type === "registration_sponsor" ? "🤝 Registration (Sponsor)" : "👤 Registration"}
+                </span>
+                <p style={{fontSize:12,color:c.textMuted,margin:0}}>
+                  {t("قم بالترقية للحصول على جميع مميزات المنصة", "Upgrade to get all platform features")}
+                </p>
               </div>
             )}
 
