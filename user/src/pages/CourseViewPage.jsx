@@ -359,14 +359,23 @@ export default function CourseViewPage() {
 
           <div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:16,overflow:"hidden",position:"relative"}}>
             <div onContextMenu={blockCtx} style={{aspectRatio:"16/9",background:"#000",display:"flex",alignItems:"center",justifyContent:"center",position:"relative",userSelect:"none",WebkitUserSelect:"none"}}>
-              {current && !canWatchAll && !current.is_free ? (
+              {current && (isRegistration || (!canWatchAll && !current.is_free)) ? (
                 <div style={{textAlign:"center",color:"#555",padding:m?20:30}}>
                   <p style={{fontSize:m?36:48,marginBottom:m?8:12}}>🔒</p>
-                  <p style={{fontWeight:700,color:c.text,marginBottom:4,fontSize:m?14:16}}>{t("هذا الدرس مقفل", "This lesson is locked")}</p>
-                  <p style={{fontSize:m?12:13,color:c.textMuted,marginBottom:m?12:16}}>{t("اشترِ الكورس للمشاهدة الكاملة", "Buy the course for full access")}</p>
-                  <Link to={`/courses/${id}`} style={{display:"inline-flex",alignItems:"center",gap:8,padding:m?"10px 18px":"10px 24px",background:"linear-gradient(135deg,#b38728,#e2c275)",borderRadius:10,color:"#05030a",fontWeight:800,fontSize:m?12:13,textDecoration:"none"}}>
-                    💳 {t("اشترِ الكورس", "Buy Course")} — {course.price} E-Money{course.price_egp > 0 ? ` / ${course.price_egp} ${t("ج.م", "EGP")}` : ""}
-                  </Link>
+                  {isRegistration ? (
+                    <>
+                      <p style={{fontWeight:700,color:c.text,marginBottom:4,fontSize:m?14:16}}>{t("الكورسات متاحة للطلاب فقط", "Courses Available for Students Only")}</p>
+                      <p style={{fontSize:m?12:13,color:c.textMuted,marginBottom:m?12:16}}>{t("حسابك من نوع Registration. لمشاهدة الدروس، يرجى الترقية إلى حساب Student أولاً.", "Your account is Registration type. Please upgrade to a Student account first.")}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p style={{fontWeight:700,color:c.text,marginBottom:4,fontSize:m?14:16}}>{t("هذا الدرس مقفل", "This lesson is locked")}</p>
+                      <p style={{fontSize:m?12:13,color:c.textMuted,marginBottom:m?12:16}}>{t("اشترِ الكورس للمشاهدة الكاملة", "Buy the course for full access")}</p>
+                      <Link to={`/courses/${id}`} style={{display:"inline-flex",alignItems:"center",gap:8,padding:m?"10px 18px":"10px 24px",background:"linear-gradient(135deg,#b38728,#e2c275)",borderRadius:10,color:"#05030a",fontWeight:800,fontSize:m?12:13,textDecoration:"none"}}>
+                        💳 {t("اشترِ الكورس", "Buy Course")} — {course.price} E-Money{course.price_egp > 0 ? ` / ${course.price_egp} ${t("ج.م", "EGP")}` : ""}
+                      </Link>
+                    </>
+                  )}
                 </div>
               ) : videoSrc ? (
                 isYoutube(current?.video_url) ? (
