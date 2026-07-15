@@ -256,10 +256,16 @@ export default function CourseViewPage() {
                   <p style={{fontSize:m?11:12,color:c.textMuted,margin:"0 0 8px",fontWeight:600}}>
                     {t("سعر الكورس", "Course Price")}
                   </p>
-                  <p style={{fontSize:m?20:24,fontWeight:800,color:c.text,margin:0}}>
-                    {course.price} E-Money
-                    {course.price_egp > 0 && <span style={{fontSize:m?13:15,fontWeight:600,color:c.textMuted}}> / {course.price_egp} {t("ج.م", "EGP")}</span>}
-                  </p>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <p style={{fontSize:m?20:24,fontWeight:800,color:c.text,margin:0}}>
+                      {course.price} E-Money
+                    </p>
+                    {course.price_egp > 0 && (
+                      <p style={{fontSize:m?16:20,fontWeight:700,color:c.textMuted,margin:0}}>
+                        {course.price_egp} {t("ج.م", "EGP")}
+                      </p>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div style={{
@@ -302,10 +308,10 @@ export default function CourseViewPage() {
 
             {/* Back button - below card on all screens */}
             <button onClick={() => nav(-1)} style={{
-              display:"inline-flex",alignItems:"center",gap:8,marginTop:24,
-              padding:m?"10px 20px":"12px 24px",
+              display:"inline-flex",alignItems:"center",gap:10,marginTop:24,
+              padding:m?"12px 28px":"14px 32px",
               background:c.bgCard,border:`1px solid ${c.borderLight}`,
-              borderRadius:12,color:c.text,fontSize:m?13:14,fontWeight:700,
+              borderRadius:14,color:c.text,fontSize:m?14:15,fontWeight:700,
               cursor:"pointer",transition:"all 0.2s"
             }}>
               {dir === "rtl" ? "→" : "←"} {t("رجوع", "Go Back")}
