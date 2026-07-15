@@ -73,6 +73,12 @@ function TeamMemberNode({ member, depth, t, c, total, dbRanks }) {
             <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 7px", borderRadius: 6, background: `${lc}12`, color: lc, display:"inline-flex", alignItems:"center", gap:4 }}>
               {(() => { const rk = (dbRanks || []).find(r => r.name === member.rank); return rk?.image ? <img src={rk.image} alt="" style={{width:14,height:14,borderRadius:3,objectFit:"cover"}} /> : (rankIcons[member.rank] || "⭐"); })()} {member.rank || "Star"}
             </span>
+            <span style={{ fontSize: 9, fontWeight: 600, padding: "1px 6px", borderRadius: 6,
+              background: member.account_type === "student" ? "#22c55e18" : "#3b82f618",
+              color: member.account_type === "student" ? "#22c55e" : "#3b82f6",
+            }}>
+              {member.account_type === "student" ? "🎓 Student" : "📝 Registration"}
+            </span>
           </div>
         </div>
 

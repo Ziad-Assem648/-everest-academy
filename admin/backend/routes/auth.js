@@ -29,13 +29,19 @@ router.post("/login", async (req, res) => {
   const deviceType = detectDeviceType(req.headers["user-agent"]);
   const session_token = uuidv4() + "-" + Date.now();
 
-  // Single Active Device: check if user already has ANY active session (not expired by heartbeat)
-  const existingSession = await queryOne(
-    "SELECT id, device_type, device_info FROM user_sessions WHERE user_id = ? AND (last_heartbeat IS NULL OR last_heartbeat > datetime('now', '-30 seconds'))",
-    [user.id]
-  );
+  // Single Active Device: check if user already has ANY active session
+  const existingSessions = await query("SELECT id, device_type, device_info, last_heartbeat FROM user_sessions WHERE user_id = ?", [user.id]);
 
-  if (existingSession) {
+  // Filter stale sessions in JS (heartbeat older than 30 seconds = browser closed)
+  const now = Date.now();
+  const HEARTBEAT_TIMEOUT = 30 * 1000; // 30 seconds
+  const activeSessions = existingSessions.filter(s => {
+    if (!s.last_heartbeat) return true; // old sessions without heartbeat = active
+    const lastHb = new Date(s.last_heartbeat).getTime();
+    return (now - lastHb) < HEARTBEAT_TIMEOUT;
+  });
+
+  if (activeSessions.length > 0) {
     // Another device is already logged in — reject
     return res.status(403).json({
       success: false,
@@ -45,8 +51,8 @@ router.post("/login", async (req, res) => {
     });
   }
 
-  // Clean up stale sessions (heartbeat expired — user closed browser)
-  await execute("DELETE FROM user_sessions WHERE user_id = ? AND (last_heartbeat IS NULL OR last_heartbeat <= datetime('now', '-30 seconds'))", [user.id]);
+  // Clean up ALL stale sessions (heartbeat expired — user closed browser)
+  await execute("DELETE FROM user_sessions WHERE user_id = ?", [user.id]);
 
   // No active session — create new session
   await execute(
@@ -91,7 +97,8 @@ router.post("/heartbeat", async (req, res) => {
   try {
     const { user_id } = req.body;
     if (!user_id) return res.json({ success: false });
-    await execute("UPDATE user_sessions SET last_heartbeat = datetime('now','localtime') WHERE user_id = ?", [user_id]);
+    const now = new Date().toISOString().slice(0, 19).replace("T", " ");
+    await execute("UPDATE user_sessions SET last_heartbeat = ? WHERE user_id = ?", [now, user_id]);
     res.json({ success: true });
   } catch (e) {
     res.json({ success: true });

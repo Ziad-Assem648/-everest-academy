@@ -18,7 +18,7 @@ router.get("/tree", async (req, res) => {
 
   // Get all descendants with their referred_by so we can build the tree
   const descendants = await query(`
-    SELECT u.id, u.full_name, u.email, u.role, u.rank, u.e_money,
+    SELECT u.id, u.full_name, u.email, u.role, u.rank, u.e_money, u.account_type,
            u.direct_count, u.qualified_direct_count, u.created_at,
            u.referred_by, c.depth
     FROM user_closure c
