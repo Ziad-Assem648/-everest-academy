@@ -1,4 +1,4 @@
-import { queryOne } from "../db.js";
+import { queryOne, execute } from "../db.js";
 
 const publicPaths = ["/auth/login", "/auth/register", "/auth/logout", "/payment-gateways/active", "/admin-auth"];
 const chatPublicPaths = ["/chat"];
@@ -19,6 +19,18 @@ export default async function sessionAuth(req, res, next) {
 
   if (!userId || !sessionToken) {
     return res.status(401).json({ error: "Unauthorized. يرجى تسجيل الدخول.", session_expired: true });
+  }
+
+  // Check if session heartbeat has expired (>30 seconds old = browser closed)
+  const session = await queryOne(
+    "SELECT id FROM user_sessions WHERE user_id = ? AND (last_heartbeat IS NULL OR last_heartbeat > datetime('now', '-30 seconds'))",
+    [userId]
+  );
+  if (!session) {
+    // Session expired — clean it up
+    await execute("DELETE FROM user_sessions WHERE user_id = ?", [userId]);
+    await execute("UPDATE users SET session_token = NULL WHERE id = ?", [userId]);
+    return res.status(401).json({ error: "Session expired. تم تسجيل الخروج. يرجى تسجيل الدخول مرة أخرى.", session_expired: true });
   }
 
   // Validate session against users table

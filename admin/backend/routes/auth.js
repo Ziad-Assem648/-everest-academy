@@ -29,9 +29,9 @@ router.post("/login", async (req, res) => {
   const deviceType = detectDeviceType(req.headers["user-agent"]);
   const session_token = uuidv4() + "-" + Date.now();
 
-  // Single Active Device: check if user already has ANY active session
+  // Single Active Device: check if user already has ANY active session (not expired by heartbeat)
   const existingSession = await queryOne(
-    "SELECT id, device_type, device_info FROM user_sessions WHERE user_id = ?",
+    "SELECT id, device_type, device_info FROM user_sessions WHERE user_id = ? AND (last_heartbeat IS NULL OR last_heartbeat > datetime('now', '-30 seconds'))",
     [user.id]
   );
 
@@ -44,6 +44,9 @@ router.post("/login", async (req, res) => {
       message_ar: "هذا الحساب مسجل الدخول على جهاز آخر. يرجى تسجيل الخروج من ذلك الجهاز أولاً."
     });
   }
+
+  // Clean up stale sessions (heartbeat expired — user closed browser)
+  await execute("DELETE FROM user_sessions WHERE user_id = ? AND (last_heartbeat IS NULL OR last_heartbeat <= datetime('now', '-30 seconds'))", [user.id]);
 
   // No active session — create new session
   await execute(
@@ -77,6 +80,18 @@ router.post("/cleanup-sessions", async (req, res) => {
   try {
     // Delete sessions where the user no longer exists
     await execute("DELETE FROM user_sessions WHERE user_id NOT IN (SELECT id FROM users)");
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: true });
+  }
+});
+
+// Heartbeat: keeps session alive while browser tab is open
+router.post("/heartbeat", async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) return res.json({ success: false });
+    await execute("UPDATE user_sessions SET last_heartbeat = datetime('now','localtime') WHERE user_id = ?", [user_id]);
     res.json({ success: true });
   } catch (e) {
     res.json({ success: true });

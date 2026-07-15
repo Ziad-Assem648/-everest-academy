@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 const API = window.location.origin.includes("localhost") ? "http://localhost:5000/api" : "/api";
@@ -14,6 +14,19 @@ export function AuthProvider({ children }) {
       return u;
     } catch { return null; }
   });
+
+  // Heartbeat: ping server every 5 seconds to keep session alive
+  useEffect(() => {
+    if (!user?.id) return;
+    const interval = setInterval(() => {
+      fetch(`${API}/auth/heartbeat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id }),
+      }).catch(() => {});
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
 
   const login = (u, sessionToken) => {
     const userData = { ...u, session_token: sessionToken || u.session_token };

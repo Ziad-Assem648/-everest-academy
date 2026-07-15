@@ -293,6 +293,7 @@ function createSchema(driver, isTursoDb) {
   try { driver.run("ALTER TABLE ranks ADD COLUMN image TEXT"); } catch(e) {}
   try { driver.run("ALTER TABLE user_sessions ADD COLUMN device_type TEXT"); } catch(e) {}
   try { driver.run("ALTER TABLE user_sessions ADD COLUMN device_info TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE user_sessions ADD COLUMN last_heartbeat DATETIME DEFAULT CURRENT_TIMESTAMP"); } catch(e) {}
   try { driver.run("ALTER TABLE users ADD COLUMN account_type TEXT DEFAULT 'student'"); } catch(e) {}
   try {
     driver.run("UPDATE users SET account_type = 'registration', role = 'registration' WHERE account_type = 'registration_sponsor'");
