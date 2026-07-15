@@ -79,7 +79,7 @@ export default function PublicNavbar({ active }) {
         {/* Header */}
         <div className="pdm-header">
           <div className="pdm-brand">
-            <img className="pdm-logo-img" src="/image/new_logo-removebg-preview.png" alt="Everest" />
+            <img className="pdm-logo-img" src="./new_logo-removebg-preview.png" alt="Everest" />
            
           </div>
           <button className="pdm-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">
