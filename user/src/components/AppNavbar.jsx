@@ -79,7 +79,7 @@ export default function AppNavbar() {
           boxShadow: c.shadow, direction: dir,
         }}>
           <Link to="/home" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <img src="./new_logo-removebg-preview.png" alt="Logo" style={{ height: 52, objectFit:"contain" }} />
+            <img src="/image/new_logo-removebg-preview.png" alt="Logo" style={{ height: 52, objectFit:"contain" }} />
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {user && <NotificationBell userId={user.id} />}
