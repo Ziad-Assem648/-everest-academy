@@ -39,7 +39,7 @@ export default function PublicNavbar({ active }) {
     <>
       <nav className="navbar" ref={navRef}>
         <div className="nav-left" style={{marginLeft:8}}>
-          <Link to="/" className="logo"><img src="/image/logo-navbar.png" alt="Everest" style={{width:90,height:90,objectFit:"contain",mixBlendMode:"multiply"}} /></Link>
+          <Link to="/" className="logo"><img src="/image/new_logo-removebg-preview.png" alt="Everest" style={{width:90,height:90,objectFit:"contain"}} /></Link>
         </div>
         <div className="nav-links">
           {links.map((l) => (
@@ -79,7 +79,7 @@ export default function PublicNavbar({ active }) {
         {/* Header */}
         <div className="pdm-header">
           <div className="pdm-brand">
-            <img className="pdm-logo-img" src="/image/logo3.png" alt="Everest" />
+            <img className="pdm-logo-img" src="/image/new_logo-removebg-preview.png" alt="Everest" />
            
           </div>
           <button className="pdm-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">
