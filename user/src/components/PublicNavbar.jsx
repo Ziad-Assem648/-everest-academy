@@ -133,21 +133,7 @@ export default function PublicNavbar({ active }) {
         </div>
 
         {/* Footer */}
-        <div className="pdm-footer">
-          <div className="pdm-help">
-            <i className="fa-solid fa-headset"></i>
-            <div>
-              <span className="pdm-help-title">{t("Need Help?", "Need Help?")}</span>
-              {csWhatsapp && <a href={`https://wa.me/${csWhatsapp.replace(/[^0-9+]/g,"")}`} target="_blank" rel="noopener noreferrer">📱 {csWhatsapp}</a>}
-              {csEmail && <a href={`mailto:${csEmail}`}>📧 {csEmail}</a>}
-              {!csWhatsapp && !csEmail && <a href="mailto:support@everestacademy.com">support@everestacademy.com</a>}
-            </div>
-          </div>
-          <div className="pdm-copyright">
-            <span>© 2026 Everest Academy</span>
-            <span className="pdm-version">v2.0</span>
-          </div>
-        </div>
+      
       </div>
     </>
   );
