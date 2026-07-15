@@ -228,30 +228,21 @@ export default function CourseViewPage() {
       {!user ? (
         <main style={{maxWidth:600,margin:"0 auto",padding:m?"20px 14px 40px":"60px 5% 40px",display:"flex",alignItems:"center",justifyContent:"center",minHeight:"calc(100vh - 80px)"}}>
           <div style={{width:"100%",textAlign:"center"}}>
-            {/* Back button */}
-            <button onClick={() => nav(-1)} style={{
-              display:"inline-flex",alignItems:"center",gap:8,marginBottom:24,
-              padding:m?"10px 20px":"12px 24px",
-              background:c.bgCard,border:`1px solid ${c.borderLight}`,
-              borderRadius:12,color:c.text,fontSize:m?13:14,fontWeight:700,
-              cursor:"pointer",transition:"all 0.2s"
-            }}>
-              {dir === "rtl" ? "→" : "←"} {t("رجوع", "Go Back")}
-            </button>
             <div style={{
               background:c.bgCard,border:`1px solid ${c.borderLight}`,
-              borderRadius:m?16:20,padding:m?"28px 20px":"40px 36px",
-              boxShadow:"0 4px 30px rgba(0,0,0,.08)"
+              borderRadius:m?20:24,padding:m?"36px 22px 32px":"48px 40px 44px",
+              boxShadow:"0 4px 30px rgba(0,0,0,.08)",
+              display:"flex",flexDirection:"column",alignItems:"center",gap:0
             }}>
               {/* Decorative top accent */}
-              <div style={{width:60,height:4,borderRadius:2,background:"linear-gradient(135deg,#b38728,#e2c275)",margin:"0 auto 24px"}} />
+              <div style={{width:60,height:4,borderRadius:2,background:"linear-gradient(135deg,#b38728,#e2c275)",marginBottom:28}} />
 
               {/* Course title */}
               <h1 style={{
-                fontSize:m?"1.1rem":"1.35rem",fontWeight:800,lineHeight:1.6,
+                fontSize:m?"1.15rem":"1.4rem",fontWeight:800,lineHeight:1.6,
                 background:"linear-gradient(135deg,#fdfbfb,#e2c275,#b38728)",
                 WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",
-                margin:"0 0 20px",padding:"0 8px"
+                margin:"0 0 24px",padding:"0 8px"
               }}>
                 {course.title_ar || course.title}
               </h1>
@@ -259,13 +250,13 @@ export default function CourseViewPage() {
               {/* Price */}
               {!isFree ? (
                 <div style={{
-                  background:c.bgInput,borderRadius:12,
-                  padding:m?"14px 16px":"18px 24px",marginBottom:28
+                  background:c.bgInput,borderRadius:14,
+                  padding:m?"18px 18px":"22px 28px",marginBottom:32,width:"100%"
                 }}>
-                  <p style={{fontSize:m?11:12,color:c.textMuted,margin:"0 0 6px",fontWeight:600}}>
+                  <p style={{fontSize:m?11:12,color:c.textMuted,margin:"0 0 8px",fontWeight:600}}>
                     {t("سعر الكورس", "Course Price")}
                   </p>
-                  <p style={{fontSize:m?18:22,fontWeight:800,color:c.text,margin:0}}>
+                  <p style={{fontSize:m?20:24,fontWeight:800,color:c.text,margin:0}}>
                     {course.price} E-Money
                     {course.price_egp > 0 && <span style={{fontSize:m?13:15,fontWeight:600,color:c.textMuted}}> / {course.price_egp} {t("ج.م", "EGP")}</span>}
                   </p>
@@ -273,19 +264,19 @@ export default function CourseViewPage() {
               ) : (
                 <div style={{
                   background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.2)",
-                  borderRadius:12,padding:m?"14px 16px":"18px 24px",marginBottom:28
+                  borderRadius:14,padding:m?"18px 18px":"22px 28px",marginBottom:32,width:"100%"
                 }}>
-                  <p style={{fontSize:m?16:20,fontWeight:800,color:"#22c55e",margin:0}}>
+                  <p style={{fontSize:m?18:22,fontWeight:800,color:"#22c55e",margin:0}}>
                     🎉 {t("مجاني", "FREE")}
                   </p>
                 </div>
               )}
 
               {/* Buttons */}
-              <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div style={{display:"flex",flexDirection:"column",gap:14,width:"100%"}}>
                 <Link to="/login" style={{
                   display:"flex",alignItems:"center",justifyContent:"center",gap:10,
-                  padding:m?"14px 20px":"16px 28px",
+                  padding:m?"16px 20px":"18px 28px",
                   background:"linear-gradient(135deg,#b38728,#e2c275)",
                   borderRadius:14,color:"#05030a",fontWeight:800,fontSize:m?15:16,
                   textDecoration:"none",transition:"all 0.3s",boxShadow:"0 4px 15px rgba(179,135,40,.3)"
@@ -294,7 +285,7 @@ export default function CourseViewPage() {
                 </Link>
                 <Link to="/register" style={{
                   display:"flex",alignItems:"center",justifyContent:"center",gap:10,
-                  padding:m?"14px 20px":"16px 28px",
+                  padding:m?"16px 20px":"18px 28px",
                   background:"transparent",border:`1px solid ${c.borderLight}`,
                   borderRadius:14,color:c.text,fontWeight:700,fontSize:m?14:15,
                   textDecoration:"none",transition:"all 0.3s"
@@ -304,10 +295,21 @@ export default function CourseViewPage() {
               </div>
 
               {/* Subtext */}
-                <p style={{fontSize:m?11:12,color:c.textMuted,margin:0,marginTop:20,lineHeight:1.6}}>
+              <p style={{fontSize:m?11:12,color:c.textMuted,margin:"24px 0 0",lineHeight:1.6}}>
                 {t("سجّل دخولك للوصول إلى جميع الدروس والمحتوى التعليمي", "Sign in to access all lessons and educational content")}
               </p>
             </div>
+
+            {/* Back button - below card on all screens */}
+            <button onClick={() => nav(-1)} style={{
+              display:"inline-flex",alignItems:"center",gap:8,marginTop:24,
+              padding:m?"10px 20px":"12px 24px",
+              background:c.bgCard,border:`1px solid ${c.borderLight}`,
+              borderRadius:12,color:c.text,fontSize:m?13:14,fontWeight:700,
+              cursor:"pointer",transition:"all 0.2s"
+            }}>
+              {dir === "rtl" ? "→" : "←"} {t("رجوع", "Go Back")}
+            </button>
           </div>
         </main>
 
