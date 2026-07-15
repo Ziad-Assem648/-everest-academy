@@ -47,8 +47,7 @@ export default function RankingsPage() {
 
   useEffect(() => {
     if (!user?.id) return;
-    // Auto-trigger rank update on page load
-    fetch("/api/ranks/update", { method: "POST" }).then(() => {
+    api("/api/ranks/update", { method: "POST" }).then(() => {
       api(`/api/ranks/progress/${user.id}`).then(setProgress).catch(() => {});
     }).catch(() => {
       api(`/api/ranks/progress/${user.id}`).then(setProgress).catch(() => {});
