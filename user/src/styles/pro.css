@@ -594,8 +594,7 @@ video { object-fit:contain; }
 /* Header */
 .pdm-header { display:flex; align-items:center; justify-content:space-between; padding:28px 24px 20px; }
 .pdm-brand { display:flex; align-items:center; gap:14px; }
-.pdm-logo-ring { width:48px; height:48px; border-radius:16px; background:linear-gradient(135deg,#d4af37,#b8922a); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(212,175,55,.3); }
-.pdm-logo-ring img { width:30px; height:30px; object-fit:contain; filter:brightness(0) invert(1); }
+.pdm-logo-img { width:70px; height:70px; object-fit:contain; }
 .pdm-brand h2 { margin:0; font-size:17px; font-weight:800; line-height:1.2; letter-spacing:-.3px; }
 .pdm-brand span { font-size:11px; font-weight:500; opacity:.5; display:block; margin-top:2px; }
 [data-theme="dark"] .pdm-brand h2 { color:#f0f0f0; }

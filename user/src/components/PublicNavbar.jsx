@@ -71,12 +71,10 @@ export default function PublicNavbar({ active }) {
         {/* Header */}
         <div className="pdm-header">
           <div className="pdm-brand">
-            <div className="pdm-logo-ring">
-              <img src="/image/logo-navbar.png" alt="Everest" />
-            </div>
+            <img className="pdm-logo-img" src="/image/logo3.png" alt="Everest" />
             <div>
               <h2>Everest Academy</h2>
-              <span>Premium Learning Platform</span>
+              <span>{t("منصة تعليمية متميزة", "Premium Learning Platform")}</span>
             </div>
           </div>
           <button className="pdm-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">
