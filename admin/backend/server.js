@@ -1,12 +1,13 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import cron from "node-cron";
 import rateLimit from "express-rate-limit";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-import { initDb, execute, query } from "./db.js";
+import { initDb, execute, query, queryOne } from "./db.js";
 import { pool as geminiPool } from "./geminiKeys.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -172,6 +173,143 @@ function startMembershipExpiryCheck() {
   console.log("🕐 Membership expiry checker started (every 1h)");
 }
 
+// Weekly commission scheduler — runs every Sunday at 23:55
+function startWeeklyCommissionScheduler() {
+  async function runWeeklyCommission() {
+    try {
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      const lastMonday = new Date(now);
+      lastMonday.setDate(now.getDate() - daysToMonday - 7);
+      const lastSunday = new Date(lastMonday);
+      lastSunday.setDate(lastMonday.getDate() + 6);
+      const weekStart = lastMonday.toISOString().slice(0, 10);
+      const weekEnd = lastSunday.toISOString().slice(0, 10);
+
+      const existing = await queryOne("SELECT id FROM weekly_commissions WHERE week_start = ? LIMIT 1", [weekStart]);
+      if (existing) {
+        console.log(`⏰ [AUTO-COMMISSION] Week ${weekStart} - ${weekEnd} already processed, skipping`);
+        return;
+      }
+
+      const users = await query(
+        "SELECT id, full_name, rank, direct_count, e_money, account_type FROM users WHERE role IN ('student','registration') AND status = 'active'"
+      );
+      const allRanks = await query("SELECT * FROM ranks ORDER BY sort_order ASC");
+      const rankMap = {};
+      allRanks.forEach(r => { rankMap[r.name] = r; });
+
+      function sReq(r) { return r.sales_required || 0; }
+      function bVal(r) { return r.bonus || 0; }
+
+      let totalAwarded = 0;
+      for (const user of users) {
+        const userRank = rankMap[user.rank];
+        const directs = await query("SELECT u.id, u.account_type, u.status FROM users u WHERE u.referred_by = ?", [user.id]);
+        const activeDirects = directs.filter(d => d.status === 'active');
+        const totalDirectSales = activeDirects.length;
+        const studentDirectSales = activeDirects.filter(d => d.account_type === 'student').length;
+        const registrationDirectSales = activeDirects.filter(d => d.account_type === 'registration').length;
+        const qualifiedDirectSales = totalDirectSales;
+
+        if (qualifiedDirectSales < 2) {
+          const whId = uuidv4();
+          await execute(`INSERT INTO weekly_history (id, user_id, week_start, week_end, calculation_date, previous_rank, current_rank, total_direct_sales, student_direct_sales, registration_direct_sales, qualified_direct_sales, qualified_team_count, qualified_network_count, weekly_commission, commission_status, promotion_status, failure_reason) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [whId, user.id, weekStart, weekEnd, now.toISOString().slice(0,19).replace("T"," "), user.rank, user.rank, totalDirectSales, studentDirectSales, registrationDirectSales, qualifiedDirectSales, 0, 0, 0, 'not_eligible', 'no_change', `Less than 2 qualified direct sales (${qualifiedDirectSales})`]);
+          continue;
+        }
+
+        const allTeamMembers = await query(
+          "SELECT u.id, u.rank, u.status, u.account_type FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type IN ('student','registration')",
+          [user.id, user.id]
+        );
+        let qualifiedTeamCount = 0;
+        let studentMembers = 0;
+        let registrationMembers = 0;
+        let higherRankExcluded = 0;
+        let inactiveExcluded = 0;
+        for (const member of allTeamMembers) {
+          if (member.status !== 'active') { inactiveExcluded++; continue; }
+          const memberRankData = rankMap[member.rank];
+          if (!memberRankData) { qualifiedTeamCount++; if (member.account_type === 'student') studentMembers++; else registrationMembers++; continue; }
+          if (userRank && memberRankData.sort_order > userRank.sort_order) { higherRankExcluded++; continue; }
+          qualifiedTeamCount++;
+          if (member.account_type === 'student') studentMembers++; else registrationMembers++;
+        }
+        const qualifiedNetworkCount = allTeamMembers.filter(m => m.status === 'active').length;
+
+        const previousRank = user.rank;
+        let promotionStatus = 'no_change';
+        let newRank = user.rank;
+        if (userRank) {
+          const rankIdx = allRanks.findIndex(r => r.name === user.rank);
+          for (let i = (rankIdx >= 0 ? rankIdx + 1 : 0); i < allRanks.length; i++) {
+            const next = allRanks[i];
+            if (qualifiedTeamCount >= sReq(next)) {
+              newRank = next.name;
+              const bonusPaid = await queryOne("SELECT id FROM rank_bonuses WHERE user_id = ? AND rank_name = ?", [user.id, next.name]);
+              const bonusAmount = bVal(next);
+              if (bonusAmount > 0 && !bonusPaid) {
+                await execute("INSERT INTO rank_bonuses (id, user_id, rank_name, amount) VALUES (?, ?, ?, ?)", [uuidv4(), user.id, next.name, bonusAmount]);
+                await execute("UPDATE users SET e_money = e_money + ? WHERE id = ?", [bonusAmount, user.id]);
+                await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, 'credit', ?, 'completed')", [uuidv4(), user.id, bonusAmount, `🎉 Rank up bonus - ${next.name}`]);
+              }
+              await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'success')", [uuidv4(), user.id, "🎉 Rank Up!", `You reached ${next.name} rank! Bonus: ${bonusAmount || 0} EM`]);
+            } else { break; }
+          }
+        } else {
+          for (const next of allRanks) {
+            if (qualifiedTeamCount >= sReq(next)) { newRank = next.name; } else { break; }
+          }
+        }
+        if (newRank !== previousRank) {
+          promotionStatus = 'promoted';
+          const progress = allRanks.findIndex(r => r.name === newRank);
+          const nextAfter = allRanks[progress + 1];
+          const progressPct = nextAfter ? Math.min(100, Math.round((qualifiedTeamCount / sReq(nextAfter)) * 100)) : 100;
+          await execute("UPDATE users SET rank = ?, rank_progress = ?, updated_at = datetime('now','localtime') WHERE id = ?", [newRank, progressPct, user.id]);
+        }
+
+        const finalRank = rankMap[newRank];
+        let weeklyCommission = 0;
+        let commissionStatus = 'not_eligible';
+        let failureReason = null;
+        if (!finalRank) { failureReason = 'No rank assigned'; }
+        else {
+          const bonus = bVal(finalRank) || 0;
+          if (bonus > 0) {
+            weeklyCommission = bonus;
+            commissionStatus = 'paid';
+            await execute("UPDATE users SET e_money = e_money + ? WHERE id = ?", [bonus, user.id]);
+            await execute("INSERT INTO weekly_commissions (id, user_id, rank_name, amount, week_start, week_end, status) VALUES (?, ?, ?, ?, ?, ?, 'paid')", [uuidv4(), user.id, finalRank.name, bonus, weekStart, weekEnd]);
+            await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, 'credit', ?, 'completed')", [uuidv4(), user.id, bonus, `العمولة الأسبوعية - رتبة ${finalRank.name} (${weekStart})`]);
+            await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'commission')", [uuidv4(), user.id, "🏆 عمولة أسبوعية", `ربحت ${bonus} E-Money كعمولة أسبوعية عن رتبة ${finalRank.name}`]);
+            totalAwarded++;
+          } else { failureReason = `Rank ${finalRank.name} has no weekly bonus`; }
+        }
+
+        const whId = uuidv4();
+        const details = JSON.stringify({ totalDirectSales, studentDirectSales, registrationDirectSales, qualifiedTeamCount, studentMembers, registrationMembers, higherRankExcluded, inactiveExcluded, qualifiedNetworkCount });
+        await execute(`INSERT INTO weekly_history (id, user_id, week_start, week_end, calculation_date, previous_rank, current_rank, total_direct_sales, student_direct_sales, registration_direct_sales, qualified_direct_sales, qualified_team_count, qualified_network_count, student_members, registration_members, higher_rank_excluded, inactive_excluded, weekly_commission, commission_status, promotion_status, failure_reason, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [whId, user.id, weekStart, weekEnd, now.toISOString().slice(0,19).replace("T"," "), previousRank, newRank, totalDirectSales, studentDirectSales, registrationDirectSales, qualifiedDirectSales, qualifiedTeamCount, qualifiedNetworkCount, studentMembers, registrationMembers, higherRankExcluded, inactiveExcluded, weeklyCommission, commissionStatus, promotionStatus, failureReason, details]);
+
+        console.log(`[AUTO-COMMISSION] User: ${user.full_name} (${user.id}) | ${previousRank||'None'} → ${newRank||'None'} | Directs: ${totalDirectSales} | Team: ${qualifiedTeamCount} | Commission: ${weeklyCommission} EM (${commissionStatus})`);
+      }
+
+      console.log(`🏆 [AUTO-COMMISSION] Week ${weekStart} - ${weekEnd} done: ${totalAwarded} users awarded out of ${users.length}`);
+    } catch (e) { console.error("Auto weekly commission error:", e.message); }
+  }
+
+  // Run every Sunday at 23:55 (just before end of week)
+  cron.schedule("55 23 * * 0", () => {
+    console.log("⏰ [CRON] Sunday 23:55 — triggering weekly commission...");
+    runWeeklyCommission();
+  }, { timezone: "Africa/Cairo" });
+
+  console.log("⏰ Weekly commission auto-scheduler started (Sunday 23:55 Cairo time)");
+}
+
 // Initialize database then start server
 initDb().then(async () => {
   await seedAdmins();
@@ -203,6 +341,7 @@ initDb().then(async () => {
     console.log(`✅ Everest Admin Backend running on http://localhost:${PORT}`);
   });
   startMembershipExpiryCheck();
+  startWeeklyCommissionScheduler();
 }).catch(err => {
   console.error("Failed to initialize database:", err);
 });

@@ -181,7 +181,7 @@ function DashboardPage({ stats }) {
     { label: t("إجمالي المستخدمين", "Total Users"), sub: t("(باستثناء المشرفين)", "(excl. admins)"), value: stats.totalUsers, icon: "👥", color: "#6366f1", bg: "from-indigo-500" },
     { label: t("الطلاب", "Students"), sub: t("(حسابات طلاب فقط)", "(student accounts only)"), value: stats.totalStudents, icon: "🎓", color: "#10b981", bg: "from-emerald-500" },
     { label: t("الكورسات", "Courses"), sub: `${stats.publishedCourses || 0} ${t("منشور", "published")}`, value: stats.totalCourses, icon: "📚", color: "#8b5cf6", bg: "from-violet-500" },
-    { label: t("الإيرادات", "Revenue"), sub: t("(مشتريات الكورسات)", "(course sales)"), value: stats.revenueFromSales, icon: "💰", color: "#f59e0b", bg: "from-amber-500", suf: " EGP" },
+    { label: t("الاشتراكات النشطة", "Active Enrollments"), sub: `${stats.approvedEnrollments || 0} / ${stats.totalEnrollments || 0}`, value: stats.approvedEnrollments, icon: "✅", color: "#10b981", bg: "from-emerald-500" },
   ];
 
   const ringData = [
@@ -201,7 +201,7 @@ function DashboardPage({ stats }) {
     { label: t("الحسابات المحظورة", "Blocked Accounts"), value: stats.totalBlocked, icon: "🚫", color: "#ef4444", desc: t("محظورين من المنصة", "Blocked from platform") },
     { label: t("حسابات التسجيل", "Registration Accounts"), value: stats.totalRegistration, icon: "📝", color: "#f59e0b", desc: t("حسابات غير مفعلة كطلاب", "Not activated as students") },
     { label: t("العمولات المدفوعة", "Commissions Paid"), value: stats.totalCommissions, icon: "💎", color: "#10b981", desc: "EM " + t("إجمالي", "total") },
-    { label: t("الاشتراكات النشطة", "Active Enrollments"), value: stats.approvedEnrollments, icon: "✅", color: "#6366f1", desc: t("اشتراكات تمت الموافقة عليها", "Approved enrollments") },
+    { label: t("الرصيد الإجمالي", "Total E-Money Balance"), value: stats.totalEMoney, icon: "💳", color: "#8b5cf6", desc: t("EM في المنصة", "EM in platform") },
   ];
 
   useEffect(() => {
@@ -224,16 +224,6 @@ function DashboardPage({ stats }) {
         </div>
         <div className="flex items-center gap-3">
           <div className="text-xs text-gray-400 bg-white px-3 py-1.5 rounded-lg border">{new Date().toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", { weekday:"long", year:"numeric", month:"long", day:"numeric" })}</div>
-          <button onClick={async () => {
-            if (!confirm(t("هل أنت متأكد من تشغيل العمولة الأسبوعية؟", "Are you sure you want to run the weekly commission?"))) return;
-            try {
-              const r = await api("/api/mlm/weekly-commission", { method: "POST" });
-              alert(t(`✅ تم تشغيل العمولة!\nتم الدفع لـ ${r.awarded} مستخدم من أصل ${r.total_users}`, `✅ Commission executed!\nPaid to ${r.awarded} users out of ${r.total_users}`));
-              window.location.reload();
-            } catch(e) { alert("❌ " + e.message); }
-          }} className="px-4 py-2 text-sm bg-amber-50 border border-amber-200 rounded-xl shadow-sm hover:shadow-md transition flex items-center gap-2 text-amber-800">
-            <span className="text-base">🏆</span> {t("تشغيل العمولة الأسبوعية", "Run Weekly Commission")}
-          </button>
           <button onClick={() => window.location.reload()} className="px-4 py-2 text-sm bg-white border rounded-xl shadow-sm hover:shadow-md transition flex items-center gap-2">
             <span className="text-base">🔄</span> {t("تحديث", "Refresh")}
           </button>
@@ -360,10 +350,10 @@ function DashboardPage({ stats }) {
         <div className="flex items-center gap-2 mb-3"><span className="text-sm">📋</span><span className="text-sm font-bold text-gray-700">{t("ملخص المنصة", "Platform Summary")}</span></div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           {[
-            [t("إجمالي E-Money في المنصة", "Total E-Money in Platform"), stats.totalEMoney, "💳"],
             [t("إجمالي الاشتراكات", "Total Enrollments"), stats.totalEnrollments, "📋"],
-            [t("حسابات التسجيل", "Registration Accounts"), stats.totalRegistration, "📝"],
+            [t("اشتراكات بانتظار المراجعة", "Pending Enrollments"), stats.pendingEnrollments, "⏳"],
             [t("التقييمات", "Feedbacks"), stats.totalFeedbacks, "⭐"],
+            [t("متوسط التقييم", "Avg Rating"), stats.avgFeedback, "📊"],
           ].map(([label, val, icon], i) => (
             <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-3">
               <span>{icon}</span>
