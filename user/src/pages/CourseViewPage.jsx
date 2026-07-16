@@ -231,6 +231,7 @@ export default function CourseViewPage() {
   const current = playing || allLessons[0] || null;
   const idx = allLessons.findIndex((l) => l.id === current?.id);
   const isYoutube = (url) => url && (url.includes("youtube.com") || url.includes("youtu.be") || url.includes("youtube.com/embed"));
+  const isBunny = (url) => url && (url.includes("player.mediadelivery.net") || url.includes("bunnycdn.com") || url.includes(".b-cdn.net"));
   const getYtEmbed = (url) => { const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/); return m ? `https://www.youtube.com/embed/${m[1]}?autoplay=1&rel=0` : null; };
   const videoSrc = current?.video_url ? (isYoutube(current.video_url) ? getYtEmbed(current.video_url) : current.video_url) : null;
 
@@ -432,6 +433,8 @@ export default function CourseViewPage() {
               </div>
             ) : videoSrc ? (
               isYoutube(current?.video_url) ? (
+                <iframe src={videoSrc} style={{width:"100%",height:"100%",aspectRatio:"16/9",border:"none"}} allowFullScreen allow="autoplay; encrypted-media" title="video" />
+              ) : isBunny(current?.video_url) ? (
                 <iframe src={videoSrc} style={{width:"100%",height:"100%",aspectRatio:"16/9",border:"none"}} allowFullScreen allow="autoplay; encrypted-media" title="video" />
               ) : (
                 <video src={videoSrc} controls playsInline controlsList="nodownload noremoteplayback" disablePictureInPicture style={{width:"100%",height:"100%",objectFit:"contain"}} onEnded={() => {
