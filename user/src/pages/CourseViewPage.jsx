@@ -31,10 +31,19 @@ export default function CourseViewPage() {
   const [myComment, setMyComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
   const [lastViewedId, setLastViewedId] = useState(null);
+  const [prevLessonId, setPrevLessonId] = useState(null);
 
   const trackViewed = (lessonId) => {
     if (!user?.id || !lessonId) return;
     const key = `last_viewed_${user.id}_${id}`;
+    const prevKey = `prev_viewed_${user.id}_${id}`;
+    const prev = localStorage.getItem(key);
+    if (prev && prev !== lessonId) {
+      localStorage.setItem(prevKey, prev);
+      setPrevLessonId(prev);
+    } else {
+      setPrevLessonId(localStorage.getItem(prevKey) || null);
+    }
     localStorage.setItem(key, lessonId);
     setLastViewedId(lessonId);
   };
@@ -51,6 +60,8 @@ export default function CourseViewPage() {
         }
       } else if (user?.id && data?.topics) {
         const saved = localStorage.getItem(`last_viewed_${user.id}_${id}`);
+        const savedPrev = localStorage.getItem(`prev_viewed_${user.id}_${id}`);
+        if (savedPrev) setPrevLessonId(savedPrev);
         if (saved) {
           for (const topic of data.topics) {
             const found = (topic.lessons || []).find(l => l.id === saved);
@@ -511,7 +522,7 @@ export default function CourseViewPage() {
                   const lessonQuiz = lesson.quiz;
                   const lessonQuizPassed = lessonQuiz ? isQuizPassed(lessonQuiz.id) : true;
                   const isPlaying = current?.id === lesson.id;
-                  const isLastViewed = lastViewedId === lesson.id && !isPlaying;
+                  const isLastViewed = prevLessonId === lesson.id;
                   return (
                     <button key={lesson.id} onClick={() => { if (!locked) { setPlaying(lesson); trackViewed(lesson.id); } }} disabled={locked}
                       style={{width:"100%",textAlign:lang==="ar"?"right":"left",padding:m?"10px 12px":"10px 14px",borderRadius:10,border:"none",fontSize:m?12:13,cursor:locked?"not-allowed":"pointer",display:"flex",alignItems:"center",gap:8,marginBottom:3,
