@@ -21,7 +21,7 @@ import AdminLogsPage from "./pages/AdminLogsPage.jsx";
 import MembershipSettingsPage from "./pages/MembershipSettingsPage.jsx";
 import AdminsListPage from "./pages/AdminsListPage.jsx";
 import CustomerServicePage from "./pages/CustomerServicePage.jsx";
-import GeminiKeysPage from "./pages/GeminiKeysPage.jsx";
+
 
 function AppInner() {
   const [page, setPage] = useState("dashboard");
@@ -70,7 +70,7 @@ function AppInner() {
     { id: "membership-settings", label: lang === "ar" ? "إعدادات العضوية" : "Membership", icon: "⏱️" },
     { id: "feedbacks", label: lang === "ar" ? "التقييمات" : "Feedbacks", icon: "💬" },
     { id: "cs", label: lang === "ar" ? "خدمة العملاء" : "Customer Service", icon: "📞" },
-    { id: "gemini-keys", label: lang === "ar" ? "مفاتيح AI" : "AI Keys", icon: "🤖" },
+
     ...(isManager ? [{ id: "admins-mgmt", label: lang === "ar" ? "👥 إدارة الأدمنز" : "👥 Admin Management", icon: "👥" }] : []),
     { id: "profile-settings", label: lang === "ar" ? "الإعدادات الشخصية" : "Settings", icon: "⚙️" },
   ];
@@ -111,7 +111,7 @@ function AppInner() {
           {page === "payment-gateway" && <PaymentGatewayPage />}
           {page === "feedbacks" && <FeedbacksPage />}
           {page === "cs" && <CustomerServicePage />}
-          {page === "gemini-keys" && <GeminiKeysPage />}
+
           {page === "admin-logs" && <AdminLogsPage />}
           {page === "membership-settings" && <MembershipSettingsPage />}
           {page === "admins-mgmt" && isManager && <AdminsListPage />}
