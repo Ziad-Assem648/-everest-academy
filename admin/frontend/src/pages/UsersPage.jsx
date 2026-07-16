@@ -8,15 +8,17 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [teamTab, setTeamTab] = useState(1);
   const [amount, setAmount] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [search, setSearch] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [sendAmtModal, setSendAmtModal] = useState(null);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [saving, setSaving] = useState(false);
+  const [dbRanks, setDbRanks] = useState([]);
 
   const loadUsers = () => api("/api/users").then(setUsers);
-  useEffect(() => { loadUsers(); }, []);
+  useEffect(() => { loadUsers(); api("/api/ranks").then(d => setDbRanks(Array.isArray(d) ? d : [])).catch(() => {}); }, []);
 
   const openProfile = (user) => {
     api(`/api/users/${user.id}`).then((data) => {
@@ -314,7 +316,15 @@ export default function UsersPage() {
                     </div>
                     <div className="border rounded-lg p-3">
                       <p className="text-xs text-gray-400">{t("الرتبة الحالية", "Current Rank")}</p>
-                      <p className="text-sm font-bold mt-1">⭐ {selectedUser.rank}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        {(() => {
+                          const rankData = dbRanks.find(r => r.name === selectedUser.rank);
+                          if (rankData?.image) return <img src={rankData.image} alt={selectedUser.rank} className="w-5 h-5 rounded object-cover" />;
+                          const icons = {"Star":"⭐","Executive":"🚀","Executive Star":"💎","Team Leader":"🏆","Senior Leader":"🌍","Regional Leader":"⚡","Everest Elite":"🔱","Everest Master":"🔥","Everest Legend":"🌟","Everest Ambassador":"👑"};
+                          return <span>{icons[selectedUser.rank] || "🏅"}</span>;
+                        })()}
+                        <p className="text-sm font-bold">{selectedUser.rank || "—"}</p>
+                      </div>
                     </div>
                     <div className="border rounded-lg p-3">
                       <p className="text-xs text-gray-400">{t("مبيعات الفريق", "Team Sales")}</p>
@@ -363,6 +373,29 @@ export default function UsersPage() {
                       className="flex-1 px-4 py-2 border rounded-lg text-sm"
                     />
                     <button onClick={processEMoneyOnProfile} className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium text-sm hover:bg-green-700">{t("تنفيذ", "Apply")}</button>
+                  </div>
+                </div>
+              )}
+
+              {!editing && selectedUser.role !== "admin" && (
+                <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                  <h4 className="font-bold mb-3">{t("🔑 تغيير كلمة المرور", "🔑 Change Password")}</h4>
+                  <div className="flex gap-3">
+                    <input
+                      type="text" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder={t("كلمة المرور الجديدة", "New password")}
+                      className="flex-1 px-4 py-2 border rounded-lg text-sm"
+                    />
+                    <button onClick={async () => {
+                      if (!newPassword || newPassword.length < 4) { alert(t("كلمة المرور يجب أن تكون 4 أحرف على الأقل", "Password must be at least 4 characters")); return; }
+                      try {
+                        await api(`/api/users/${selectedUser.id}`, { method: "PUT", body: JSON.stringify({ password: newPassword }) });
+                        setNewPassword("");
+                        alert(t("تم تغيير كلمة المرور بنجاح", "Password changed successfully"));
+                      } catch (e) { alert(t("خطأ:", "Error:") + " " + e.message); }
+                    }} className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700">
+                      {t("حفظ", "Save")}
+                    </button>
                   </div>
                 </div>
               )}
@@ -444,7 +477,7 @@ export default function UsersPage() {
                                     <td className="font-medium">{m.full_name}</td>
                                     <td className="text-xs text-gray-500">{m.email}</td>
                                     <td className="text-xs text-gray-400 font-mono">{m.id}</td>
-                                    <td className="text-xs">⭐ {m.rank}</td>
+                                    <td className="text-xs">⭐ {m.rank || "—"}</td>
                                     <td><span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">{m.role}</span></td>
                                   </tr>
                                 )) : (
