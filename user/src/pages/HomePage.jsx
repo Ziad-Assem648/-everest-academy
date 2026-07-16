@@ -202,29 +202,134 @@ export default function HomePage() {
       </section>
 
       {/* Leaders */}
-      <section style={s.leadersSection}>
-        <div style={s.sectionTitle}>
-          <span style={s.sectionTitleSpan}>{t("أفضل المنجزين","TOP ACHIEVERS")}</span>
-          <h2 style={s.sectionTitleH2}>{t("قادتنا","Our Leaders")}</h2>
-          <p style={s.sectionTitleP}>{t("نكرم الأعضاء الذين حققوا إنجازات استثنائية.","Recognizing members who achieved exceptional milestones.")}</p>
-        </div>
-        <div style={s.leadersSlider}>
+      <section style={{ position:"relative",overflow:"hidden",padding:m?"60px 16px 50px":"100px 5% 80px",background:"linear-gradient(180deg,#06060f 0%,#0c0c1d 40%,#111128 70%,#0a0a18 100%)",color:"#fff" }}>
+        {/* BG decorations */}
+        <div style={{ position:"absolute",top:"-120px",right:"-80px",width:400,height:400,borderRadius:"50%",background:"radial-gradient(circle,rgba(212,175,55,.08) 0%,transparent 70%)",filter:"blur(40px)",pointerEvents:"none" }}></div>
+        <div style={{ position:"absolute",bottom:"-100px",left:"-60px",width:350,height:350,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,.06) 0%,transparent 70%)",filter:"blur(40px)",pointerEvents:"none" }}></div>
+        <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(212,175,55,.03) 0%,transparent 60%)",filter:"blur(60px)",pointerEvents:"none" }}></div>
+
+        <div style={{ position:"relative",zIndex:2,maxWidth:1100,margin:"auto" }}>
+          {/* Header */}
+          <div style={{ textAlign:"center",marginBottom:m?36:56 }}>
+            <div style={{ display:"inline-flex",alignItems:"center",gap:8,padding:"8px 20px",borderRadius:999,background:"rgba(212,175,55,.06)",border:"1px solid rgba(212,175,55,.15)",marginBottom:m?14:20 }}>
+              <span style={{ fontSize:m?12:14,letterSpacing:3,color:"#d4af37",fontWeight:700 }}>{t("أفضل المنجزين","TOP ACHIEVERS")}</span>
+            </div>
+            <h2 style={{ fontSize:m?"1.7rem":"clamp(2rem,4.5vw,3.5rem)",fontWeight:900,margin:"0 0 12px",lineHeight:1.15 }}>
+              <span style={{ color:"#fff" }}>{t("قادتنا","Our")}</span>{" "}
+              <span style={{ background:"linear-gradient(135deg,#d4af37,#f5d98a,#d4af37)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text" }}>{t("المتميزون","Leaders")}</span>
+            </h2>
+            <p style={{ color:"rgba(255,255,255,.45)",fontSize:m?13:16,maxWidth:480,margin:"auto",lineHeight:1.7 }}>{t("نكرم الأعضاء الذين حققوا إنجازات استثنائية وقادوا فرقهم نحو النجاح.","Recognizing members who achieved exceptional milestones and led their teams to success.")}</p>
+          </div>
+
           {leaders.length === 0 ? (
-            <p style={{color:"#7c7c86",textAlign:"center",width:"100%",padding:40}}>{t("لا يوجد قادة بعد","No leaders yet")}</p>
-          ) : leaders.map((l, i) => (
-            <div key={l.id || i} style={s.leaderCard}>
-              {l.avatar && l.avatar.trim() ? (
-                <img src={l.avatar} alt="" style={s.leaderImg} />
-              ) : (
-                <div style={{...s.leaderImg,display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,#d4af37,#b8922a)",fontSize:m?32:48,fontWeight:900,color:"#fff",lineHeight:1}}>
-                  {(l.name || "U")[0].toUpperCase()}
+            <p style={{ color:"rgba(255,255,255,.3)",textAlign:"center",padding:50,fontSize:15 }}>{t("لا يوجد قادة بعد","No leaders yet")}</p>
+          ) : (
+            <>
+              {/* Top 3 Podium */}
+              {leaders.length >= 1 && (
+                <div style={{ display:"flex",justifyContent:"center",alignItems:"flex-end",gap:m?10:20,marginBottom:m?36:50,paddingTop:m?10:20 }}>
+                  {/* 2nd place (left) */}
+                  {leaders[1] && (
+                    <div style={{ flex:"0 0 auto",textAlign:"center",order:m?1:0,animation:"leaderFloat 3s ease-in-out infinite",animationDelay:"0.5s" }}>
+                      <div style={{ position:"relative",width:m?90:130,height:m?90:130,margin:"0 auto 10px" }}>
+                        <div style={{ position:"absolute",inset:-4,borderRadius:"50%",background:"linear-gradient(135deg,#c0c0c0,#8a8a8a,#c0c0c0)",padding:3 }}>
+                          <div style={{ width:"100%",height:"100%",borderRadius:"50%",overflow:"hidden",background:"#1a1a2e",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                            {leaders[1].avatar?.trim() ? (
+                              <img src={leaders[1].avatar} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }} />
+                            ) : (
+                              <span style={{ fontSize:m?28:42,fontWeight:900,color:"#c0c0c0" }}>{(leaders[1].name||"U")[0]}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ position:"absolute",bottom:-8,left:"50%",transform:"translateX(-50%)",width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#c0c0c0,#999)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,color:"#1a1a2e",border:"2px solid #0c0c1d" }}>2</div>
+                      </div>
+                      <h4 style={{ fontSize:m?12:14,fontWeight:700,color:"#e0e0e0",margin:"12px 0 4px",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{leaders[1].name}</h4>
+                      <span style={{ fontSize:10,color:"#c0c0c0",letterSpacing:1 }}>{leaders[1].icon || "🏆"} {leaders[1].rank}</span>
+                      {leaders[1].e_money > 0 && <div style={{ fontSize:m?11:12,fontWeight:700,color:"#c0c0c0",marginTop:4 }}>{leaders[1].e_money?.toLocaleString()} EM</div>}
+                      {/* Podium block */}
+                      <div style={{ width:m?80:110,height:m?40:60,margin:"8px auto 0",borderRadius:"10px 10px 0 0",background:"linear-gradient(180deg,rgba(192,192,192,.12) 0%,rgba(192,192,192,.03) 100%)",border:"1px solid rgba(192,192,192,.1)",borderBottom:"none" }}></div>
+                    </div>
+                  )}
+
+                  {/* 1st place (center) */}
+                  <div style={{ flex:"0 0 auto",textAlign:"center",order:m?0:-1,animation:"leaderFloat 3s ease-in-out infinite",animationDelay:"0s",marginTop:m?0:-20 }}>
+                    {/* Crown */}
+                    <div style={{ fontSize:m?24:36,marginBottom:-6,filter:"drop-shadow(0 4px 12px rgba(212,175,55,.4))" }}>👑</div>
+                    <div style={{ position:"relative",width:m?110:160,height:m?110:160,margin:"0 auto 12px" }}>
+                      <div style={{ position:"absolute",inset:-6,borderRadius:"50%",background:"linear-gradient(135deg,#d4af37,#f5d98a,#d4af37,#b8922a)",padding:4,animation:"leaderGlow 2s ease-in-out infinite" }}>
+                        <div style={{ width:"100%",height:"100%",borderRadius:"50%",overflow:"hidden",background:"#1a1a2e",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                          {leaders[0].avatar?.trim() ? (
+                            <img src={leaders[0].avatar} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }} />
+                          ) : (
+                            <span style={{ fontSize:m?36:52,fontWeight:900,color:"#d4af37" }}>{(leaders[0].name||"U")[0]}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ position:"absolute",bottom:-6,left:"50%",transform:"translateX(-50%)",width:32,height:32,borderRadius:"50%",background:"linear-gradient(135deg,#d4af37,#f5d98a)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:"#0a0a18",border:"3px solid #0c0c1d",boxShadow:"0 0 16px rgba(212,175,55,.4)" }}>1</div>
+                    </div>
+                    <h4 style={{ fontSize:m?14:17,fontWeight:800,color:"#fff",margin:"14px 0 4px",maxWidth:150,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{leaders[0].name}</h4>
+                    <span style={{ fontSize:m?11:13,color:"#d4af37",fontWeight:700,letterSpacing:1 }}>{leaders[0].icon || "🏆"} {leaders[0].rank}</span>
+                    {leaders[0].e_money > 0 && <div style={{ fontSize:m?12:14,fontWeight:800,color:"#d4af37",marginTop:6,textShadow:"0 0 20px rgba(212,175,55,.3)" }}>{leaders[0].e_money?.toLocaleString()} EM</div>}
+                    {/* Podium block */}
+                    <div style={{ width:m?100:130,height:m?60:85,margin:"10px auto 0",borderRadius:"12px 12px 0 0",background:"linear-gradient(180deg,rgba(212,175,55,.15) 0%,rgba(212,175,55,.03) 100%)",border:"1px solid rgba(212,175,55,.15)",borderBottom:"none" }}></div>
+                  </div>
+
+                  {/* 3rd place (right) */}
+                  {leaders[2] && (
+                    <div style={{ flex:"0 0 auto",textAlign:"center",order:m?2:2,animation:"leaderFloat 3s ease-in-out infinite",animationDelay:"1s" }}>
+                      <div style={{ position:"relative",width:m?80:120,height:m?80:120,margin:"0 auto 10px" }}>
+                        <div style={{ position:"absolute",inset:-3,borderRadius:"50%",background:"linear-gradient(135deg,#cd7f32,#a0522d,#cd7f32)",padding:3 }}>
+                          <div style={{ width:"100%",height:"100%",borderRadius:"50%",overflow:"hidden",background:"#1a1a2e",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                            {leaders[2].avatar?.trim() ? (
+                              <img src={leaders[2].avatar} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }} />
+                            ) : (
+                              <span style={{ fontSize:m?24:38,fontWeight:900,color:"#cd7f32" }}>{(leaders[2].name||"U")[0]}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ position:"absolute",bottom:-6,left:"50%",transform:"translateX(-50%)",width:26,height:26,borderRadius:"50%",background:"linear-gradient(135deg,#cd7f32,#a0522d)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,color:"#1a1a2e",border:"2px solid #0c0c1d" }}>3</div>
+                      </div>
+                      <h4 style={{ fontSize:m?11:13,fontWeight:700,color:"#e0e0e0",margin:"10px 0 4px",maxWidth:110,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{leaders[2].name}</h4>
+                      <span style={{ fontSize:10,color:"#cd7f32",letterSpacing:1 }}>{leaders[2].icon || "🏆"} {leaders[2].rank}</span>
+                      {leaders[2].e_money > 0 && <div style={{ fontSize:m?10:11,fontWeight:700,color:"#cd7f32",marginTop:4 }}>{leaders[2].e_money?.toLocaleString()} EM</div>}
+                      {/* Podium block */}
+                      <div style={{ width:m?70:100,height:m?28:45,margin:"6px auto 0",borderRadius:"10px 10px 0 0",background:"linear-gradient(180deg,rgba(205,127,50,.1) 0%,rgba(205,127,50,.02) 100%)",border:"1px solid rgba(205,127,50,.1)",borderBottom:"none" }}></div>
+                    </div>
+                  )}
                 </div>
               )}
-              <h3 style={s.leaderName}>{l.name}</h3>
-              <div style={{...s.rank,...rankColors[rankClassMap[l.rank] || "senior"]}}>{l.rank}</div>
-            </div>
-          ))}
+
+              {/* Remaining leaders (4+) */}
+              {leaders.length > 3 && (
+                <div style={{ display:"flex",gap:m?10:16,overflowX:"auto",scrollbarWidth:"none",padding:"10px 4px 20px",scrollSnapType:"x mandatory",justifyContent:leaders.length <= 5 ? "center" : "flex-start" }}>
+                  {leaders.slice(3).map((l, idx) => (
+                    <div key={l.id || idx} style={{ flex:"0 0 auto",scrollSnapAlign:"start",width:m?130:170,padding:m?12:18,textAlign:"center",borderRadius:20,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",backdropFilter:"blur(8px)",transition:"0.3s",cursor:"default" }}
+                      onMouseEnter={e => { e.currentTarget.style.background="rgba(255,255,255,.06)"; e.currentTarget.style.transform="translateY(-4px)"; e.currentTarget.style.border="1px solid rgba(212,175,55,.15)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background="rgba(255,255,255,.03)"; e.currentTarget.style.transform="none"; e.currentTarget.style.border="1px solid rgba(255,255,255,.06)"; }}>
+                      <div style={{ position:"relative",width:m?52:68,height:m?52:68,margin:"0 auto 10px" }}>
+                        <div style={{ width:"100%",height:"100%",borderRadius:"50%",overflow:"hidden",border:"2px solid rgba(255,255,255,.1)",background:"#1a1a2e",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                          {l.avatar?.trim() ? (
+                            <img src={l.avatar} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }} />
+                          ) : (
+                            <span style={{ fontSize:m?20:28,fontWeight:800,color:"rgba(255,255,255,.5)" }}>{(l.name||"U")[0]}</span>
+                          )}
+                        </div>
+                        <div style={{ position:"absolute",top:-2,right:-2,width:22,height:22,borderRadius:"50%",background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.12)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:"rgba(255,255,255,.5)" }}>#{idx+4}</div>
+                      </div>
+                      <h4 style={{ fontSize:m?11:13,fontWeight:600,color:"#e0e0e0",margin:"0 0 4px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{l.name}</h4>
+                      <span style={{ display:"inline-block",padding:"3px 10px",borderRadius:999,fontSize:m?9:10,fontWeight:600,background:"rgba(255,255,255,.06)",color:"rgba(255,255,255,.5)" }}>{l.icon || "🏆"} {l.rank}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
+
+        <style>{`
+          @keyframes leaderFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+          @keyframes leaderGlow{0%,100%{box-shadow:0 0 20px rgba(212,175,55,.3)}50%{box-shadow:0 0 40px rgba(212,175,55,.6),0 0 80px rgba(212,175,55,.2)}}
+        `}</style>
       </section>
 
 
