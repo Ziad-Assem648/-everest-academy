@@ -65,8 +65,8 @@ async function test() {
 
   console.log("\n🧪 TEST 4: Progress endpoint");
   const progress = await api(`/ranks/progress/${refId}`, { headers: H });
-  console.log(`    currentRank: "${progress.currentRank}", team: ${progress.totalTeamSales}, next: "${progress.nextRank}", progress: ${progress.progress}%`);
-  assert(progress.totalTeamSales >= 2, `Qualified team: ${progress.totalTeamSales} (>= 2)`);
+  console.log(`    currentRank: "${progress.currentRank}", qualifiedTeam: ${progress.qualifiedTeamCount}, next: "${progress.nextRank}", progress: ${progress.progress}%`);
+  assert(progress.qualifiedTeamCount >= 2, `Qualified team: ${progress.qualifiedTeamCount} (>= 2)`);
   assert(progress.nextRank === "Executive", `Next rank: "Executive" (got: "${progress.nextRank}")`);
 
   console.log("\n🧪 TEST 5: Leaderboard");
@@ -114,7 +114,7 @@ async function test() {
   console.log(`    Scenario: If referrer (Star, sort_order=0) has a team member who is Executive (sort_order=1)`);
   console.log(`    That Executive member should NOT count toward referrer's qualified team`);
   const progressAfter = await api(`/ranks/progress/${refId}`, { headers: H });
-  console.log(`    Referrer: rank="${progressAfter.currentRank}", qualifiedTeam=${progressAfter.totalTeamSales}`);
+  console.log(`    Referrer: rank="${progressAfter.currentRank}", qualifiedTeam=${progressAfter.qualifiedTeamCount}`);
   console.log(`    (Higher-ranked members excluded from count)`);
 
   console.log("\n✅ All tests completed!");

@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
   const { all } = req.query;
   let sql = `
     SELECT r.*,
-      (SELECT COUNT(*) FROM users u WHERE u.rank = r.name AND u.role != 'admin' AND u.account_type = 'student') as user_count
+      (SELECT COUNT(*) FROM users u WHERE u.rank = r.name AND u.role != 'admin' AND u.account_type IN ('student','registration')) as user_count
     FROM ranks r
   `;
   if (all === "true") sql += " ORDER BY r.sort_order";
@@ -23,16 +23,15 @@ router.get("/", async (req, res) => {
 router.get("/leaderboard", async (req, res) => {
   try {
     const users = await query(`
-      SELECT id, full_name, avatar, rank, direct_count, e_money
+      SELECT id, full_name, avatar, rank, direct_count, e_money, account_type
       FROM users
-      WHERE role != 'admin' AND rank IS NOT NULL AND rank != '' AND account_type = 'student'
+      WHERE role != 'admin' AND rank IS NOT NULL AND rank != '' AND account_type IN ('student','registration')
       ORDER BY direct_count DESC
       LIMIT 30
     `);
     const allRanks = await query("SELECT name, sort_order FROM ranks WHERE is_active = 1 ORDER BY sort_order ASC");
     const rankMap = {};
     allRanks.forEach(r => { rankMap[r.name] = r.sort_order; });
-    // Enrich with qualified closure count (exclude higher-ranked members)
     const enriched = await Promise.all(users.map(async (u) => {
       const sortOrder = rankMap[u.rank] ?? 0;
       const teamCount = await getQualifiedTeamCount(u.id, sortOrder);
@@ -52,7 +51,6 @@ router.post("/", async (req, res) => {
     if (!name) return res.status(400).json({ error: "Name required" });
     const id = uuidv4();
     const maxSort = await queryOne("SELECT COALESCE(MAX(sort_order), -1) as m FROM ranks");
-    // Write to both new and old columns for backward compat
     await execute("INSERT INTO ranks (id, name, sales_required, min_direct, bonus, weekly_bonus, sort_order, is_active, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [id, name, sales_required || 0, sales_required || 0, bonus || 0, bonus || 0, (maxSort?.m ?? -1) + 1, is_active ?? 1, image || null]);
     const rank = await queryOne("SELECT * FROM ranks WHERE id = ?", [id]);
@@ -69,11 +67,11 @@ router.put("/:id", async (req, res) => {
     if (name !== undefined) { sets.push("name = ?"); params.push(name); }
     if (sales_required !== undefined) {
       sets.push("sales_required = ?"); params.push(sales_required);
-      sets.push("min_direct = ?"); params.push(sales_required); // backward compat
+      sets.push("min_direct = ?"); params.push(sales_required);
     }
     if (bonus !== undefined) {
       sets.push("bonus = ?"); params.push(bonus);
-      sets.push("weekly_bonus = ?"); params.push(bonus); // backward compat
+      sets.push("weekly_bonus = ?"); params.push(bonus);
     }
     if (image !== undefined) { sets.push("image = ?"); params.push(image); }
     if (sort_order !== undefined) { sets.push("sort_order = ?"); params.push(sort_order); }
@@ -96,26 +94,24 @@ router.delete("/:id", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Count qualified team members: students only, excluding those with rank HIGHER than user's current rank
-// If user has no rank (unranked), count all students (no exclusion)
+// Count qualified team members: Student + Registration accounts, status = active
+// Excludes: pending, rejected, suspended, inactive, and members with higher rank
 async function getQualifiedTeamCount(userId, currentRankSortOrder) {
-  const allStudents = await query(
-    "SELECT u.id, u.rank FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type = 'student'",
+  const allMembers = await query(
+    "SELECT u.id, u.rank, u.status FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type IN ('student','registration')",
     [userId, userId]
   );
+  // Filter to active only
+  const activeMembers = allMembers.filter(m => m.status === 'active');
   if (!currentRankSortOrder && currentRankSortOrder !== 0) {
-    // Unranked user — count all students
-    return allStudents.length;
+    return activeMembers.length;
   }
-  // Count only those with rank sort_order <= user's current rank sort_order
   const allRanks = await query("SELECT name, sort_order FROM ranks WHERE is_active = 1 ORDER BY sort_order ASC");
   const rankMap = {};
   allRanks.forEach(r => { rankMap[r.name] = r.sort_order; });
   let count = 0;
-  for (const member of allStudents) {
+  for (const member of activeMembers) {
     const memberSortOrder = member.rank ? (rankMap[member.rank] ?? -1) : -1;
-    // Unranked members (sort_order -1) always count
-    // Members with rank sort_order <= user's rank sort_order count
     if (memberSortOrder <= currentRankSortOrder) {
       count++;
     }
@@ -123,10 +119,45 @@ async function getQualifiedTeamCount(userId, currentRankSortOrder) {
   return count;
 }
 
-// Legacy wrapper for backward compatibility
+// Get full breakdown of qualified team for weekly history
+async function getQualifiedTeamBreakdown(userId, currentRankSortOrder) {
+  const allMembers = await query(
+    "SELECT u.id, u.rank, u.status, u.account_type FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type IN ('student','registration')",
+    [userId, userId]
+  );
+  const allRanks = await query("SELECT name, sort_order FROM ranks WHERE is_active = 1 ORDER BY sort_order ASC");
+  const rankMap = {};
+  allRanks.forEach(r => { rankMap[r.name] = r.sort_order; });
+
+  let qualifiedCount = 0;
+  let studentCount = 0;
+  let registrationCount = 0;
+  let higherRankExcluded = 0;
+  let inactiveExcluded = 0;
+
+  for (const member of allMembers) {
+    if (member.status !== 'active') { inactiveExcluded++; continue; }
+    const memberSortOrder = member.rank ? (rankMap[member.rank] ?? -1) : -1;
+    if (!currentRankSortOrder && currentRankSortOrder !== 0) {
+      qualifiedCount++;
+      if (member.account_type === 'student') studentCount++;
+      else registrationCount++;
+    } else if (memberSortOrder <= currentRankSortOrder) {
+      qualifiedCount++;
+      if (member.account_type === 'student') studentCount++;
+      else registrationCount++;
+    } else {
+      higherRankExcluded++;
+    }
+  }
+
+  return { qualifiedCount, studentCount, registrationCount, higherRankExcluded, inactiveExcluded, qualifiedNetworkCount: allMembers.filter(m => m.status === 'active').length };
+}
+
+// Legacy wrapper
 async function getTeamCount(userId) {
   const closure = await queryOne(
-    "SELECT COUNT(*) - 1 as cnt FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND u.account_type = 'student'",
+    "SELECT COUNT(*) - 1 as cnt FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND u.account_type IN ('student','registration')",
     [userId]
   );
   const direct = await queryOne("SELECT direct_count FROM users WHERE id = ?", [userId]);
@@ -143,10 +174,7 @@ async function advanceUserRank(userId) {
   if (!user.rank || user.rank === '') currentRankIdx = -1;
   else if (currentRankIdx === -1) currentRankIdx = 0;
 
-  // Get user's current rank sort_order for exclusion logic
   const currentRankSortOrder = currentRankIdx >= 0 ? allRanks[currentRankIdx].sort_order : null;
-
-  // Count qualified team (exclude higher-ranked members)
   let teamCount = await getQualifiedTeamCount(userId, currentRankSortOrder);
 
   let changed = false;
@@ -171,7 +199,6 @@ async function advanceUserRank(userId) {
       await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'success')",
         [uuidv4(), userId, "🎉 Rank Up!", `You reached ${next.name} rank! Bonus: ${bonusAmount || 0} EM`]);
 
-      // Recalculate team count with NEW rank (pool expands as higher-ranked members now qualify)
       teamCount = await getQualifiedTeamCount(userId, next.sort_order);
     } else {
       break;
@@ -200,7 +227,7 @@ async function advanceUserRank(userId) {
 
 router.post("/update", async (req, res) => {
   try {
-    const users = await query("SELECT id FROM users WHERE role != 'admin' AND account_type = 'student'");
+    const users = await query("SELECT id FROM users WHERE role != 'admin' AND account_type IN ('student','registration') AND status = 'active'");
     let updatedCount = 0;
     for (const u of users) {
       const result = await advanceUserRank(u.id);
@@ -214,7 +241,7 @@ router.post("/update", async (req, res) => {
 
 router.get("/progress/:userId", async (req, res) => {
   try {
-    const user = await queryOne("SELECT id, rank, rank_progress, e_money FROM users WHERE id = ?", [req.params.userId]);
+    const user = await queryOne("SELECT id, rank, rank_progress, e_money, account_type FROM users WHERE id = ?", [req.params.userId]);
     if (!user) return res.status(404).json({ error: "User not found" });
     const allRanks = await query("SELECT * FROM ranks WHERE is_active = 1 ORDER BY sort_order ASC");
     const idx = user.rank ? allRanks.findIndex(r => r.name === user.rank) : -1;
@@ -222,9 +249,8 @@ router.get("/progress/:userId", async (req, res) => {
     let salesRequired = 0;
     let progress = user.rank_progress || 0;
 
-    // Use qualified team count (exclude higher-ranked members)
     const currentSortOrder = idx >= 0 ? allRanks[idx].sort_order : null;
-    const teamCount = await getQualifiedTeamCount(req.params.userId, currentSortOrder);
+    const breakdown = await getQualifiedTeamBreakdown(req.params.userId, currentSortOrder);
 
     if (idx === -1 && allRanks.length > 0) {
       nextRank = allRanks[0];
@@ -234,16 +260,41 @@ router.get("/progress/:userId", async (req, res) => {
       salesRequired = sReq(nextRank);
     }
 
+    // Direct sales breakdown
+    const directs = await query(
+      "SELECT u.id, u.account_type, u.status FROM users u WHERE u.referred_by = ?",
+      [req.params.userId]
+    );
+    const totalDirectSales = directs.length;
+    const studentDirectSales = directs.filter(d => d.account_type === 'student' && d.status === 'active').length;
+    const registrationDirectSales = directs.filter(d => d.account_type === 'registration' && d.status === 'active').length;
+    const qualifiedDirectSales = studentDirectSales + registrationDirectSales;
+    const meetsMinDirects = qualifiedDirectSales >= 2;
+
     return res.json({
       currentRank: user.rank || null,
+      currentRankData: idx >= 0 ? allRanks[idx] : null,
       currentBonus: idx >= 0 ? bVal(allRanks[idx]) : 0,
       currentSalesRequired: idx >= 0 ? sReq(allRanks[idx]) : 0,
       nextRank: nextRank ? nextRank.name : null,
+      nextRankData: nextRank,
       nextBonus: nextRank ? bVal(nextRank) : 0,
       salesRequired: nextRank ? salesRequired : 0,
-      totalTeamSales: teamCount,
+      qualifiedTeamCount: breakdown.qualifiedCount,
+      studentMembers: breakdown.studentCount,
+      registrationMembers: breakdown.registrationCount,
+      higherRankExcluded: breakdown.higherRankExcluded,
+      inactiveExcluded: breakdown.inactiveExcluded,
+      qualifiedNetworkCount: breakdown.qualifiedNetworkCount,
+      totalDirectSales,
+      studentDirectSales,
+      registrationDirectSales,
+      qualifiedDirectSales,
+      meetsMinDirects,
+      requiredDirectSales: 2,
       progress: progress,
-      e_money: user.e_money || 0
+      e_money: user.e_money || 0,
+      account_type: user.account_type
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

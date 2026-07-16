@@ -236,7 +236,33 @@ function createSchema(driver, isTursoDb) {
       id TEXT PRIMARY KEY, user_id TEXT NOT NULL, session_token TEXT NOT NULL,
       device_type TEXT NOT NULL CHECK(device_type IN ('desktop','mobile')),
       device_info TEXT DEFAULT '',
+      last_heartbeat TEXT,
       created_at TEXT DEFAULT (datetime('now','localtime')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`,
+    `CREATE TABLE IF NOT EXISTS weekly_history (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      week_start TEXT NOT NULL,
+      week_end TEXT NOT NULL,
+      calculation_date TEXT DEFAULT (datetime('now','localtime')),
+      previous_rank TEXT,
+      current_rank TEXT,
+      total_direct_sales INTEGER DEFAULT 0,
+      student_direct_sales INTEGER DEFAULT 0,
+      registration_direct_sales INTEGER DEFAULT 0,
+      qualified_direct_sales INTEGER DEFAULT 0,
+      qualified_team_count INTEGER DEFAULT 0,
+      qualified_network_count INTEGER DEFAULT 0,
+      student_members INTEGER DEFAULT 0,
+      registration_members INTEGER DEFAULT 0,
+      higher_rank_excluded INTEGER DEFAULT 0,
+      inactive_excluded INTEGER DEFAULT 0,
+      weekly_commission REAL DEFAULT 0,
+      commission_status TEXT DEFAULT 'not_eligible',
+      promotion_status TEXT DEFAULT 'no_change',
+      failure_reason TEXT,
+      details TEXT,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )`
   ];
