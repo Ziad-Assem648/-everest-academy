@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 const router = express.Router();
 
 const ADMIN_SEEDS = [
+  { id: "admin-001", full_name: "Admin", email: "admin@everest.com", password: "admin123" },
   { id: "ADM-001", full_name: "Admin One", email: "admin1@everest.com", password: "admin123" },
   { id: "ADM-002", full_name: "Admin Two", email: "admin2@everest.com", password: "admin123" },
   { id: "ADM-003", full_name: "Admin Three", email: "admin3@everest.com", password: "admin123" },
