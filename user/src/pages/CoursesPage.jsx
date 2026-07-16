@@ -239,7 +239,7 @@ export default function CoursesPage() {
                       </div>
                       <div className="cp-card-actions">
                         <button className="cp-preview-btn" onClick={() => setPopupCourse(c)}>{t("معاينة", "Preview")}</button>
-                        <Link to={`/courses/${c.id}`} className="cp-buy-btn">{t("اشتري الآن", "Buy Now")}</Link>
+                        <Link to={`/courses/${c.id}`} className="cp-buy-btn">{user?.account_type === "student" ? t("مشاهدة", "Watch") : t("اشتري الآن", "Buy Now")}</Link>
                       </div>
                     </div>
                   </div>
@@ -284,7 +284,7 @@ export default function CoursesPage() {
                       </div>
                       <div className="cp-card-actions">
                         <button className="cp-preview-btn" onClick={() => setPopupCourse(c)}>{t("معاينة", "Preview")}</button>
-                        <Link to={`/courses/${c.id}`} className="cp-buy-btn">{t("اشتري الآن", "Buy Now")}</Link>
+                        <Link to={`/courses/${c.id}`} className="cp-buy-btn">{user?.account_type === "student" ? t("مشاهدة", "Watch") : t("اشتري الآن", "Buy Now")}</Link>
                       </div>
                     </div>
                   </div>

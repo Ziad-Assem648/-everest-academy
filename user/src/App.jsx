@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Link, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { LangProvider, useLang } from "./LangContext";
 import { ThemeProvider } from "./ThemeContext";
@@ -81,6 +81,12 @@ function GuardAdmin({ children }) {
   return children;
 }
 
+function MyCoursesRedirect() {
+  const { user } = useAuth();
+  if (user?.account_type === "student") return <Navigate to="/courses" />;
+  return <MyCoursesPage />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -94,7 +100,7 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/dashboard" element={<Guard><DashboardPage /></Guard>} />
         <Route path="/courses" element={<Guard><CoursesPage /></Guard>} />
-        <Route path="/my-courses" element={<Guard><MyCoursesPage /></Guard>} />
+        <Route path="/my-courses" element={<Guard><MyCoursesRedirect /></Guard>} />
         <Route path="/courses/:id" element={<CourseViewPage />} />
         <Route path="/profile" element={<Guard><ProfilePage /></Guard>} />
         <Route path="/rankings" element={<Guard><RankingsPage /></Guard>} />

@@ -30,6 +30,14 @@ export default function CourseViewPage() {
   const [myRating, setMyRating] = useState(0);
   const [myComment, setMyComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [lastViewedId, setLastViewedId] = useState(null);
+
+  const trackViewed = (lessonId) => {
+    if (!user?.id || !lessonId) return;
+    const key = `last_viewed_${user.id}_${id}`;
+    localStorage.setItem(key, lessonId);
+    setLastViewedId(lessonId);
+  };
 
   useEffect(() => {
     api(`/api/courses/${id}`).then((data) => {
@@ -39,7 +47,15 @@ export default function CourseViewPage() {
       if (lessonId && data?.topics) {
         for (const topic of data.topics) {
           const found = (topic.lessons || []).find(l => l.id === lessonId);
-          if (found) { setPlaying({ ...found, topicTitle: topic.title_ar || topic.title, topicId: topic.id }); break; }
+          if (found) { setPlaying({ ...found, topicTitle: topic.title_ar || topic.title, topicId: topic.id }); trackViewed(lessonId); break; }
+        }
+      } else if (user?.id && data?.topics) {
+        const saved = localStorage.getItem(`last_viewed_${user.id}_${id}`);
+        if (saved) {
+          for (const topic of data.topics) {
+            const found = (topic.lessons || []).find(l => l.id === saved);
+            if (found) { setPlaying({ ...found, topicTitle: topic.title_ar || topic.title, topicId: topic.id }); setLastViewedId(saved); break; }
+          }
         }
       }
     }).catch(() => setErr(t("الكورس غير موجود", "Course not found")));
@@ -182,12 +198,13 @@ export default function CourseViewPage() {
     }
 
     setPlaying(nextLesson);
+    trackViewed(nextLesson.id);
   };
 
   const goToPrev = () => {
     const allLessons = (course.topics || []).flatMap((t) => (t.lessons || []).map((l) => ({ ...l, topicTitle: t.title_ar || t.title })));
     const currentIdx = allLessons.findIndex((l) => l.id === current?.id);
-    if (currentIdx > 0) setPlaying(allLessons[currentIdx - 1]);
+    if (currentIdx > 0) { setPlaying(allLessons[currentIdx - 1]); trackViewed(allLessons[currentIdx - 1].id); }
   };
 
   const onQuizPassed = () => {
@@ -494,17 +511,19 @@ export default function CourseViewPage() {
                   const lessonQuiz = lesson.quiz;
                   const lessonQuizPassed = lessonQuiz ? isQuizPassed(lessonQuiz.id) : true;
                   const isPlaying = current?.id === lesson.id;
+                  const isLastViewed = lastViewedId === lesson.id && !isPlaying;
                   return (
-                    <button key={lesson.id} onClick={() => !locked && setPlaying(lesson)} disabled={locked}
+                    <button key={lesson.id} onClick={() => { if (!locked) { setPlaying(lesson); trackViewed(lesson.id); } }} disabled={locked}
                       style={{width:"100%",textAlign:lang==="ar"?"right":"left",padding:m?"10px 12px":"10px 14px",borderRadius:10,border:"none",fontSize:m?12:13,cursor:locked?"not-allowed":"pointer",display:"flex",alignItems:"center",gap:8,marginBottom:3,
                         background:isPlaying?"linear-gradient(135deg,#b38728,#e2c275)":c.bgInput,
                         color:isPlaying?"#05030a":locked?"#555":c.text,
                         fontWeight:isPlaying?700:400,transition:"all 0.2s",minHeight:42
                       }}>
-                      <span style={{width:m?22:24,height:m?22:24,borderRadius:6,background:isPlaying?"rgba(0,0,0,.1)":theme==="dark"?"rgba(255,255,255,.06)":"rgba(0,0,0,.04)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:m?10:11,flexShrink:0}}>
-                        {locked ? "🔒" : isPlaying ? "▶" : "🎬"}
+                      <span style={{width:m?22:24,height:m?22:24,borderRadius:6,background:isPlaying?"rgba(0,0,0,.1)":isLastViewed?"rgba(212,175,55,.15)":theme==="dark"?"rgba(255,255,255,.06)":"rgba(0,0,0,.04)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:m?10:11,flexShrink:0}}>
+                        {locked ? "🔒" : isPlaying ? "▶" : isLastViewed ? "⏸" : "🎬"}
                       </span>
                       <span style={{flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:lang==="ar"?"right":"left"}}>{lesson.title_ar || lesson.title}</span>
+                      {isLastViewed && !locked && <span style={{fontSize:9,background:"rgba(212,175,55,.15)",color:"#d4af37",padding:"2px 6px",borderRadius:6,whiteSpace:"nowrap"}}>{t("آخر مشاهدة", "Last")}</span>}
                       {locked && <span style={{fontSize:9,background:"rgba(255,91,91,.1)",color:"#ff5b5b",padding:"2px 6px",borderRadius:6,whiteSpace:"nowrap"}}>{t("مقفل", "Locked")}</span>}
                       {lesson.is_free && <span style={{fontSize:9,background:"rgba(254,212,0,.15)",color:"#fed400",padding:"2px 6px",borderRadius:6,whiteSpace:"nowrap"}}>{t("مجاني", "FREE")}</span>}
                       {lessonQuiz && <span style={{fontSize:9,background:lessonQuizPassed ? "rgba(34,197,94,.15)" : "rgba(255,91,91,.15)",color:lessonQuizPassed ? "#22c55e" : "#ff5b5b",padding:"2px 6px",borderRadius:6}}>{lessonQuizPassed ? "✅" : "📝"}</span>}
