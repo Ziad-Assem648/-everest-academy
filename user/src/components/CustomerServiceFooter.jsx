@@ -10,7 +10,7 @@ export default function CustomerServiceFooter() {
   const [email, setEmail] = useState("");
 
   useEffect(() => {
-    api("/api/settings").then(d => {
+    api("/api/customer-service").then(d => {
       setWhatsapp(d.customer_service_whatsapp || "");
       setEmail(d.customer_service_email || "");
     }).catch(() => {});
