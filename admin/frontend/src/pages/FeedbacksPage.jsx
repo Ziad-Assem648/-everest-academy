@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
-import { api, getAdminSession } from "../api.js";
+import { api, getAdminSession, BACKEND_URL } from "../api.js";
 
 export default function FeedbacksPage() {
   const { lang } = useLang();
@@ -58,10 +58,12 @@ export default function FeedbacksPage() {
       const headers = {};
       if (s.userId) headers["x-user-id"] = s.userId;
       if (s.token) headers["x-session-token"] = s.token;
-      await fetch("/api/proofs", { method: "POST", headers, body: fd });
+      const r = await fetch(`${BACKEND_URL}/api/proofs`, { method: "POST", headers, body: fd });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Upload failed");
       setFile(null); setCaption("");
       document.getElementById("proof-file-input").value = "";
-      loadProofs();
+      await loadProofs();
     } catch (e) { alert(e.message); }
     setUploading(false);
   };
