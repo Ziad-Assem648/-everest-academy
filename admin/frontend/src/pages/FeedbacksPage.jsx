@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
-import { api } from "../api.js";
+import { api, getAdminSession } from "../api.js";
 
 export default function FeedbacksPage() {
   const { lang } = useLang();
@@ -54,7 +54,11 @@ export default function FeedbacksPage() {
       const fd = new FormData();
       fd.append("image", file);
       fd.append("caption", caption);
-      await fetch("/api/proofs", { method: "POST", body: fd });
+      const s = getAdminSession();
+      const headers = {};
+      if (s.userId) headers["x-user-id"] = s.userId;
+      if (s.token) headers["x-session-token"] = s.token;
+      await fetch("/api/proofs", { method: "POST", headers, body: fd });
       setFile(null); setCaption("");
       document.getElementById("proof-file-input").value = "";
       loadProofs();
