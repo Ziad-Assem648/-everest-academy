@@ -141,7 +141,6 @@ export default function UsersPage() {
               <th>{t("الرتبة", "Rank")}</th>
               <th>{t("الرصيد", "Balance")}</th>
               <th>{t("الحالة", "Status")}</th>
-              <th>{t("التفعيل", "Activation")}</th>
               <th></th>
             </tr>
           </thead>
@@ -169,19 +168,13 @@ export default function UsersPage() {
                 <td>
                   {u.blocked ? (
                     <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">{t("محظور", "Blocked")}</span>
+                  ) : u.status === "rejected" ? (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">{t("مرفوض", "Rejected")}</span>
+                  ) : u.status === "pending" ? (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">{t("قيد المراجعة", "Pending")}</span>
                   ) : (
                     <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{t("نشط", "Active")}</span>
                   )}
-                </td>
-                <td>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    u.status === "active" ? "bg-green-100 text-green-700" :
-                    u.status === "pending" ? "bg-yellow-100 text-yellow-700" :
-                    u.status === "rejected" ? "bg-red-100 text-red-700" :
-                    "bg-gray-100 text-gray-600"
-                  }`}>
-                    {u.status === "active" ? t("مفعل", "Active") : u.status === "pending" ? t("قيد المراجعة", "Pending") : u.status === "rejected" ? t("مرفوض", "Rejected") : "—"}
-                  </span>
                 </td>
                 <td>
                   <div className="flex items-center gap-2 flex-wrap">
