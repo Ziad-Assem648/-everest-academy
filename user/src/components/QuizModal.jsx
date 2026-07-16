@@ -2,12 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
 import { useAuth } from "../AuthContext";
-
-const api = async (path, opts = {}) => {
-  const res = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-};
+import { api } from "../App";
 
 export default function QuizModal({ quiz, onClose, onPassed }) {
   const { t, lang } = useLang();
