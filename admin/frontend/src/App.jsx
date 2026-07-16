@@ -188,16 +188,16 @@ function DashboardPage({ stats }) {
       "courses": () => api("/api/courses").then(setDetailData),
       "active-enrollments": () => api("/api/courses/enrollments/list").then(d => setDetailData(d.filter(e => e.status === "approved"))),
       "enrollment-rate": () => api("/api/courses/enrollments/list").then(setDetailData),
-      "quiz-pass-rate": () => api("/api/quiz-attempts").then(setDetailData),
+      "quiz-pass-rate": () => api("/api/courses/attempts").then(setDetailData),
       "published-courses": () => api("/api/courses").then(d => setDetailData(d.filter(c => c.status === "published"))),
-      "pending-activation": () => api("/api/users/filter/pending").then(setDetailData),
+      "pending-activation": () => api("/api/users").then(d => setDetailData(d.filter(u => u.status === "pending"))),
       "pending-enrollments": () => api("/api/courses/enrollments/list").then(d => setDetailData(d.filter(e => e.status === "pending"))),
-      "pending-topup": () => api("/api/wallets/top-up-requests").then(d => setDetailData(d.filter(r => r.status === "pending"))),
-      "upgrade-requests": () => api("/api/mlm/upgrade-requests").then(d => Array.isArray(d) ? setDetailData(d.filter(r => r.status === "pending")) : setDetailData([])),
+      "pending-topup": () => api("/api/wallets/topups?status=pending").then(setDetailData),
+      "upgrade-requests": () => api("/api/users/upgrade-requests/list").then(d => Array.isArray(d) ? setDetailData(d.filter(r => r.status === "pending")) : setDetailData([])),
       "blocked": () => api("/api/users").then(d => setDetailData(d.filter(u => u.blocked))),
       "registration": () => api("/api/users/filter/registration").then(setDetailData),
       "commissions": () => api("/api/mlm/commissions").then(setDetailData),
-      "quizzes-passed": () => api("/api/quiz-attempts").then(d => setDetailData(d.filter(q => q.result === "pass"))),
+      "quizzes-passed": () => api("/api/courses/attempts").then(d => setDetailData(d.filter(q => q.result === "pass"))),
       "total-enrollments": () => api("/api/courses/enrollments/list").then(setDetailData),
       "feedbacks": () => api("/api/feedbacks").then(d => setDetailData(d.feedbacks || d)),
       "pending-enrollments2": () => api("/api/courses/enrollments/list").then(d => setDetailData(d.filter(e => e.status === "pending"))),
@@ -422,23 +422,22 @@ function DashboardPage({ stats }) {
                     }
                     if (detail === "feedbacks") {
                       return <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="py-2 px-3 font-medium">{item.user_name || item.user_id}</td>
-                        <td className="py-2 px-3">{"⭐".repeat(item.rating || 0)}</td>
+                        <td className="py-2 px-3 font-medium">{item.full_name || item.user_name || item.user_id}</td>
                         <td className="py-2 px-3 text-gray-500 text-xs max-w-xs truncate">{item.comment || "–"}</td>
                       </tr>;
                     }
                     if (detail === "quiz-pass-rate" || detail === "quizzes-passed") {
                       return <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="py-2 px-3 font-medium">{item.user_name || item.user_id}</td>
+                        <td className="py-2 px-3 font-medium">{item.student_name || item.user_name || item.user_id}</td>
                         <td className="py-2 px-3 text-gray-500 text-xs">{item.quiz_title || item.quiz_id}</td>
                         <td className="py-2 px-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.result === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{item.result === 'pass' ? t("ناجح", "Pass") : t("راسب", "Fail")}</span></td>
-                        <td className="py-2 px-3">{item.correct}/{item.total}</td>
+                        <td className="py-2 px-3">{item.correct_answers ?? item.correct}/{item.total_marks ?? item.total}</td>
                       </tr>;
                     }
                     if (detail.includes("enrollment") || detail === "total-enrollments" || detail === "pending-enrollments2") {
                       return <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="py-2 px-3 font-medium">{item.user_name || item.user_id}</td>
-                        <td className="py-2 px-3 text-gray-500 text-xs">{item.course_title || item.course_id}</td>
+                        <td className="py-2 px-3 font-medium">{item.student_name || item.user_name || item.user_id}</td>
+                        <td className="py-2 px-3 text-gray-500 text-xs">{item.course_name || item.course_title || item.course_id}</td>
                         <td className="py-2 px-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.status === 'approved' ? 'bg-green-100 text-green-700' : item.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>{item.status}</span></td>
                         <td className="py-2 px-3 text-gray-400 text-xs">{item.enrolled_at ? item.enrolled_at.slice(0,10) : "–"}</td>
                       </tr>;
