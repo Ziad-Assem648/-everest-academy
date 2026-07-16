@@ -9,30 +9,40 @@ const bVal = (r) => r.bonus !== undefined ? r.bonus : r.weekly_bonus;
 
 // ─── Team tree using Closure Table ───
 router.get("/tree", async (req, res) => {
-  const { userId } = req.query;
-  if (!userId) return res.status(400).json({ error: "userId query param required" });
-  const descendants = await query(`
-    SELECT u.id, u.full_name, u.email, u.role, u.rank, u.e_money, u.account_type,
-           u.direct_count, u.qualified_direct_count, u.created_at,
-           u.referred_by, c.depth
-    FROM user_closure c
-    JOIN users u ON u.id = c.descendant
-    WHERE c.ancestor = ? AND c.descendant != ?
-    ORDER BY c.depth, u.created_at DESC
-  `, [userId, userId]);
-  const buildTree = (parentId) => {
-    const children = descendants.filter(d => d.referred_by === parentId);
-    return children.map(child => ({ ...child, children: buildTree(child.id) }));
-  };
-  res.json(buildTree(userId));
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ error: "userId query param required" });
+    const descendants = await query(`
+      SELECT u.id, u.full_name, u.email, u.role, u.rank, u.e_money, u.account_type,
+             u.direct_count, u.qualified_direct_count, u.created_at,
+             u.referred_by, c.depth
+      FROM user_closure c
+      JOIN users u ON u.id = c.descendant
+      WHERE c.ancestor = ? AND c.descendant != ?
+      ORDER BY c.depth, u.created_at DESC
+    `, [userId, userId]);
+    const buildTree = (parentId) => {
+      const children = descendants.filter(d => d.referred_by === parentId);
+      return children.map(child => ({ ...child, children: buildTree(child.id) }));
+    };
+    res.json(buildTree(userId));
+  } catch (err) {
+    console.error("mlm/tree error:", err.message);
+    res.json([]);
+  }
 });
 
 router.get("/directs/:userId", async (req, res) => {
-  const users = await query(
-    "SELECT id, full_name, email, role, rank, e_money, direct_count, qualified_direct_count, account_type, status, created_at FROM users WHERE referred_by = ? ORDER BY created_at DESC",
-    [req.params.userId]
-  );
-  res.json(users);
+  try {
+    const users = await query(
+      "SELECT id, full_name, email, role, rank, e_money, direct_count, qualified_direct_count, account_type, status, created_at FROM users WHERE referred_by = ? ORDER BY created_at DESC",
+      [req.params.userId]
+    );
+    res.json(users);
+  } catch (err) {
+    console.error("mlm/directs error:", err.message);
+    res.json([]);
+  }
 });
 
 router.get("/upline/:userId", async (req, res) => {
@@ -488,30 +498,41 @@ router.get("/commissions", async (req, res) => {
 });
 
 router.get("/leaderboard", async (req, res) => {
-  const users = await query(`
-    SELECT u.id, u.full_name, u.email, u.rank, u.direct_count, u.qualified_direct_count,
-           u.total_team_sales, u.e_money, u.account_type,
-           COALESCE(r.weekly_bonus, 0) as weekly_bonus, COALESCE(r.sort_order, 0) as rank_order
-    FROM users u
-    LEFT JOIN ranks r ON u.rank = r.name
-    WHERE u.role != 'admin' AND u.account_type IN ('student','registration')
-    ORDER BY r.sort_order DESC, u.total_team_sales DESC
-    LIMIT 10
-  `);
-  res.json(users);
+  try {
+    const users = await query(`
+      SELECT u.id, u.full_name, u.email, u.rank, u.direct_count, u.qualified_direct_count,
+             u.total_team_sales, u.e_money, u.account_type, u.avatar,
+             COALESCE(r.weekly_bonus, 0) as weekly_bonus, COALESCE(r.sort_order, 0) as rank_order
+      FROM users u
+      LEFT JOIN ranks r ON u.rank = r.name
+      WHERE u.role != 'admin' AND u.account_type IN ('student','registration')
+      ORDER BY r.sort_order DESC, u.total_team_sales DESC
+      LIMIT 10
+    `);
+    users.forEach((u, i) => u.position = i + 1);
+    res.json(users);
+  } catch (err) {
+    console.error("mlm/leaderboard error:", err.message);
+    res.json([]);
+  }
 });
 
 router.get("/leaderboard/all", async (req, res) => {
-  const users = await query(`
-    SELECT u.id, u.full_name, u.email, u.rank, u.direct_count, u.qualified_direct_count,
-           u.total_team_sales, u.e_money, u.avatar, u.account_type,
-           COALESCE(r.weekly_bonus, 0) as weekly_bonus, COALESCE(r.sort_order, 0) as rank_order
-    FROM users u
-    LEFT JOIN ranks r ON u.rank = r.name
-    WHERE u.role != 'admin' AND u.account_type IN ('student','registration')
-    ORDER BY r.sort_order DESC, u.total_team_sales DESC
-  `);
-  res.json(users);
+  try {
+    const users = await query(`
+      SELECT u.id, u.full_name, u.email, u.rank, u.direct_count, u.qualified_direct_count,
+             u.total_team_sales, u.e_money, u.avatar, u.account_type,
+             COALESCE(r.weekly_bonus, 0) as weekly_bonus, COALESCE(r.sort_order, 0) as rank_order
+      FROM users u
+      LEFT JOIN ranks r ON u.rank = r.name
+      WHERE u.role != 'admin' AND u.account_type IN ('student','registration')
+      ORDER BY r.sort_order DESC, u.total_team_sales DESC
+    `);
+    res.json(users);
+  } catch (err) {
+    console.error("mlm/leaderboard/all error:", err.message);
+    res.json([]);
+  }
 });
 
 router.post("/backfill-closure", async (req, res) => {
