@@ -176,7 +176,7 @@ export default function HomePage() {
 
   useEffect(() => {
     api("/api/courses?status=published").then(setCourses).catch(() => {});
-    api("/api/leaders?top=1").then(setLeaders).catch(() => {});
+    api("/api/leaders").then(setLeaders).catch(() => {});
     api("/api/ranks").then((d) => Array.isArray(d) ? setDbRanks(d) : null).catch(() => {});
   }, []);
 

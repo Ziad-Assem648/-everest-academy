@@ -11,7 +11,7 @@ export default function LeadersPage() {
 
   useEffect(() => { fetchLeaders(); }, []);
 
-  const fetchLeaders = () => api("/api/leaders?top=1").then(setLeaders);
+  const fetchLeaders = () => api("/api/leaders").then(setLeaders);
 
   const addUser = async () => {
     if (!userId) return alert(t("اكتب ID المستخدم", "Enter user ID"));
@@ -25,7 +25,7 @@ export default function LeadersPage() {
 
   const remove = async (id) => {
     if (confirm(t("حذف هذا القائد من القائمة؟", "Remove this leader from the list?"))) {
-      await api(`/api/leaders/top/${id}`, { method: "DELETE" });
+      await api(`/api/leaders/${id}`, { method: "DELETE" });
       fetchLeaders();
     }
   };
@@ -66,7 +66,6 @@ export default function LeadersPage() {
                   <div>
                     <p className="font-semibold text-gray-800">{l.name}</p>
                     <p className="text-sm text-gray-500">{l.rank}</p>
-                    <p className="text-xs text-gray-400">{l.direct_count} directs · E-Money {l.e_money?.toLocaleString()}</p>
                   </div>
                 </div>
                 <button onClick={() => remove(l.id)} className="px-4 py-1.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition">🗑️</button>
