@@ -32,8 +32,21 @@ const uploadLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50, message: { 
 // Admin frontend at /admin
 const adminDist = join(__dirname, "../frontend/dist");
 if (fs.existsSync(adminDist)) {
-  app.use("/admin", express.static(adminDist));
-  app.get("/admin/*", (req, res) => { res.sendFile(join(adminDist, "index.html")); });
+  app.use("/admin", express.static(adminDist, { maxAge: 0, etag: false, lastModified: false }));
+  const serveAdmin = (req, res) => {
+    const indexPath = join(adminDist, "index.html");
+    let html = fs.readFileSync(indexPath, "utf8");
+    const buildVersion = Date.now().toString(36);
+    html = html.replace('src="./assets/', `src="./assets/?v=${buildVersion}&f=`);
+    html = html.replace('href="./assets/', `href="./assets/?v=${buildVersion}&f=`);
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+    res.set("Content-Type", "text/html; charset=utf-8");
+    res.send(html);
+  };
+  app.get("/admin", serveAdmin);
+  app.get("/admin/*", serveAdmin);
   console.log("✅ Serving admin frontend from", adminDist);
 }
 // User frontend at root
