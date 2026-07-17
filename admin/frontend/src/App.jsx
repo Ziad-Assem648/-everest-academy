@@ -64,7 +64,7 @@ function AppInner() {
     { id: "topups", label: lang === "ar" ? "طلبات الشحن" : "Top-ups", icon: "💰" },
     { id: "course-builder", label: lang === "ar" ? "بناء الكورس" : "Course Builder", icon: "📝" },
     { id: "courses", label: lang === "ar" ? "قائمة الكورسات" : "Courses", icon: "📚" },
-    { id: "free-courses", label: lang === "ar" ? "كورسات مجانية" : "Free Courses Page", icon: "🆓" },
+    { id: "free-courses", label: lang === "ar" ? " ظهور الكورسات" : "Course Visibility", icon: "👁️" },
     { id: "quiz-attempts", label: lang === "ar" ? "نتائج الاختبارات" : "Quiz Results", icon: "📋" },
     { id: "ranks-mgmt", label: lang === "ar" ? "إدارة الرتب" : "Ranks", icon: "🏅" },
     { id: "leaders", label: lang === "ar" ? "القادة" : "Leaders", icon: "🏆" },

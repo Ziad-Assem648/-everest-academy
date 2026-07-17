@@ -85,7 +85,7 @@ export default function FreeCoursesSettingsPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold flex items-center gap-2">
-          🎛️ {t("إدارة ظهور الكورسات", "Course Visibility")}
+          👁️ {t("إدارة ظهور الكورسات", "Course Visibility")}
         </h2>
         <p className="text-sm text-gray-500 mt-1">
           {t(
@@ -117,7 +117,7 @@ export default function FreeCoursesSettingsPage() {
           <div className="col-span-5">{t("الكورس", "Course")}</div>
           <div className="col-span-3 text-center">🆓 {t("صفحة المجانيات", "Free Page")}</div>
           <div className="col-span-3 text-center">🏠 {t("الهوم بيج", "Homepage")}</div>
-          <div className="col-span-1"></div>
+          <div className="col-span-1 text-center">💰 {t("السعر", "Price")}</div>
         </div>
 
         {filtered.map((course) => (
