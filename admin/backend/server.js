@@ -32,7 +32,7 @@ const uploadLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50, message: { 
 // Admin frontend at /admin
 const adminDist = join(__dirname, "../frontend/dist");
 if (fs.existsSync(adminDist)) {
-  app.use("/admin", express.static(adminDist, { maxAge: 0, etag: false, lastModified: false }));
+  app.use("/admin", express.static(adminDist, { maxAge: 0, etag: false, lastModified: false, index: false }));
   const serveAdmin = (req, res) => {
     const indexPath = join(adminDist, "index.html");
     let html = fs.readFileSync(indexPath, "utf8");
