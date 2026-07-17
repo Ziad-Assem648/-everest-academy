@@ -4,6 +4,7 @@ import { useAuth } from "../AuthContext";
 import { useLang } from "../LangContext";
 import LanguageToggle from "../components/LanguageToggle";
 import { api } from "../App";
+import { formatWhatsAppLink } from "../whatsapp";
 import AppNavbar from "../components/AppNavbar";
 import { useTheme } from "../ThemeContext";
 
@@ -144,7 +145,7 @@ export default function ProfilePage() {
               )}
             </div>
             {isExpired && csWhatsapp && (
-              <a href={`https://wa.me/${csWhatsapp.replace(/[^0-9]/g,"")}`} target="_blank" rel="noopener noreferrer"
+              <a href={formatWhatsAppLink(csWhatsapp)} target="_blank" rel="noopener noreferrer"
                 style={{display:"inline-flex",alignItems:"center",gap:8,padding:"10px 22px",borderRadius:14,background:"linear-gradient(135deg,#25d366,#128c7e)",color:"#fff",fontWeight:700,fontSize:14,textDecoration:"none",transition:".3s",boxShadow:"0 4px 15px rgba(37,211,102,.3)"}}
                 onMouseEnter={e => e.currentTarget.style.transform="translateY(-2px)"}
                 onMouseLeave={e => e.currentTarget.style.transform="none"}>
@@ -291,7 +292,7 @@ export default function ProfilePage() {
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:10,marginTop:20}}>
                 {csWhatsapp && (
-                  <a href={`https://wa.me/${csWhatsapp.replace(/[^0-9+]/g,"")}`} target="_blank" rel="noopener noreferrer"
+                  <a href={formatWhatsAppLink(csWhatsapp)} target="_blank" rel="noopener noreferrer"
                     style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",borderRadius:14,background:"linear-gradient(135deg,#25d366,#128c7e)",color:"#fff",textDecoration:"none",fontWeight:700,fontSize:14,transition:".3s"}}
                     onMouseEnter={e => e.currentTarget.style.transform="translateY(-2px)"}
                     onMouseLeave={e => e.currentTarget.style.transform="none"}>

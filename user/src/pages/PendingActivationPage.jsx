@@ -4,6 +4,7 @@ import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
 import PublicNavbar from "../components/PublicNavbar";
 import { api } from "../App";
+import { formatWhatsAppLink } from "../whatsapp";
 
 export default function PendingActivationPage() {
   const { t, lang } = useLang();
@@ -84,7 +85,7 @@ export default function PendingActivationPage() {
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {csWhatsapp && (
-                <a href={`https://wa.me/${csWhatsapp.replace(/[^0-9+]/g, "")}`} target="_blank" rel="noopener noreferrer"
+                <a href={formatWhatsAppLink(csWhatsapp)} target="_blank" rel="noopener noreferrer"
                   style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", borderRadius: 14, background: "linear-gradient(135deg, #25d366, #128c7e)", textDecoration: "none", color: "#fff", fontWeight: 600, fontSize: 15 }}>
                   <span style={{ fontSize: 22 }}>📱</span>
                   <div style={{ flex: 1 }}>

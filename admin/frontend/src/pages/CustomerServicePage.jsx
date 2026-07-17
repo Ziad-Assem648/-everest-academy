@@ -145,7 +145,7 @@ export default function CustomerServicePage() {
           <p className="text-sm font-bold text-gray-700">{t("تواصل مع خدمة العملاء", "Contact Customer Service")}</p>
           {whatsapp && (
             <a
-              href={`https://wa.me/${whatsapp.replace(/[^0-9+]/g, "")}`}
+              href={`https://wa.me/${(() => { let d = whatsapp.replace(/[^0-9]/g, ""); if (d.startsWith("0")) d = "20" + d; return d; })()}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2.5 bg-green-50 border border-green-200 rounded-lg text-sm font-medium text-green-700 hover:bg-green-100 transition"

@@ -4,6 +4,7 @@ import { useAuth } from "../AuthContext";
 import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
 import { api } from "../App";
+import { formatWhatsAppLink } from "../whatsapp";
 import AppNavbar from "../components/AppNavbar";
 
 export default function DashboardPage() {
@@ -50,7 +51,7 @@ export default function DashboardPage() {
             )}
           </div>
           {isExpired && csWhatsapp ? (
-            <a href={`https://wa.me/${csWhatsapp.replace(/[^0-9]/g,"")}`} target="_blank" rel="noopener noreferrer"
+            <a href={formatWhatsAppLink(csWhatsapp)} target="_blank" rel="noopener noreferrer"
               style={{display:"inline-flex",alignItems:"center",gap:8,padding:"10px 22px",borderRadius:14,background:"linear-gradient(135deg,#25d366,#128c7e)",color:"#fff",fontWeight:700,fontSize:14,textDecoration:"none"}}>
               💬 {t("تواصل مع خدمة العملاء","Contact Support")} <span style={{opacity:.85,fontSize:12}}>({csWhatsapp})</span>
             </a>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
 import { api } from "../App";
+import { formatWhatsAppLink } from "../whatsapp";
 
 export default function CustomerServiceFooter() {
   const { t } = useLang();
@@ -27,7 +28,7 @@ export default function CustomerServiceFooter() {
       <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:14,flexWrap:"wrap"}}>
       {whatsapp && (
         <a
-          href={`https://wa.me/${whatsapp.replace(/[^0-9+]/g, "")}`}
+          href={formatWhatsAppLink(whatsapp)}
           target="_blank"
           rel="noopener noreferrer"
           style={{
