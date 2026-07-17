@@ -12,11 +12,17 @@ export function getAdminHeaders() {
 export async function api(path, opts = {}) {
   const headers = { ...getAdminHeaders(), ...(opts.headers || {}) };
   const r = await fetch(path, { headers, ...opts });
-  const data = await r.json();
-  if (data.session_expired) {
+  const text = await r.text();
+  let data;
+  try { data = JSON.parse(text); } catch { data = null; }
+  if (data && data.session_expired) {
     localStorage.removeItem("admin_session");
     window.location.reload();
     throw new Error("Session expired");
+  }
+  if (!r.ok) {
+    const msg = (data && data.error) ? data.error : `Request failed (${r.status})`;
+    throw new Error(msg);
   }
   return data;
 }
