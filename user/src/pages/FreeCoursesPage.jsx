@@ -348,7 +348,7 @@ export default function FreeCoursesPage() {
                 </div>
               </div>
               <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-                <Link to={`/free-courses/${popupLesson.course_id}?lesson=${popupLesson.id}`} className="fcp-modal-start" onClick={() => setPopupLesson(null)}>
+                <Link to={`/courses/${popupLesson.course_id}?lesson=${popupLesson.id}`} className="fcp-modal-start" onClick={() => setPopupLesson(null)}>
                   {t("شاهد الدرس الآن", "Watch Lesson Now")}
                 </Link>
                 
