@@ -57,6 +57,8 @@ export default function RankingsPage() {
   const [weeklyHistory, setWeeklyHistory] = useState([]);
   const [tab, setTab] = useState("ranks");
   const [historyDetail, setHistoryDetail] = useState(null);
+  const [showDirectMembers, setShowDirectMembers] = useState(false);
+  const [showNetworkMembers, setShowNetworkMembers] = useState(false);
 
   const gold = "#d4af37";
 
@@ -267,7 +269,10 @@ export default function RankingsPage() {
           <div className="rk-section" style={{ display: "grid", gap: 20 }}>
             {/* Direct Sales */}
             <div style={cardStyle(c)}>
-              <h3 style={{ margin: "0 0 16px", fontSize: 18, color: c.text }}>📊 {t("المبيعات المباشرة", "Direct Sales")}</h3>
+              <div onClick={() => setShowDirectMembers(!showDirectMembers)} style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h3 style={{ margin: 0, fontSize: 18, color: c.text }}>📊 {t("المبيعات المباشرة", "Direct Sales")}</h3>
+                <span style={{ fontSize: 20, transition: ".3s", transform: showDirectMembers ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
+              </div>
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }} className="rk-stat-grid">
                 <div style={statCard(c)}>
                   <div style={miniLabel}>{t("إجمالي المبيعات المباشرة", "Total Direct Sales")}</div>
@@ -290,6 +295,59 @@ export default function RankingsPage() {
                   <div style={miniSub}>{meetsMinDirects ? `✅ ${t("مؤهل للأسبوعية", "Eligible for weekly")}` : `❌ ${t("أقل من 2", "Minimum 2 required")}`}</div>
                 </div>
               </div>
+
+              {/* Expandable Direct Members List */}
+              {showDirectMembers && (
+                <div style={{ marginTop: 18, borderTop: `1px solid ${c.borderLight}`, paddingTop: 16 }}>
+                  <h4 style={{ margin: "0 0 12px", fontSize: 15, color: c.text }}>
+                    {t("👥 الأعضاء المباشرين", "👥 Direct Members")} ({progress?.directs?.length ?? 0})
+                  </h4>
+                  {(!progress?.directs || progress.directs.length === 0) ? (
+                    <p style={{ color: c.textMuted, textAlign: "center", padding: 20, fontSize: 13 }}>
+                      {t("لا يوجد أعضاء مباشرين بعد", "No direct members yet")}
+                    </p>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {progress.directs.map((d) => (
+                        <div key={d.id} style={{
+                          display: "flex", alignItems: "center", justifyContent: "space-between",
+                          background: d.status === 'active' ? c.bgSoft : "rgba(239,68,68,.06)",
+                          border: `1px solid ${d.status === 'active' ? c.borderLight : "rgba(239,68,68,.15)"}`,
+                          borderRadius: 14, padding: "12px 16px"
+                        }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <div style={{ width: 44, height: 44, borderRadius: "50%", background: c.bgInput, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                              {d.avatar ? <img src={d.avatar} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="" /> : <span style={{ fontSize: 16, fontWeight: 800, color: gold }}>{(d.full_name || "U")[0]}</span>}
+                            </div>
+                            <div>
+                              <p style={{ fontWeight: 700, color: c.text, margin: 0, fontSize: 14 }}>
+                                {d.full_name}
+                                <span style={{
+                                  fontSize: 10, marginLeft: 6, padding: "1px 6px", borderRadius: 8, fontWeight: 600,
+                                  background: d.account_type === 'student' ? "rgba(34,197,94,.1)" : "rgba(245,158,11,.1)",
+                                  color: d.account_type === 'student' ? "#22c55e" : "#f59e0b"
+                                }}>
+                                  {d.account_type === 'student' ? 'Student' : 'REG'}
+                                </span>
+                              </p>
+                              <p style={{ fontSize: 11, color: c.textMuted, margin: "2px 0 0" }}>{d.email}</p>
+                            </div>
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <p style={{ fontSize: 13, fontWeight: 700, color: c.text, margin: 0 }}>{d.e_money ?? 0} EM</p>
+                            <p style={{ fontSize: 11, color: c.textMuted, margin: "2px 0 0" }}>
+                              {d.status === 'active' ? '✅' : '❌'} {d.status}
+                            </p>
+                            <p style={{ fontSize: 10, color: c.textMuted, margin: 0 }}>
+                              {d.rank || t("بدون رتبة", "No rank")} · {new Date(d.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Eligibility Summary */}
@@ -318,7 +376,10 @@ export default function RankingsPage() {
         {tab === "network" && (
           <div className="rk-section" style={{ display: "grid", gap: 20 }}>
             <div style={cardStyle(c)}>
-              <h3 style={{ margin: "0 0 16px", fontSize: 18, color: c.text }}>🌐 {t("الشبكة المؤهلة", "Qualified Network")}</h3>
+              <div onClick={() => setShowNetworkMembers(!showNetworkMembers)} style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h3 style={{ margin: 0, fontSize: 18, color: c.text }}>🌐 {t("الشبكة المؤهلة", "Qualified Network")}</h3>
+                <span style={{ fontSize: 20, transition: ".3s", transform: showNetworkMembers ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
+              </div>
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }} className="rk-stat-grid">
                 <div style={statCard(c)}>
                   <div style={miniLabel}>{t("أعضاء الفريق المؤهلين", "Qualified Team")}</div>
@@ -336,6 +397,66 @@ export default function RankingsPage() {
                   <div style={miniSub}>{t("حسبون للترتبة لا للعمولة", "Count for rank, not commission")}</div>
                 </div>
               </div>
+
+              {/* Expandable Network Members List */}
+              {showNetworkMembers && (
+                <div style={{ marginTop: 18, borderTop: `1px solid ${c.borderLight}`, paddingTop: 16 }}>
+                  <h4 style={{ margin: "0 0 12px", fontSize: 15, color: c.text }}>
+                    {t("👥 أعضاء الفريق المباشرين", "👥 Direct Team Members")} ({progress?.directs?.length ?? 0})
+                  </h4>
+                  {(!progress?.directs || progress.directs.length === 0) ? (
+                    <p style={{ color: c.textMuted, textAlign: "center", padding: 20, fontSize: 13 }}>
+                      {t("لا يوجد أعضاء مباشرين بعد", "No direct members yet")}
+                    </p>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {progress.directs.map((d) => {
+                        const isActive = d.status === 'active';
+                        const allRanks = progress.allRanks || [];
+                        const userRankIdx = allRanks.findIndex(r => r.name === currentRankName);
+                        const memberRankIdx = allRanks.findIndex(r => r.name === d.rank);
+                        const excludedHigher = isActive && memberRankIdx > userRankIdx && userRankIdx >= 0;
+                        return (
+                          <div key={d.id} style={{
+                            display: "flex", alignItems: "center", justifyContent: "space-between",
+                            background: !isActive ? "rgba(239,68,68,.06)" : excludedHigher ? "rgba(249,115,22,.06)" : c.bgSoft,
+                            border: `1px solid ${!isActive ? "rgba(239,68,68,.15)" : excludedHigher ? "rgba(249,115,22,.15)" : c.borderLight}`,
+                            borderRadius: 14, padding: "12px 16px"
+                          }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                              <div style={{ width: 44, height: 44, borderRadius: "50%", background: c.bgInput, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                                {d.avatar ? <img src={d.avatar} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="" /> : <span style={{ fontSize: 16, fontWeight: 800, color: gold }}>{(d.full_name || "U")[0]}</span>}
+                              </div>
+                              <div>
+                                <p style={{ fontWeight: 700, color: c.text, margin: 0, fontSize: 14 }}>
+                                  {d.full_name}
+                                  <span style={{
+                                    fontSize: 10, marginLeft: 6, padding: "1px 6px", borderRadius: 8, fontWeight: 600,
+                                    background: d.account_type === 'student' ? "rgba(34,197,94,.1)" : "rgba(245,158,11,.1)",
+                                    color: d.account_type === 'student' ? "#22c55e" : "#f59e0b"
+                                  }}>
+                                    {d.account_type === 'student' ? 'Student' : 'REG'}
+                                  </span>
+                                </p>
+                                <p style={{ fontSize: 11, color: c.textMuted, margin: "2px 0 0" }}>{d.email}</p>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: "right" }}>
+                              <p style={{ fontSize: 13, fontWeight: 700, color: c.text, margin: 0 }}>{d.e_money ?? 0} EM</p>
+                              {!isActive && <p style={{ fontSize: 11, color: "#ef4444", fontWeight: 600, margin: "2px 0 0" }}>❌ {t("غير نشط", "Inactive")}</p>}
+                              {excludedHigher && <p style={{ fontSize: 11, color: "#f97316", fontWeight: 600, margin: "2px 0 0" }}>⚠️ {t("رتبة أعلى", "Higher rank")}</p>}
+                              {isActive && !excludedHigher && <p style={{ fontSize: 11, color: "#22c55e", fontWeight: 600, margin: "2px 0 0" }}>✅ {t("مؤهل", "Qualified")}</p>}
+                              <p style={{ fontSize: 10, color: c.textMuted, margin: 0 }}>
+                                {d.rank || t("بدون رتبة", "No rank")} · {new Date(d.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div style={cardStyle(c)}>
