@@ -516,9 +516,8 @@ export default function UsersPage() {
                     <div className="space-y-4">
                       <h4 className="font-bold text-lg mb-4">📈 {t("النشاط الأسبوعي", "Weekly Activity")}</h4>
                       <div className="bg-gray-50 rounded-xl p-4">
-                        <h5 onClick={() => setShowDirectDetail(!showDirectDetail)} className="font-bold mb-3 cursor-pointer flex items-center justify-between select-none">
-                          <span>📊 {t("المبيعات المباشرة", "📊 Direct Sales")}</span>
-                          <span className="text-sm text-gray-400 transition-transform" style={{ transform: showDirectDetail ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block", transition: "transform 0.3s" }}>▼</span>
+                        <h5 className="font-bold mb-3">
+                          📊 {t("المبيعات المباشرة", "📊 Direct Sales")}
                         </h5>
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                           {[
@@ -534,7 +533,7 @@ export default function UsersPage() {
                           ))}
                         </div>
                       </div>
-                      {showDirectDetail && directMembers.length > 0 && (
+                      {directMembers.length > 0 && (
                         <div className="bg-gray-50 rounded-xl p-4">
                           <h5 className="font-bold mb-3">{t("👥 الأعضاء المباشرين", "👥 Direct Members")} ({directMembers.length})</h5>
                           <div className="space-y-2">
@@ -566,7 +565,7 @@ export default function UsersPage() {
                           </div>
                         </div>
                       )}
-                      {showDirectDetail && directMembers.length === 0 && (
+                      {directMembers.length === 0 && (
                         <div className="bg-gray-50 rounded-xl p-4 text-center">
                           <p className="text-gray-400">{t("لا يوجد أعضاء مباشرين", "No direct members")}</p>
                         </div>
