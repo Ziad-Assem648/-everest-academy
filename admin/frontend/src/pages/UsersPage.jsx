@@ -18,6 +18,7 @@ export default function UsersPage() {
   const [saving, setSaving] = useState(false);
   const [dbRanks, setDbRanks] = useState([]);
   const [rankProgress, setRankProgress] = useState(null);
+  const [directMembers, setDirectMembers] = useState([]);
   const [weeklyHistory, setWeeklyHistory] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [historyDetail, setHistoryDetail] = useState(null);
@@ -43,9 +44,12 @@ export default function UsersPage() {
       setProfileTab("details");
       setAmount("");
       setRankProgress(null);
+      setDirectMembers([]);
       setWeeklyHistory([]);
       setHistoryDetail(null);
+      setShowDirectDetail(false);
       api(`/api/mlm/rank-progress/${data.id}`).then(setRankProgress).catch(() => {});
+      api(`/api/mlm/directs/${data.id}`).then(d => setDirectMembers(Array.isArray(d) ? d : [])).catch(() => {});
       api(`/api/mlm/weekly-history/${data.id}`).then(d => setWeeklyHistory(Array.isArray(d) ? d : [])).catch(() => {});
       api("/api/mlm/leaderboard").then(d => setLeaderboard(Array.isArray(d) ? d : [])).catch(() => {});
     });
@@ -530,11 +534,11 @@ export default function UsersPage() {
                           ))}
                         </div>
                       </div>
-                      {showDirectDetail && rankProgress?.directs && rankProgress.directs.length > 0 && (
+                      {showDirectDetail && directMembers.length > 0 && (
                         <div className="bg-gray-50 rounded-xl p-4">
-                          <h5 className="font-bold mb-3">{t("👥 الأعضاء المباشرين", "👥 Direct Members")} ({rankProgress.directs.length})</h5>
+                          <h5 className="font-bold mb-3">{t("👥 الأعضاء المباشرين", "👥 Direct Members")} ({directMembers.length})</h5>
                           <div className="space-y-2">
-                            {rankProgress.directs.map((d) => (
+                            {directMembers.map((d) => (
                               <div key={d.id} className={`flex items-center justify-between p-3 rounded-xl border transition ${
                                 d.status === 'active' ? 'bg-white' : 'bg-red-50 border-red-200'
                               }`}>
@@ -562,7 +566,7 @@ export default function UsersPage() {
                           </div>
                         </div>
                       )}
-                      {showDirectDetail && rankProgress?.directs && rankProgress.directs.length === 0 && (
+                      {showDirectDetail && directMembers.length === 0 && (
                         <div className="bg-gray-50 rounded-xl p-4 text-center">
                           <p className="text-gray-400">{t("لا يوجد أعضاء مباشرين", "No direct members")}</p>
                         </div>
@@ -603,11 +607,11 @@ export default function UsersPage() {
                           ))}
                         </div>
                       </div>
-                      {rankProgress?.directs && rankProgress.directs.length > 0 && (
+                      {directMembers.length > 0 && (
                         <div className="bg-gray-50 rounded-xl p-4">
                           <h5 className="font-bold mb-3">{t("👥 أعضاء الفريق المباشرين", "👥 Direct Team Members")}</h5>
                           <div className="space-y-2">
-                            {rankProgress.directs.map((d) => {
+                            {directMembers.map((d) => {
                               const isActive = d.status === 'active';
                               const allRanks = rankProgress.allRanks || [];
                               const userRankIdx = allRanks.findIndex(r => r.name === rankProgress.currentRank?.name);

@@ -35,7 +35,7 @@ router.get("/tree", async (req, res) => {
 router.get("/directs/:userId", async (req, res) => {
   try {
     const users = await query(
-      "SELECT id, full_name, email, role, rank, e_money, direct_count, qualified_direct_count, account_type, status, created_at FROM users WHERE referred_by = ? ORDER BY created_at DESC",
+      "SELECT id, full_name, email, phone, avatar, role, rank, e_money, direct_count, qualified_direct_count, account_type, status, created_at FROM users WHERE referred_by = ? ORDER BY created_at DESC",
       [req.params.userId]
     );
     res.json(users);

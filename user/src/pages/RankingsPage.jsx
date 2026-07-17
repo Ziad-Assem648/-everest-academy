@@ -59,6 +59,7 @@ export default function RankingsPage() {
   const [historyDetail, setHistoryDetail] = useState(null);
   const [showDirectMembers, setShowDirectMembers] = useState(false);
   const [showNetworkMembers, setShowNetworkMembers] = useState(false);
+  const [directMembers, setDirectMembers] = useState([]);
 
   const gold = "#d4af37";
 
@@ -69,6 +70,7 @@ export default function RankingsPage() {
     }).catch(() => {
       api(`/api/mlm/rank-progress/${user.id}`).then(setProgress).catch(() => {});
     });
+    api(`/api/mlm/directs/${user.id}`).then(d => setDirectMembers(Array.isArray(d) ? d : [])).catch(() => {});
     api("/api/ranks/leaderboard").then(setLeaderboard).catch(() => {});
     api("/api/ranks").then((d) => Array.isArray(d) ? setRanks(d) : setRanks([])).catch(() => {});
     api(`/api/mlm/weekly-history/${user.id}`).then(setWeeklyHistory).catch(() => {});
@@ -95,6 +97,8 @@ export default function RankingsPage() {
   const registrationMembers = progress?.registrationMembers ?? 0;
   const higherRankExcluded = progress?.higherRankExcluded ?? 0;
   const inactiveExcluded = progress?.inactiveExcluded ?? 0;
+
+  const directsList = (progress?.directs && progress.directs.length > 0) ? progress.directs : directMembers;
 
   const rankData = currentRankObj;
   const weeklyCommission = rankData ? bonusVal(rankData) : 0;
@@ -300,15 +304,15 @@ export default function RankingsPage() {
               {showDirectMembers && (
                 <div style={{ marginTop: 18, borderTop: `1px solid ${c.borderLight}`, paddingTop: 16 }}>
                   <h4 style={{ margin: "0 0 12px", fontSize: 15, color: c.text }}>
-                    {t("👥 الأعضاء المباشرين", "👥 Direct Members")} ({progress?.directs?.length ?? 0})
+                    {t("👥 الأعضاء المباشرين", "👥 Direct Members")} ({directsList.length})
                   </h4>
-                  {(!progress?.directs || progress.directs.length === 0) ? (
+                  {directsList.length === 0 ? (
                     <p style={{ color: c.textMuted, textAlign: "center", padding: 20, fontSize: 13 }}>
                       {t("لا يوجد أعضاء مباشرين بعد", "No direct members yet")}
                     </p>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      {progress.directs.map((d) => (
+                      {directsList.map((d) => (
                         <div key={d.id} style={{
                           display: "flex", alignItems: "center", justifyContent: "space-between",
                           background: d.status === 'active' ? c.bgSoft : "rgba(239,68,68,.06)",
@@ -402,15 +406,15 @@ export default function RankingsPage() {
               {showNetworkMembers && (
                 <div style={{ marginTop: 18, borderTop: `1px solid ${c.borderLight}`, paddingTop: 16 }}>
                   <h4 style={{ margin: "0 0 12px", fontSize: 15, color: c.text }}>
-                    {t("👥 أعضاء الفريق المباشرين", "👥 Direct Team Members")} ({progress?.directs?.length ?? 0})
+                    {t("👥 أعضاء الفريق المباشرين", "👥 Direct Team Members")} ({directsList.length})
                   </h4>
-                  {(!progress?.directs || progress.directs.length === 0) ? (
+                  {directsList.length === 0 ? (
                     <p style={{ color: c.textMuted, textAlign: "center", padding: 20, fontSize: 13 }}>
                       {t("لا يوجد أعضاء مباشرين بعد", "No direct members yet")}
                     </p>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      {progress.directs.map((d) => {
+                      {directsList.map((d) => {
                         const isActive = d.status === 'active';
                         const allRanks = progress.allRanks || [];
                         const userRankIdx = allRanks.findIndex(r => r.name === currentRankName);
