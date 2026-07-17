@@ -19,7 +19,7 @@ export default function FreeCoursesSettingsPage() {
 
   useEffect(() => { load(); }, []);
 
-  const toggle = async (courseId, current) => {
+  const toggleFree = async (courseId, current) => {
     setSaving(courseId);
     try {
       await api(`/api/courses/${courseId}/show-free`, {
@@ -35,6 +35,22 @@ export default function FreeCoursesSettingsPage() {
     setSaving(null);
   };
 
+  const toggleHomepage = async (courseId, current) => {
+    setSaving(courseId);
+    try {
+      await api(`/api/courses/${courseId}/show-homepage`, {
+        method: "PUT",
+        body: JSON.stringify({ is_show_homepage: current ? 0 : 1 }),
+      });
+      setCourses((prev) =>
+        prev.map((c) =>
+          c.id === courseId ? { ...c, is_show_homepage: current ? 0 : 1 } : c
+        )
+      );
+    } catch (e) {}
+    setSaving(null);
+  };
+
   const published = courses.filter((c) => c.status === "published");
   const filtered = published.filter(
     (c) =>
@@ -43,7 +59,24 @@ export default function FreeCoursesSettingsPage() {
       (c.title || "").toLowerCase().includes(search.toLowerCase())
   );
 
-  const showCount = filtered.filter((c) => c.is_show_free).length;
+  const freeCount = filtered.filter((c) => c.is_show_free).length;
+  const homeCount = filtered.filter((c) => c.is_show_homepage !== 0).length;
+
+  const Toggle = ({ checked, onChange, disabled }) => (
+    <button
+      onClick={onChange}
+      disabled={disabled}
+      className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
+        checked ? "bg-green-500" : "bg-gray-300"
+      }`}
+    >
+      <span
+        className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+          checked ? "translate-x-5" : "translate-x-0"
+        }`}
+      />
+    </button>
+  );
 
   if (loading)
     return <p className="text-gray-400 animate-pulse">{t("جاري التحميل...", "Loading...")}</p>;
@@ -52,104 +85,77 @@ export default function FreeCoursesSettingsPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold flex items-center gap-2">
-          🆓 {t("الكورسات المجانية", "Free Courses Page")}
+          🎛️ {t("إدارة ظهور الكورسات", "Course Visibility")}
         </h2>
         <p className="text-sm text-gray-500 mt-1">
           {t(
-            "اختر الكورسات اللي تظهر في صفحة الكورسات المجانية. فعّل الكورسات اللي عايزها تظهر للمستخدمين.",
-            "Choose which courses appear on the free courses page. Toggle on the courses you want shown to users."
+            "تحكم في ظهور الكورسات في صفحة المجانيات والهوم بيج.",
+            "Control which courses appear on the free courses page and homepage."
           )}
         </p>
       </div>
 
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="bg-white rounded-xl border px-4 py-2 text-sm">
-          <span className="text-green-600 font-bold">{showCount}</span>{" "}
-          {t("كورس تظهر في الصفحة المجانية", "courses showing on free page")}
-          <span className="text-gray-300 mx-2">|</span>
-          <span className="text-gray-500">{filtered.length}</span>{" "}
-          {t("كورس منشور إجمالي", "total published")}
+        <div className="bg-white rounded-xl border px-4 py-2 text-sm flex items-center gap-3">
+          <span className="bg-green-100 text-green-700 px-2 py-1 rounded-lg font-bold">🆓 {freeCount}</span>
+          <span className="text-gray-400">|</span>
+          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-bold">🏠 {homeCount}</span>
+          <span className="text-gray-400">|</span>
+          <span className="text-gray-400">{filtered.length} {t("منشور", "published")}</span>
         </div>
         <input
           type="text"
-          placeholder={t("🔍 بحث في الكورسات...", "Search courses...")}
+          placeholder={t("🔍 بحث...", "Search...")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition w-72"
+          className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition w-64"
         />
       </div>
 
-      <div className="space-y-3">
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase">
+          <div className="col-span-5">{t("الكورس", "Course")}</div>
+          <div className="col-span-3 text-center">🆓 {t("صفحة المجانيات", "Free Page")}</div>
+          <div className="col-span-3 text-center">🏠 {t("الهوم بيج", "Homepage")}</div>
+          <div className="col-span-1"></div>
+        </div>
+
         {filtered.map((course) => (
           <div
             key={course.id}
-            className={`bg-white rounded-2xl border p-5 flex items-center justify-between gap-4 transition-all duration-200 hover:shadow-md ${
-              course.is_show_free
-                ? "border-green-200 bg-green-50/30"
-                : "border-gray-100"
-            }`}
+            className="grid grid-cols-12 gap-4 items-center px-5 py-4 border-b border-gray-50 hover:bg-gray-50/50 transition"
           >
-            <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div className="col-span-5 flex items-center gap-3 min-w-0">
               {course.featured_image ? (
-                <img
-                  src={course.featured_image}
-                  alt=""
-                  className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
-                />
+                <img src={course.featured_image} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
               ) : (
-                <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center text-xl flex-shrink-0">
-                  📚
-                </div>
+                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-sm flex-shrink-0">📚</div>
               )}
-              <div className="min-w-0 flex-1">
-                <h3 className="font-bold text-gray-800 text-sm truncate">
-                  {course.title_ar || course.title}
-                </h3>
-                <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                  <span>{course.category_ar || course.category || "—"}</span>
-                  <span>•</span>
-                  <span>
-                    {course.is_free
-                      ? t("مجاني", "Free")
-                      : `${course.price_egp || course.price} EGP`}
-                  </span>
-                  <span>•</span>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      course.status === "published"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-500"
-                    }`}
-                  >
-                    {course.status}
-                  </span>
-                </div>
+              <div className="min-w-0">
+                <p className="font-bold text-sm text-gray-800 truncate">{course.title_ar || course.title}</p>
+                <p className="text-xs text-gray-400">{course.category_ar || course.category || "—"}</p>
               </div>
             </div>
 
-            <button
-              onClick={() => toggle(course.id, course.is_show_free)}
-              disabled={saving === course.id}
-              className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2 disabled:opacity-50 ${
-                course.is_show_free ? "bg-green-500" : "bg-gray-300"
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  course.is_show_free ? "translate-x-5" : "translate-x-0"
-                }`}
+            <div className="col-span-3 flex justify-center">
+              <Toggle
+                checked={!!course.is_show_free}
+                onChange={() => toggleFree(course.id, course.is_show_free)}
+                disabled={saving === course.id}
               />
-            </button>
+            </div>
 
-            <span
-              className={`text-xs font-bold min-w-[60px] text-center ${
-                course.is_show_free ? "text-green-600" : "text-gray-400"
-              }`}
-            >
-              {course.is_show_free
-                ? t("يظهر", "Visible")
-                : t("مخفي", "Hidden")}
-            </span>
+            <div className="col-span-3 flex justify-center">
+              <Toggle
+                checked={course.is_show_homepage !== 0}
+                onChange={() => toggleHomepage(course.id, course.is_show_homepage)}
+                disabled={saving === course.id}
+              />
+            </div>
+
+            <div className="col-span-1 text-right text-xs text-gray-400">
+              {course.is_free ? "🆓" : `${course.price_egp || course.price}`}
+            </div>
           </div>
         ))}
 

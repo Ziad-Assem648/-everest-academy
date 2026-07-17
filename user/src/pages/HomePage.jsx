@@ -175,7 +175,7 @@ export default function HomePage() {
   const [leaders, setLeaders] = useState([]);
 
   useEffect(() => {
-    api("/api/courses?status=published").then(setCourses).catch(() => {});
+    api("/api/courses?status=published").then((d) => setCourses((d || []).filter((c) => c.is_show_homepage !== 0))).catch(() => {});
     api("/api/leaders").then(setLeaders).catch(() => {});
     api("/api/ranks").then((d) => Array.isArray(d) ? setDbRanks(d) : null).catch(() => {});
   }, []);
