@@ -248,104 +248,28 @@ export default function CourseViewPage() {
     <div className="course-view-page" style={{background:c.bg,minHeight:"100vh"}}>
       <AppNavbar />
 
-      {/* Non-logged-in: clean purchase page */}
-      {!user ? (
-        <main style={{maxWidth:600,margin:"0 auto",padding:m?"20px 14px 40px":"60px 5% 40px",display:"flex",alignItems:"center",justifyContent:"center",minHeight:"calc(100vh - 80px)"}}>
-          <div style={{width:"100%",textAlign:"center"}}>
-            <div style={{
-              background:c.bgCard,border:`1px solid ${c.borderLight}`,
-              borderRadius:m?20:24,padding:m?"36px 22px 32px":"48px 40px 44px",
-              boxShadow:"0 4px 30px rgba(0,0,0,.08)",
-              display:"flex",flexDirection:"column",alignItems:"center",gap:0
-            }}>
-              {/* Decorative top accent */}
-              <div style={{width:60,height:4,borderRadius:2,background:"linear-gradient(135deg,#b38728,#e2c275)",marginBottom:28}} />
-
-              {/* Course title */}
-              <h1 style={{
-                fontSize:m?"1.15rem":"1.4rem",fontWeight:800,lineHeight:1.6,
-                background:"linear-gradient(135deg,#fdfbfb,#e2c275,#b38728)",
-                WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",
-                margin:"0 0 24px",padding:"0 8px"
-              }}>
-                {course.title_ar || course.title}
-              </h1>
-
-              {/* Price */}
-              {!isFree ? (
-                <div style={{
-                  background:c.bgInput,borderRadius:14,
-                  padding:m?"18px 18px":"22px 28px",marginBottom:32,width:"100%"
-                }}>
-                  <p style={{fontSize:m?11:12,color:c.textMuted,margin:"0 0 8px",fontWeight:600}}>
-                    {t("سعر الكورس", "Course Price")}
-                  </p>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <p style={{fontSize:m?20:24,fontWeight:800,color:c.text,margin:0}}>
-                      {course.price} E-Money
-                    </p>
-                    {course.price_egp > 0 && (
-                      <p style={{fontSize:m?16:20,fontWeight:700,color:c.textMuted,margin:0}}>
-                        {course.price_egp} {t("ج.م", "EGP")}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div style={{
-                  background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.2)",
-                  borderRadius:14,padding:m?"18px 18px":"22px 28px",marginBottom:32,width:"100%"
-                }}>
-                  <p style={{fontSize:m?18:22,fontWeight:800,color:"#22c55e",margin:0}}>
-                    🎉 {t("مجاني", "FREE")}
-                  </p>
-                </div>
-              )}
-
-              {/* Buttons */}
-              <div style={{display:"flex",flexDirection:"column",gap:14,width:"100%"}}>
-                <Link to="/login" style={{
-                  display:"flex",alignItems:"center",justifyContent:"center",gap:10,
-                  padding:m?"16px 20px":"18px 28px",
-                  background:"linear-gradient(135deg,#b38728,#e2c275)",
-                  borderRadius:14,color:"#05030a",fontWeight:800,fontSize:m?15:16,
-                  textDecoration:"none",transition:"all 0.3s",boxShadow:"0 4px 15px rgba(179,135,40,.3)"
-                }}>
-                  🔑 {t("تسجيل الدخول لشراء الكورس", "Login to Buy")}
-                </Link>
-                <Link to="/register" style={{
-                  display:"flex",alignItems:"center",justifyContent:"center",gap:10,
-                  padding:m?"16px 20px":"18px 28px",
-                  background:"transparent",border:`1px solid ${c.borderLight}`,
-                  borderRadius:14,color:c.text,fontWeight:700,fontSize:m?14:15,
-                  textDecoration:"none",transition:"all 0.3s"
-                }}>
-                  ✨ {t("إنشاء حساب جديد", "Create Account")}
-                </Link>
-              </div>
-
-              {/* Subtext */}
-              <p style={{fontSize:m?11:12,color:c.textMuted,margin:"24px 0 0",lineHeight:1.6}}>
-                {t("سجّل دخولك للوصول إلى جميع الدروس والمحتوى التعليمي", "Sign in to access all lessons and educational content")}
-              </p>
-            </div>
-
-            {/* Back button - below card on all screens */}
-            <button onClick={() => nav(-1)} style={{
-              display:"inline-flex",alignItems:"center",gap:10,marginTop:24,
-              padding:m?"12px 28px":"14px 32px",
-              background:c.bgCard,border:`1px solid ${c.borderLight}`,
-              borderRadius:14,color:c.text,fontSize:m?14:15,fontWeight:700,
-              cursor:"pointer",transition:"all 0.2s"
-            }}>
-              {dir === "rtl" ? "→" : "←"} {t("رجوع", "Go Back")}
-            </button>
-          </div>
-        </main>
-
-        ) : (
-
         <main className="courses-main" style={{maxWidth:1000,margin:"0 auto",padding:m?"0 14px 16px":"90px 5% 40px"}}>
+
+        {/* Non-logged-in banner */}
+        {!user && (
+          <div style={{background:"rgba(179,135,40,.1)",border:"1px solid rgba(179,135,40,.25)",borderRadius:14,padding:m?"14px 16px":"16px 20px",marginBottom:m?12:20,display:"flex",flexDirection:m?"column":"row",alignItems:"center",justifyContent:"space-between",gap:m?10:0}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <span style={{fontSize:m?20:24}}>🔒</span>
+              <div>
+                <p style={{fontWeight:700,color:"#e2c275",fontSize:m?13:15,margin:0}}>{t("سجّل دخولك للمشاهدة الكاملة", "Sign in for full access")}</p>
+                <p style={{fontSize:m?11:12,color:c.textMuted,margin:"2px 0 0"}}>{t("بعض الدروس مقفلة. سجّل دخولك أو أنشئ حسابًا جديدًا للمشاهدة.", "Some lessons are locked. Sign in or create an account to watch.")}</p>
+              </div>
+            </div>
+            <div style={{display:"flex",gap:8,flexShrink:0}}>
+              <Link to="/login" style={{padding:m?"10px 18px":"10px 22px",background:"linear-gradient(135deg,#b38728,#e2c275)",borderRadius:10,color:"#05030a",fontWeight:800,fontSize:m?12:13,textDecoration:"none",whiteSpace:"nowrap"}}>
+                🔑 {t("تسجيل الدخول", "Login")}
+              </Link>
+              <Link to="/register" style={{padding:m?"10px 18px":"10px 22px",background:"transparent",border:`1px solid ${c.borderLight}`,borderRadius:10,color:c.text,fontWeight:700,fontSize:m?12:13,textDecoration:"none",whiteSpace:"nowrap"}}>
+                ✨ {t("حساب جديد", "Register")}
+              </Link>
+            </div>
+          </div>
+        )}
 
         {isRegistration && !isEnrolled && (
           <div style={{background:"rgba(179,135,40,.1)",border:"1px solid rgba(179,135,40,.2)",borderRadius:14,padding:m?12:16,marginBottom:m?12:20,color:"#e2c275",fontSize:m?13:14}}>
@@ -361,34 +285,64 @@ export default function CourseViewPage() {
 
         {!isEnrolled && !isPending && !isFree && !isStudentAccount && (
           <div style={{textAlign:"center",padding:m?"12px 0":"16px 0",marginBottom:m?12:20}}>
-            {(user?.e_money || 0) < course.price && (
-              <div style={{background:"rgba(255,91,91,.1)",border:"1px solid rgba(255,91,91,.2)",borderRadius:14,padding:m?10:12,marginBottom:m?10:16,color:"#ff5b5b",fontSize:m?12:13}}>
-                ⚠️ {t("رصيد E-Money الحالي", "Current E-Money balance")} ({user?.e_money || 0}) {t("لا يكفي لشراء هذا الكورس", "is not enough to purchase this course")} ({course.price}). {t("يرجى شحن رصيدك أو استخدام طريقة دفع أخرى.", "Please top up your balance or use another payment method.")}
+            {!user ? (
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:m?10:14}}>
+                <div style={{display:"flex",gap:m?8:12,justifyContent:"center",flexWrap:"wrap",width:"100%"}}>
+                  <Link to="/login" style={{padding:m?"12px 22px":"14px 28px",background:"linear-gradient(135deg,#b38728,#e2c275)",borderRadius:12,color:"#05030a",fontWeight:800,fontSize:m?13:14,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:8}}>
+                    🔑 {t("سجّل دخولك لشراء الكورس", "Login to Buy")} — {course.price} E-Money
+                  </Link>
+                  <Link to="/register" style={{padding:m?"12px 22px":"14px 28px",background:"transparent",border:`1px solid ${c.borderLight}`,borderRadius:12,color:c.text,fontWeight:700,fontSize:m?13:14,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:8}}>
+                    ✨ {t("حساب جديد", "Register")}
+                  </Link>
+                </div>
               </div>
+            ) : (
+              <>
+                {(user?.e_money || 0) < course.price && (
+                  <div style={{background:"rgba(255,91,91,.1)",border:"1px solid rgba(255,91,91,.2)",borderRadius:14,padding:m?10:12,marginBottom:m?10:16,color:"#ff5b5b",fontSize:m?12:13}}>
+                    ⚠️ {t("رصيد E-Money الحالي", "Current E-Money balance")} ({user?.e_money || 0}) {t("لا يكفي لشراء هذا الكورس", "is not enough to purchase this course")} ({course.price}). {t("يرجى شحن رصيدك أو استخدام طريقة دفع أخرى.", "Please top up your balance or use another payment method.")}
+                  </div>
+                )}
+                {balanceError && <p style={{color:"#ff5b5b",fontSize:m?12:13,marginBottom:10}}>{balanceError}</p>}
+                <div style={{display:"flex",gap:m?8:12,justifyContent:"center",flexWrap:"wrap"}}>
+                  <button onClick={async () => {
+                    if ((user?.e_money || 0) < course.price) { setBalanceError(t("رصيد E-Money غير كافٍ", "Insufficient E-Money balance")); return; }
+                    setBalanceError(""); await buyCourse("emoney");
+                  }} disabled={buying}
+                    style={{padding:m?"12px 18px":"14px 26px",background:"linear-gradient(135deg,#b38728,#e2c275)",border:"none",borderRadius:12,color:"#05030a",fontWeight:800,fontSize:m?13:14,cursor:"pointer",opacity:buying?0.6:1}}>
+                    {buying ? t("جاري الشراء...", "Purchasing...") : `💳 ${t("اشتري بـ", "Buy for")} ${course.price} E-Money${course.price_egp > 0 ? ` / ${course.price_egp} ${t("ج.م", "EGP")}` : ""}`}
+                  </button>
+                </div>
+                <p style={{color:c.textMuted,fontSize:12,marginTop:8}}>{t("رصيدك الحالي:", "Your current balance:")} {user?.e_money || 0} E-Money</p>
+              </>
             )}
-            {balanceError && <p style={{color:"#ff5b5b",fontSize:m?12:13,marginBottom:10}}>{balanceError}</p>}
-            <div style={{display:"flex",gap:m?8:12,justifyContent:"center",flexWrap:"wrap"}}>
-              <button onClick={async () => {
-                if ((user?.e_money || 0) < course.price) { setBalanceError(t("رصيد E-Money غير كافٍ", "Insufficient E-Money balance")); return; }
-                setBalanceError(""); await buyCourse("emoney");
-              }} disabled={buying}
-                style={{padding:m?"12px 18px":"14px 26px",background:"linear-gradient(135deg,#b38728,#e2c275)",border:"none",borderRadius:12,color:"#05030a",fontWeight:800,fontSize:m?13:14,cursor:"pointer",opacity:buying?0.6:1}}>
-                {buying ? t("جاري الشراء...", "Purchasing...") : `💳 ${t("اشتري بـ", "Buy for")} ${course.price} E-Money${course.price_egp > 0 ? ` / ${course.price_egp} ${t("ج.م", "EGP")}` : ""}`}
-              </button>
-            </div>
-            <p style={{color:c.textMuted,fontSize:12,marginTop:8}}>{t("رصيدك الحالي:", "Your current balance:")} {user?.e_money || 0} E-Money</p>
           </div>
         )}
 
         {/* 1. Video Player */}
         <div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:m?12:16,overflow:"hidden",position:"relative",marginBottom:m?12:20}}>
           <div onContextMenu={blockCtx} style={{aspectRatio:"16/9",background:"#000",display:"flex",alignItems:"center",justifyContent:"center",position:"relative",userSelect:"none",WebkitUserSelect:"none"}}>
-            {!user ? (
+            {!user && current && current.is_free ? (
+              videoSrc ? (
+                isYoutube(current?.video_url) ? (
+                  <iframe src={videoSrc} style={{width:"100%",height:"100%",aspectRatio:"16/9",border:"none"}} allowFullScreen allow="autoplay; encrypted-media" title="video" />
+                ) : isBunny(current?.video_url) ? (
+                  <iframe src={videoSrc} style={{width:"100%",height:"100%",aspectRatio:"16/9",border:"none"}} allowFullScreen allow="autoplay; encrypted-media" title="video" />
+                ) : (
+                  <video src={videoSrc} controls playsInline controlsList="nodownload noremoteplayback" disablePictureInPicture style={{width:"100%",height:"100%",objectFit:"contain"}} />
+                )
+              ) : (
+                <div style={{color:"#555",textAlign:"center",padding:m?20:30}}>
+                  <p style={{fontSize:m?36:48,marginBottom:m?8:12}}>🎬</p>
+                  <p style={{fontSize:m?12:14}}>{t("هذا الدرس لا يحتوي على فيديو", "This lesson has no video")}</p>
+                </div>
+              )
+            ) : !user ? (
               <div style={{textAlign:"center",padding:m?24:40}}>
-                <div style={{width:m?60:80,height:m?60:80,borderRadius:"50%",background:"linear-gradient(135deg,rgba(179,135,40,.15),rgba(212,175,55,.25))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:m?28:36}}>🎬</div>
-                <p style={{fontWeight:800,color:"#fff",marginBottom:6,fontSize:m?15:18}}>{t("سجّل دخولك لمشاهدة الكورس", "Login to Watch This Course")}</p>
+                <div style={{width:m?60:80,height:m?60:80,borderRadius:"50%",background:"linear-gradient(135deg,rgba(179,135,40,.15),rgba(212,175,55,.25))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:m?28:36}}>🔒</div>
+                <p style={{fontWeight:800,color:"#fff",marginBottom:6,fontSize:m?15:18}}>{t("هذا الدرس مقفل", "This lesson is locked")}</p>
                 <p style={{fontSize:m?12:14,color:"#888",marginBottom:m?16:24,lineHeight:1.5,maxWidth:350,marginLeft:"auto",marginRight:"auto"}}>
-                  {t("سجّل دخولك أو أنشئ حسابًا جديدًا لمشاهدة دروس هذا الكورس والوصول إلى جميع المحتويات.", "Sign in or create a new account to watch lessons and access all content.")}
+                  {t("سجّل دخولك أو أنشئ حسابًا جديدًا لمشاهدة هذا الدرس والمحتوى المدفوع.", "Sign in or create a new account to watch this lesson and paid content.")}
                 </p>
                 <div style={{display:"flex",gap:m?8:12,justifyContent:"center",flexWrap:"wrap"}}>
                   <Link to="/login" style={{
@@ -504,7 +458,7 @@ export default function CourseViewPage() {
                   const isPlaying = current?.id === lesson.id;
                   const isViewed = viewedLessons.has(lesson.id) && !isPlaying;
                   return (
-                    <button key={lesson.id} onClick={() => { if (!locked) { setPlaying(lesson); trackViewed(lesson.id); } }} disabled={locked}
+                    <button key={lesson.id} onClick={() => { if (locked) { setPlaying(lesson); } else { setPlaying(lesson); trackViewed(lesson.id); } }}
                       style={{width:"100%",textAlign:lang==="ar"?"right":"left",padding:m?"10px 12px":"10px 14px",borderRadius:10,border:"none",fontSize:m?12:13,cursor:locked?"not-allowed":"pointer",display:"flex",alignItems:"center",gap:8,marginBottom:3,
                         background:isPlaying?"linear-gradient(135deg,#b38728,#e2c275)":c.bgInput,
                         color:isPlaying?"#05030a":locked?"#555":c.text,
@@ -633,7 +587,6 @@ export default function CourseViewPage() {
         )}
 
       </main>
-        )}
 
       {activeQuiz && (
         <QuizModal quiz={activeQuiz} onClose={() => setActiveQuiz(null)} onPassed={onQuizPassed} />
