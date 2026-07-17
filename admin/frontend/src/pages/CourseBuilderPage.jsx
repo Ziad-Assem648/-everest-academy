@@ -133,10 +133,6 @@ export default function CourseBuilderPage() {
                 <label className="text-xs font-medium text-gray-500 mb-1 block">E-Money {req}</label>
                 <input type="number" value={course.price} onChange={e => { handleChange("price", e.target.value); setErrors(prev => ({...prev, price: false})); }} placeholder={t("السعر بالـ E-Money", "Price in E-Money")} className={`w-full px-3 py-2 border rounded-lg text-sm ${errors.price ? "border-red-500" : ""}`} />
               </div>
-              <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">{t("الجنيه المصري", "Egyptian Pound (EGP)")}</label>
-                <input type="number" value={course.price_egp} onChange={e => handleChange("price_egp", e.target.value)} placeholder={t("السعر بالجنيه المصري", "Price in EGP")} className="w-full px-3 py-2 border rounded-lg text-sm" />
-              </div>
               <p className="text-xs text-gray-400">{t("جميع الكورسات مدفوعة — الدروس المجانية كـ Preview", "All courses are paid — free lessons are Preview only")}</p>
             </div>
           </div>
