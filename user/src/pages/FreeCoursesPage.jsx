@@ -297,7 +297,7 @@ export default function FreeCoursesPage() {
       </section>
 
       {/* ===== WHY EVEREST ===== */}
-      <section className="fcp-premium-section">
+      <section className="fcp-premium-section"> 
         <div className="fcp-premium-content">
           <span className="fcp-premium-label">{t("لماذا إيفرست؟", "WHY EVEREST?")}</span>
           <h2>{t("أكثر من مجرد تعلم", "More Than Just Learning")}</h2>
@@ -308,7 +308,7 @@ export default function FreeCoursesPage() {
             <div className="fcp-feature">{t("📚 محتوى محدث", "Updated Content")}</div>
             <div className="fcp-feature">{t("💎 نظام E-Money مرن", "Flexible E-Money System")}</div>
             <div className="fcp-feature">{t("🤝 دعم الطلاب", "Student Support")}</div>
-            <div className="fcp-feature">{t("🌟 مكافآت الإحالة المالية خلال 48 ساعة", "Money Referral rewards in 48 hours")}</div>
+            <div className="fcp-feature">{t("🌟 مكافآت الإحالة المالية خلال 48 ساعة", "Money Referral Refund in 48 hours")}</div>
           </div>
         </div>
         <div className="fcp-premium-card">
