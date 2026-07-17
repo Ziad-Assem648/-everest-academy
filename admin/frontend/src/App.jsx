@@ -21,6 +21,7 @@ import AdminLogsPage from "./pages/AdminLogsPage.jsx";
 import MembershipSettingsPage from "./pages/MembershipSettingsPage.jsx";
 import AdminsListPage from "./pages/AdminsListPage.jsx";
 import CustomerServicePage from "./pages/CustomerServicePage.jsx";
+import FreeCoursesSettingsPage from "./pages/FreeCoursesSettingsPage.jsx";
 
 
 function AppInner() {
@@ -63,6 +64,7 @@ function AppInner() {
     { id: "topups", label: lang === "ar" ? "طلبات الشحن" : "Top-ups", icon: "💰" },
     { id: "course-builder", label: lang === "ar" ? "بناء الكورس" : "Course Builder", icon: "📝" },
     { id: "courses", label: lang === "ar" ? "قائمة الكورسات" : "Courses", icon: "📚" },
+    { id: "free-courses", label: lang === "ar" ? "كورسات مجانية" : "Free Courses Page", icon: "🆓" },
     { id: "quiz-attempts", label: lang === "ar" ? "نتائج الاختبارات" : "Quiz Results", icon: "📋" },
     { id: "ranks-mgmt", label: lang === "ar" ? "إدارة الرتب" : "Ranks", icon: "🏅" },
     { id: "leaders", label: lang === "ar" ? "القادة" : "Leaders", icon: "🏆" },
@@ -105,6 +107,7 @@ function AppInner() {
           {page === "topups" && <TopUpsPage />}
           {page === "course-builder" && <CourseBuilderPage />}
           {page === "courses" && <CoursesListPage />}
+          {page === "free-courses" && <FreeCoursesSettingsPage />}
           {page === "quiz-attempts" && <QuizAttemptsPage />}
           {page === "ranks-mgmt" && <RanksManagementPage />}
           {page === "leaders" && <LeadersPage />}

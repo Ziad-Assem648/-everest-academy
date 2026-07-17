@@ -218,7 +218,7 @@ router.get("/free-lessons", async (req, res) => {
     FROM lessons l
     JOIN topics t ON l.topic_id = t.id
     JOIN courses c ON t.course_id = c.id
-    WHERE l.is_free = 1 AND c.status = 'published'
+    WHERE l.is_free = 1 AND c.status = 'published' AND c.is_show_free = 1
     ORDER BY c.created_at DESC, l.sort_order ASC
   `);
   res.json(lessons);
@@ -252,6 +252,14 @@ router.post("/:courseId/reviews", async (req, res) => {
   }
   const stats = await queryOne("SELECT COUNT(*) as count, COALESCE(AVG(rating), 0) as avg_rating FROM course_reviews WHERE course_id = ?", [req.params.courseId]);
   res.json({ success: true, avg_rating: Math.round((stats?.avg_rating || 0) * 10) / 10, count: stats?.count || 0 });
+});
+
+router.put("/:courseId/show-free", async (req, res) => {
+  try {
+    const { is_show_free } = req.body;
+    await execute("UPDATE courses SET is_show_free = ? WHERE id = ?", [is_show_free ? 1 : 0, req.params.courseId]);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.get("/:id", async (req, res) => {
