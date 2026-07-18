@@ -165,14 +165,18 @@ router.put("/:id/approve-registration", async (req, res) => {
 
     // If approved as student AND has a sponsor → pay commission to direct referrer ONLY (Level 1)
     if (accountType === "student" && user.referred_by) {
-      const directReferrer = await queryOne("SELECT id, account_type FROM users WHERE id = ?", [user.referred_by]);
-      if (directReferrer && directReferrer.account_type === "student") {
-        const comId = uuidv4();
-        await execute("INSERT INTO commissions (id, from_user_id, to_user_id, level, amount) VALUES (?, ?, ?, 1, 1000)",
-          [comId, req.params.id, directReferrer.id]);
-        await execute("UPDATE users SET e_money = e_money + 1000 WHERE id = ?", [directReferrer.id]);
-        await execute("UPDATE users SET direct_count = direct_count + 1 WHERE id = ?", [directReferrer.id]);
-        const nid2 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'commission')", [nid2, directReferrer.id, "💰 عمولة جديدة", `ربحت 1000 E-Money كمكافأة عن تسجيل عضو جديد`]);
+      // Prevent double commission
+      const existingCommission = await queryOne("SELECT id FROM commissions WHERE from_user_id = ? AND level = 1", [req.params.id]);
+      if (!existingCommission) {
+        const directReferrer = await queryOne("SELECT id, account_type FROM users WHERE id = ?", [user.referred_by]);
+        if (directReferrer && directReferrer.account_type === "student") {
+          const comId = uuidv4();
+          await execute("INSERT INTO commissions (id, from_user_id, to_user_id, level, amount) VALUES (?, ?, ?, 1, 1000)",
+            [comId, req.params.id, directReferrer.id]);
+          await execute("UPDATE users SET e_money = e_money + 1000 WHERE id = ?", [directReferrer.id]);
+          await execute("UPDATE users SET direct_count = direct_count + 1 WHERE id = ?", [directReferrer.id]);
+          const nid2 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'commission')", [nid2, directReferrer.id, "💰 عمولة جديدة", `ربحت 1000 E-Money كمكافأة عن تسجيل عضو جديد`]);
+        }
       }
     }
 
@@ -268,6 +272,23 @@ router.put("/:id/account-type", async (req, res) => {
     const typeLabel = account_type === "student" ? "Student" : "Registration";
     const nid = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'info')", [nid, req.params.id, "🔄 تم تغيير نوع الحساب", `تم تغيير نوع حسابك إلى ${typeLabel}`]);
     await logAdminAction(req, `change account_type to ${account_type}`, req.params.id, user.full_name, JSON.stringify({ from: user.account_type, to: account_type }));
+
+    // Pay commission when converting Registration → Student
+    if (account_type === "student" && user.account_type === "registration" && user.referred_by && user.referred_by !== "") {
+      // Check if commission already paid for this user (prevent double payment)
+      const existingCommission = await queryOne("SELECT id FROM commissions WHERE from_user_id = ? AND level = 1", [req.params.id]);
+      if (!existingCommission) {
+        const referrer = await queryOne("SELECT id, account_type FROM users WHERE id = ?", [user.referred_by]);
+        if (referrer && referrer.account_type === "student") {
+          const comId = uuidv4();
+          await execute("INSERT INTO commissions (id, from_user_id, to_user_id, level, amount) VALUES (?, ?, ?, 1, 1000)", [comId, req.params.id, referrer.id]);
+          await execute("UPDATE users SET e_money = e_money + 1000 WHERE id = ?", [referrer.id]);
+          await execute("UPDATE users SET direct_count = direct_count + 1 WHERE id = ?", [referrer.id]);
+          const nid2 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'commission')", [nid2, referrer.id, "💰 عمولة جديدة", `ربحت 1000 E-Money — تم تحويل عضو من Registration إلى Student`]);
+        }
+      }
+    }
+
     res.json({ success: true, account_type, role });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
