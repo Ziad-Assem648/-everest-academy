@@ -6,6 +6,7 @@ import { api } from "../App";
 import { useTheme } from "../ThemeContext";
 import AppNavbar from "../components/AppNavbar";
 import QuizModal from "../components/QuizModal";
+import { formatWhatsAppLink } from "../whatsapp";
 
 export default function CourseViewPage() {
   const { t, dir, lang } = useLang();
@@ -32,6 +33,7 @@ export default function CourseViewPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [viewedLessons, setViewedLessons] = useState(new Set());
   const [prevLessonId, setPrevLessonId] = useState(null);
+  const [csData, setCsData] = useState(null);
 
   const getViewedKey = () => `viewed_lessons_${user?.id}_${id}`;
 
@@ -80,6 +82,7 @@ export default function CourseViewPage() {
   }, [id]);
 
   useEffect(() => {
+    api("/api/customer-service").then(setCsData).catch(() => {});
     api("/api/payment-gateways/active").then((data) => {
       if (Array.isArray(data)) setGateways(data);
     }).catch(() => {});
@@ -120,10 +123,8 @@ export default function CourseViewPage() {
         method: "POST", body: JSON.stringify({ userId: user.id, payment_method: "emoney" })
       });
       setEnrollment(result);
-      if (method === "emoney" && (result.status === "pending" || result.status === "approved")) {
-        user.e_money = (user.e_money || 0) - (course.price || 0);
-        login(user);
-      }
+      const freshUser = await api(`/api/users/${user.id}`);
+      login({ ...user, e_money: freshUser.e_money });
     } catch (e) {
       alert(t("خطأ: ", "Error: ") + (e.message || t("فشل عملية الشراء", "Purchase failed")));
     }
@@ -271,19 +272,19 @@ export default function CourseViewPage() {
           </div>
         )}
 
-        {isRegistration && !isEnrolled && (
-          <div style={{background:"rgba(179,135,40,.1)",border:"1px solid rgba(179,135,40,.2)",borderRadius:14,padding:m?12:16,marginBottom:m?12:20,color:"#e2c275",fontSize:m?13:14}}>
-            ⚠️ {t("حسابك من نوع Registration. يمكنك مشاهدة الدروس المجانية وشراء الكورسات بـ E-Money.", "Your account is Registration type. You can watch free lessons and buy courses with E-Money.")}
-          </div>
-        )}
-
         {isPending && (
-          <div style={{background:"rgba(254,212,0,.08)",border:"1px solid rgba(254,212,0,.2)",borderRadius:14,padding:m?12:16,marginBottom:m?12:20,color:"#fed400",fontSize:m?13:14}}>
-            ⏳ {t("تم تقديم طلب الشراء. في انتظار موافقة الادمن ...", "Purchase request submitted. Waiting for admin approval...")}
+          <div style={{background:"rgba(254,212,0,.08)",border:"1px solid rgba(254,212,0,.2)",borderRadius:14,padding:m?12:16,marginBottom:m?12:20,fontSize:m?13:14}}>
+            <p style={{color:"#fed400",marginBottom:8}}>⏳ {t("طلبك في مرحلة المراجعة. في انتظار موافقة الادمن.", "Your request is under review. Waiting for admin approval.")}</p>
+            {csData?.whatsapp && (
+              <a href={formatWhatsAppLink(csData.whatsapp)} target="_blank" rel="noopener noreferrer"
+                style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 14px",background:"rgba(37,211,102,.15)",border:"1px solid rgba(37,211,102,.3)",borderRadius:10,color:"#25d366",fontWeight:700,fontSize:m?12:13,textDecoration:"none",marginTop:4}}>
+                💬 {t("تواصل مع خدمة العملاء", "Contact Customer Service")}
+              </a>
+            )}
           </div>
         )}
 
-        {!isEnrolled && !isPending && !isFree && !isStudentAccount && (
+        {!isEnrolled && !isPending && !isFree && (
           <div style={{textAlign:"center",padding:m?"12px 0":"16px 0",marginBottom:m?12:20}}>
             {!user ? (
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:m?10:14}}>
@@ -300,7 +301,13 @@ export default function CourseViewPage() {
               <>
                 {(user?.e_money || 0) < course.price && (
                   <div style={{background:"rgba(255,91,91,.1)",border:"1px solid rgba(255,91,91,.2)",borderRadius:14,padding:m?10:12,marginBottom:m?10:16,color:"#ff5b5b",fontSize:m?12:13}}>
-                    ⚠️ {t("رصيد E-Money الحالي", "Current E-Money balance")} ({user?.e_money || 0}) {t("لا يكفي لشراء هذا الكورس", "is not enough to purchase this course")} ({course.price}). {t("يرجى شحن رصيدك أو استخدام طريقة دفع أخرى.", "Please top up your balance or use another payment method.")}
+                    ⚠️ {t("رصيد E-Money الحالي", "Current E-Money balance")} ({user?.e_money || 0}) {t("لا يكفي لشراء هذا الكورس", "is not enough to purchase this course")} ({course.price} E-Money). {t("يرجى التواصل مع خدمة العملاء لشحن رصيدك.", "Please contact customer service to top up your balance.")}
+                    {csData?.whatsapp && (
+                      <a href={formatWhatsAppLink(csData.whatsapp)} target="_blank" rel="noopener noreferrer"
+                        style={{display:"inline-flex",alignItems:"center",gap:4,marginLeft:6,padding:"3px 10px",background:"rgba(37,211,102,.15)",border:"1px solid rgba(37,211,102,.3)",borderRadius:8,color:"#25d366",fontWeight:700,fontSize:m?11:12,textDecoration:"none"}}>
+                        💬 {t("تواصل مع خدمة العملاء", "Contact CS")}
+                      </a>
+                    )}
                   </div>
                 )}
                 {balanceError && <p style={{color:"#ff5b5b",fontSize:m?12:13,marginBottom:10}}>{balanceError}</p>}

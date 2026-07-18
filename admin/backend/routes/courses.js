@@ -365,15 +365,19 @@ router.post("/:id/purchase", async (req, res) => {
     const price = course.price || 0;
     const method = payment_method || "emoney";
 
-    // Handle payment
+    // Handle payment — deduct E-Money only for approved (free/admin), NOT for pending
     if (method === "emoney") {
       if (price > 0 && (user.e_money || 0) < price) return res.status(400).json({ error: "Insufficient E-Money balance" });
-      if (price > 0) await execute("UPDATE users SET e_money = e_money - ? WHERE id = ?", [price, userId]);
     }
 
     const isFree = price === 0 || method === "vodafone" || method === "instapay" || method === "admin";
     const enrollmentId = uuidv4();
     const status = (method === "admin" || price === 0) ? "approved" : "pending";
+
+    // Deduct E-Money only if approved immediately (free or admin)
+    if (method === "emoney" && price > 0 && status === "approved") {
+      await execute("UPDATE users SET e_money = e_money - ? WHERE id = ?", [price, userId]);
+    }
 
     if (existing && existing.status === "rejected") {
       // Reuse the old enrollment row — update it to pending
@@ -473,8 +477,14 @@ async function incrementTeamSales(userId, excludeEnrollmentId) {
 router.put("/enrollments/:id/approve", async (req, res) => {
   const enrollment = await queryOne("SELECT * FROM enrollments WHERE id = ?", [req.params.id]);
   if (!enrollment) return res.status(404).json({ error: "Enrollment not found" });
-  const course = await queryOne("SELECT title_ar, title FROM courses WHERE id = ?", [enrollment.course_id]);
+  const course = await queryOne("SELECT title_ar, title, price FROM courses WHERE id = ?", [enrollment.course_id]);
   await execute("UPDATE enrollments SET status = 'approved' WHERE id = ?", [req.params.id]);
+
+  // Deduct E-Money on approval (if emoney payment and price > 0)
+  if (enrollment.payment_method === "emoney" && course?.price > 0) {
+    await execute("UPDATE users SET e_money = e_money - ? WHERE id = ?", [course.price, enrollment.user_id]);
+  }
+
   const pendingTx = await queryOne("SELECT id FROM wallet_transactions WHERE user_id = ? AND type = 'debit' AND status = 'pending' ORDER BY created_at DESC LIMIT 1", [enrollment.user_id]);
   if (pendingTx) await execute("UPDATE wallet_transactions SET status = 'completed' WHERE id = ?", [pendingTx.id]);
   const nid = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type, related_id) VALUES (?, ?, ?, ?, 'success', ?)", [nid, enrollment.user_id, "✅ تم الموافقة على الاشتراك", `تم تأكيد اشتراكك في ${course?.title_ar || course?.title || "الكورس"}`, enrollment.course_id]);
