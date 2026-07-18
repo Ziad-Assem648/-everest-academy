@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { useLang } from "../LangContext";
@@ -91,84 +91,7 @@ export default function HomePage() {
   const s = makeStyles(c, m);
   const nav = useNavigate();
   const loc = useLocation();
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatSidebar, setChatSidebar] = useState(false);
-  const [chatInput, setChatInput] = useState("");
-  const [chatLoading, setChatLoading] = useState(false);
   const [dbRanks, setDbRanks] = useState([]);
-  const [conversations, setConversations] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("ea_chats")) || []; } catch { return []; }
-  });
-  const [activeConvId, setActiveConvId] = useState(null);
-  const chatRef = useRef(null);
-
-  const activeConv = conversations.find(c => c.id === activeConvId) || null;
-  const chatMsgs = activeConv?.messages || [];
-
-  const saveConvs = (convs) => {
-    setConversations(convs);
-    localStorage.setItem("ea_chats", JSON.stringify(convs));
-  };
-
-  const newChat = () => {
-    setChatSidebar(false);
-    const id = Date.now().toString();
-    const conv = { id, title: t("محادثة جديدة", "New chat"), messages: [], createdAt: id };
-    saveConvs([conv, ...conversations]);
-    setActiveConvId(id);
-  };
-
-  const deleteChat = (e, id) => {
-    e.stopPropagation();
-    const convs = conversations.filter(c => c.id !== id);
-    saveConvs(convs);
-    if (activeConvId === id) setActiveConvId(convs.length > 0 ? convs[0].id : null);
-  };
-
-  const sendChat = async (preMsg) => {
-    const raw = preMsg || chatInput;
-    if (!raw.trim() || chatLoading) return;
-    const msg = raw.trim();
-    setChatInput("");
-    let convs = [...conversations];
-    let conv = convs.find(c => c.id === activeConvId);
-    if (!conv) {
-      const id = Date.now().toString();
-      conv = { id, title: msg.slice(0, 30), messages: [], createdAt: id };
-      convs.unshift(conv);
-      setActiveConvId(id);
-    }
-    if (conv.title === t("محادثة جديدة", "New chat")) conv.title = msg.slice(0, 30);
-    conv.messages.push({ role: "user", text: msg });
-    saveConvs(convs);
-    setChatLoading(true);
-    try {
-      const history = conv.messages.slice(0, -1).map(m => ({ role: m.role === "user" ? "user" : "model", text: m.text }));
-      const res = await fetch("/api/chat", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg, history })
-      });
-      const data = await res.json();
-      convs = JSON.parse(localStorage.getItem("ea_chats")) || [];
-      conv = convs.find(c => c.id === activeConvId);
-      if (conv) {
-        conv.messages.push({ role: "bot", text: data.reply || data.error || t("عذراً، حدث خطأ. حاول مرة أخرى.", "Sorry, an error occurred. Try again.") });
-        saveConvs(convs);
-      }
-    } catch {
-      convs = JSON.parse(localStorage.getItem("ea_chats")) || [];
-      conv = convs.find(c => c.id === activeConvId);
-      if (conv) {
-        conv.messages.push({ role: "bot", text: t("عذراً، حدث خطأ في الاتصال. حاول مرة أخرى.", "Sorry, a connection error occurred. Try again.") });
-        saveConvs(convs);
-      }
-    }
-    setChatLoading(false);
-  };
-
-  useEffect(() => {
-    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
-  }, [chatMsgs]);
   const [openRank, setOpenRank] = useState(0);
   const [courses, setCourses] = useState([]);
   const [modal, setModal] = useState(null);
@@ -428,85 +351,6 @@ export default function HomePage() {
 
       {/* Footer */}
       <FooterSection />
-
-      {/* AI Chat */}
-      <div className="ai-trigger" onClick={() => { setChatOpen(!chatOpen); if (!chatOpen) { if (!activeConvId && conversations.length > 0) setActiveConvId(conversations[0].id); if (conversations.length === 0) newChat(); } }}>
-        <div className="ai-ring"></div>
-        <div className="ai-core"><span>AI</span></div>
-      </div>
-      <div className={`ai-window ${chatOpen ? "open" : ""}`}>
-        <div className="ai-header">
-          <button className="ai-menu-btn" onClick={() => setChatSidebar(!chatSidebar)}>☰</button>
-          <div className="ai-header-info">
-            <div style={{textAlign:"center",flex:1}}>
-              <h5>{activeConv?.title || t("مساعد إيفرست الذكي","Everest AI Assistant")}</h5>
-              <span>{t("متصل الآن","Online now")}</span>
-            </div>
-          </div>
-          <button className="ai-new-chat-btn" onClick={newChat}>+</button>
-          <button className="ai-close" onClick={() => setChatOpen(false)}>
-            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-          </button>
-        </div>
-        <div style={{display:"flex",flex:1,overflow:"hidden"}}>
-          {chatSidebar && (
-            <div className="ai-sidebar">
-              <div className="ai-sidebar-header">
-                {t("المحادثات","Conversations")}
-              </div>
-              {conversations.map(c => (
-                <div key={c.id} className={`ai-sidebar-item ${c.id === activeConvId ? "active" : ""}`} onClick={() => { setActiveConvId(c.id); setChatSidebar(false); }}>
-                  <span className="ai-sidebar-title">{c.title}</span>
-                  <button className="ai-sidebar-del" onClick={(e) => deleteChat(e, c.id)}>✕</button>
-                </div>
-              ))}
-            </div>
-          )}
-          <div style={{flex:1,display:"flex",flexDirection:"column"}}>
-            <div className="ai-body" ref={chatRef}>
-              {chatMsgs.length === 0 && (
-                <div className="ai-welcome">
-                  <div className="ai-welcome-avatar">🏔️</div>
-                  <h4>{t("مرحباً بك!","Welcome!")}</h4>
-                  <p>{t("أنا مساعد إيفرست الذكي. اسألني عن أي شيء!","I'm the Everest AI assistant. Ask me anything!")}</p>
-                  <div className="ai-welcome-chips">
-                    <div className="ai-welcome-chip" onClick={() => sendChat("ايه هي ايفرست؟")}>{t("ما هي إيفرست؟","What is Everest?")}</div>
-                    <div className="ai-welcome-chip" onClick={() => sendChat("الكورسات")}>{t("الكورسات","Courses")}</div>
-                    <div className="ai-welcome-chip" onClick={() => sendChat("نظام الرتب")}>{t("نظام الرتب","Ranks")}</div>
-                    <div className="ai-welcome-chip" onClick={() => sendChat("طرق الدفع")}>{t("طرق الدفع","Payment")}</div>
-                  </div>
-                </div>
-              )}
-              {chatMsgs.map((m, i) => (
-                <div key={i} className={`ai-bubble ${m.role === "user" ? "user" : "bot"}`}>{m.text}</div>
-              ))}
-              {chatLoading && <div className="ai-typing"><span></span><span></span><span></span></div>}
-            </div>
-            <div className="ai-footer">
-              <div className="ai-input-wrap">
-                <label style={{flexShrink:0,width:42,height:42,borderRadius:14,background:"rgba(212,175,55,.08)",border:"1px solid rgba(212,175,55,.15)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all .3s"}}>
-                  <input type="file" accept="image/*" style={{display:"none"}} onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                      const b64 = reader.result.split(",")[1];
-                      setChatInput(prev => prev ? prev : `[${t("مرفق","Attachment")}: ${file.name}]`);
-                    };
-                    reader.readAsDataURL(file);
-                    e.target.value = "";
-                  }} />
-                  <svg viewBox="0 0 24 24" style={{width:20,height:20,fill:"none",stroke:"#d4af37","strokeWidth":2,"strokeLinecap":"round","strokeLinejoin":"round"}}><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                </label>
-                <input type="text" placeholder={t("اكتب سؤالك هنا...","Type your question here...")} value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendChat()} />
-                <button className="ai-send" onClick={() => sendChat()}>
-                  <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {modal && (
         <div onClick={() => setModal(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",backdropFilter:"blur(8px)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
