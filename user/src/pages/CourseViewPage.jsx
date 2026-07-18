@@ -86,6 +86,11 @@ export default function CourseViewPage() {
     api("/api/payment-gateways/active").then((data) => {
       if (Array.isArray(data)) setGateways(data);
     }).catch(() => {});
+    if (user?.id) {
+      api(`/api/users/${user.id}`).then((u) => {
+        login({ ...user, e_money: u.e_money });
+      }).catch(() => {});
+    }
   }, []);
 
   useEffect(() => {
@@ -310,13 +315,23 @@ export default function CourseViewPage() {
                     )}
                   </div>
                 )}
-                {balanceError && <p style={{color:"#ff5b5b",fontSize:m?12:13,marginBottom:10}}>{balanceError}</p>}
+                {balanceError && (
+                  <p style={{color:"#ff5b5b",fontSize:m?12:13,marginBottom:10,display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                    {balanceError}
+                    {csData?.whatsapp && (
+                      <a href={formatWhatsAppLink(csData.whatsapp)} target="_blank" rel="noopener noreferrer"
+                        style={{display:"inline-flex",alignItems:"center",gap:4,padding:"3px 10px",background:"rgba(37,211,102,.15)",border:"1px solid rgba(37,211,102,.3)",borderRadius:8,color:"#25d366",fontWeight:700,fontSize:m?11:12,textDecoration:"none"}}>
+                        💬 {t("تواصل مع خدمة العملاء", "Contact CS")}
+                      </a>
+                    )}
+                  </p>
+                )}
                 <div style={{display:"flex",gap:m?8:12,justifyContent:"center",flexWrap:"wrap"}}>
                   <button onClick={async () => {
-                    if ((user?.e_money || 0) < course.price) { setBalanceError(t("رصيد E-Money غير كافٍ", "Insufficient E-Money balance")); return; }
+                    if ((user?.e_money || 0) < course.price) { setBalanceError(t("رصيد E-Money غير كافٍ. تواصل مع خدمة العملاء لشحن رصيدك.", "Insufficient E-Money balance. Contact customer service to top up.")); return; }
                     setBalanceError(""); await buyCourse("emoney");
-                  }} disabled={buying}
-                    style={{padding:m?"12px 18px":"14px 26px",background:"linear-gradient(135deg,#b38728,#e2c275)",border:"none",borderRadius:12,color:"#05030a",fontWeight:800,fontSize:m?13:14,cursor:"pointer",opacity:buying?0.6:1}}>
+                  }} disabled={buying || (user?.e_money || 0) < course.price}
+                    style={{padding:m?"12px 18px":"14px 26px",background:(user?.e_money || 0) < course.price ? "#555" : "linear-gradient(135deg,#b38728,#e2c275)",border:"none",borderRadius:12,color:"#05030a",fontWeight:800,fontSize:m?13:14,cursor:(user?.e_money || 0) < course.price ? "not-allowed" : "pointer",opacity:buying?0.6:1}}>
                     {buying ? t("جاري الشراء...", "Purchasing...") : `💳 ${t("اشتري بـ", "Buy for")} ${course.price} E-Money`}
                   </button>
                 </div>
