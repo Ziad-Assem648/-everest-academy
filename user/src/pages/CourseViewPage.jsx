@@ -280,8 +280,8 @@ export default function CourseViewPage() {
         {isPending && (
           <div style={{background:"rgba(254,212,0,.08)",border:"1px solid rgba(254,212,0,.2)",borderRadius:14,padding:m?12:16,marginBottom:m?12:20,fontSize:m?13:14}}>
             <p style={{color:"#fed400",marginBottom:8}}>⏳ {t("طلبك في مرحلة المراجعة. في انتظار موافقة الادمن.", "Your request is under review. Waiting for admin approval.")}</p>
-            {csData?.whatsapp && (
-              <a href={formatWhatsAppLink(csData.whatsapp)} target="_blank" rel="noopener noreferrer"
+            {csData?.customer_service_whatsapp && (
+              <a href={formatWhatsAppLink(csData.customer_service_whatsapp)} target="_blank" rel="noopener noreferrer"
                 style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 14px",background:"rgba(37,211,102,.15)",border:"1px solid rgba(37,211,102,.3)",borderRadius:10,color:"#25d366",fontWeight:700,fontSize:m?12:13,textDecoration:"none",marginTop:4}}>
                 💬 {t("تواصل مع خدمة العملاء", "Contact Customer Service")}
               </a>
@@ -307,8 +307,8 @@ export default function CourseViewPage() {
                 {(user?.e_money || 0) < course.price && (
                   <div style={{background:"rgba(255,91,91,.1)",border:"1px solid rgba(255,91,91,.2)",borderRadius:14,padding:m?10:12,marginBottom:m?10:16,color:"#ff5b5b",fontSize:m?12:13}}>
                     ⚠️ {t("رصيد E-Money الحالي", "Current E-Money balance")} ({user?.e_money || 0}) {t("لا يكفي لشراء هذا الكورس", "is not enough to purchase this course")} ({course.price} E-Money). {t("يرجى التواصل مع خدمة العملاء لشحن رصيدك.", "Please contact customer service to top up your balance.")}
-                    {csData?.whatsapp && (
-                      <a href={formatWhatsAppLink(csData.whatsapp)} target="_blank" rel="noopener noreferrer"
+                    {csData?.customer_service_whatsapp && (
+                      <a href={formatWhatsAppLink(csData.customer_service_whatsapp)} target="_blank" rel="noopener noreferrer"
                         style={{display:"inline-flex",alignItems:"center",gap:4,marginLeft:6,padding:"3px 10px",background:"rgba(37,211,102,.15)",border:"1px solid rgba(37,211,102,.3)",borderRadius:8,color:"#25d366",fontWeight:700,fontSize:m?11:12,textDecoration:"none"}}>
                         💬 {t("تواصل مع خدمة العملاء", "Contact CS")}
                       </a>
@@ -318,8 +318,8 @@ export default function CourseViewPage() {
                 {balanceError && (
                   <p style={{color:"#ff5b5b",fontSize:m?12:13,marginBottom:10,display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
                     {balanceError}
-                    {csData?.whatsapp && (
-                      <a href={formatWhatsAppLink(csData.whatsapp)} target="_blank" rel="noopener noreferrer"
+                    {csData?.customer_service_whatsapp && (
+                      <a href={formatWhatsAppLink(csData.customer_service_whatsapp)} target="_blank" rel="noopener noreferrer"
                         style={{display:"inline-flex",alignItems:"center",gap:4,padding:"3px 10px",background:"rgba(37,211,102,.15)",border:"1px solid rgba(37,211,102,.3)",borderRadius:8,color:"#25d366",fontWeight:700,fontSize:m?11:12,textDecoration:"none"}}>
                         💬 {t("تواصل مع خدمة العملاء", "Contact CS")}
                       </a>
