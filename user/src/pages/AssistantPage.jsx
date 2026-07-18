@@ -145,6 +145,13 @@ export default function AssistantPage() {
             display: "flex", alignItems: "center", gap: 12, padding: m ? "12px 14px" : "16px 20px",
             background: c.bgCard, borderBottom: `1px solid ${c.borderLight}`, flexShrink: 0
           }}>
+            <button onClick={() => nav(-1)} title={t("خروج", "Exit")} style={{
+              width: 40, height: 40, borderRadius: 12, border: `1px solid ${c.borderLight}`,
+              background: c.bgInput, color: c.text, fontSize: 18, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center"
+            }}>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+            </button>
             <button onClick={() => setChatSidebar(!chatSidebar)} style={{
               width: 40, height: 40, borderRadius: 12, border: `1px solid ${c.borderLight}`,
               background: c.bgInput, color: c.text, fontSize: 18, cursor: "pointer",
