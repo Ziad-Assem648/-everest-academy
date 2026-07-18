@@ -33,15 +33,14 @@ export default function LoginPage() {
   const [err, setErr] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [forgotStep, setForgotStep] = useState(0); // 0=off, 1=phone, 2=otp, 3=newPass
-  const [forgotPhone, setForgotPhone] = useState("");
+  const [forgotStep, setForgotStep] = useState(0); // 0=off, 1=email, 2=otp, 3=newPass
+  const [forgotEmail, setForgotEmail] = useState("");
   const [forgotOtp, setForgotOtp] = useState("");
   const [forgotNewPass, setForgotNewPass] = useState("");
   const [forgotConfirmPass, setForgotConfirmPass] = useState("");
   const [forgotErr, setForgotErr] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSuccess, setForgotSuccess] = useState(false);
-  const [sentOtp, setSentOtp] = useState("");
   const emailRef = useRef(null);
   const passRef = useRef(null);
 
@@ -85,11 +84,10 @@ export default function LoginPage() {
   const gold = "#d4af37";
 
   const handleForgotRequestOTP = async () => {
-    if (!forgotPhone.trim()) { setForgotErr(t("أدخل رقم الهاتف", "Enter your phone number")); return; }
+    if (!forgotEmail.trim()) { setForgotErr(t("أدخل بريدك الإلكتروني", "Enter your email")); return; }
     setForgotLoading(true); setForgotErr("");
     try {
-      const res = await api("/api/auth/forgot-password", { method: "POST", body: JSON.stringify({ phone: forgotPhone.trim() }) });
-      setSentOtp(res.otp_for_testing || "");
+      await api("/api/auth/forgot-password", { method: "POST", body: JSON.stringify({ email: forgotEmail.trim() }) });
       setForgotStep(2);
     } catch (e) { setForgotErr(e.message || t("حدث خطأ", "Error")); }
     setForgotLoading(false);
@@ -99,7 +97,7 @@ export default function LoginPage() {
     if (!forgotOtp.trim() || forgotOtp.trim().length !== 6) { setForgotErr(t("أدخل كود OTP صحيح", "Enter valid OTP")); return; }
     setForgotLoading(true); setForgotErr("");
     try {
-      await api("/api/auth/verify-otp", { method: "POST", body: JSON.stringify({ phone: forgotPhone.trim(), otp: forgotOtp.trim() }) });
+      await api("/api/auth/verify-otp", { method: "POST", body: JSON.stringify({ email: forgotEmail.trim(), otp: forgotOtp.trim() }) });
       setForgotStep(3);
     } catch (e) { setForgotErr(e.message || t("الكود غير صحيح", "Invalid code")); }
     setForgotLoading(false);
@@ -110,13 +108,13 @@ export default function LoginPage() {
     if (forgotNewPass !== forgotConfirmPass) { setForgotErr(t("كلمتا المرور غير متطابقتين", "Passwords do not match")); return; }
     setForgotLoading(true); setForgotErr("");
     try {
-      await api("/api/auth/reset-password", { method: "POST", body: JSON.stringify({ phone: forgotPhone.trim(), otp: forgotOtp.trim(), new_password: forgotNewPass }) });
+      await api("/api/auth/reset-password", { method: "POST", body: JSON.stringify({ email: forgotEmail.trim(), otp: forgotOtp.trim(), new_password: forgotNewPass }) });
       setForgotSuccess(true);
     } catch (e) { setForgotErr(e.message || t("حدث خطأ", "Error")); }
     setForgotLoading(false);
   };
 
-  const resetForgot = () => { setForgotStep(0); setForgotPhone(""); setForgotOtp(""); setForgotNewPass(""); setForgotConfirmPass(""); setForgotErr(""); setForgotSuccess(false); setSentOtp(""); };
+  const resetForgot = () => { setForgotStep(0); setForgotEmail(""); setForgotOtp(""); setForgotNewPass(""); setForgotConfirmPass(""); setForgotErr(""); setForgotSuccess(false); };
 
   const forgotModal = forgotStep > 0 ? (
     <div key="forgot-modal" style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,.6)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
@@ -133,12 +131,12 @@ export default function LoginPage() {
           </div>
         ) : forgotStep === 1 ? (
           <div>
-            <div style={{ fontSize: 36, marginBottom: 10 }}>📱</div>
+            <div style={{ fontSize: 36, marginBottom: 10 }}>📧</div>
             <h3 style={{ fontSize: 17, fontWeight: 800, color: c.text, marginBottom: 6 }}>{t("نسيت كلمة المرور؟", "Forgot Password?")}</h3>
-            <p style={{ fontSize: 13, color: c.textMuted, marginBottom: 18, lineHeight: 1.6 }}>{t("أدخل رقم الهاتف المرتبط بحسابك وسنرسل لك كود التحقق.", "Enter the phone number linked to your account and we'll send you a verification code.")}</p>
+            <p style={{ fontSize: 13, color: c.textMuted, marginBottom: 18, lineHeight: 1.6 }}>{t("أدخل بريدك الإلكتروني المرتبط بحسابك وسنرسل لك كود التحقق.", "Enter the email linked to your account and we'll send you a verification code.")}</p>
             {forgotErr && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 10, padding: "8px 12px", marginBottom: 14, color: c.error || "#ef4444", fontSize: 12, textAlign: "center" }}>⚠️ {forgotErr}</div>}
-            <input type="tel" placeholder={t("رقم الهاتف", "Phone number")} value={forgotPhone} onChange={e => { setForgotPhone(e.target.value); setForgotErr(""); }}
-              style={{ width: "100%", padding: "14px 16px", borderRadius: 14, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 15, outline: "none", boxSizing: "border-box", marginBottom: 16, direction: "ltr", textAlign: "center", letterSpacing: 2 }}
+            <input type="email" placeholder={t("البريد الإلكتروني", "Email address")} value={forgotEmail} onChange={e => { setForgotEmail(e.target.value); setForgotErr(""); }}
+              style={{ width: "100%", padding: "14px 16px", borderRadius: 14, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 15, outline: "none", boxSizing: "border-box", marginBottom: 16, direction: "ltr", textAlign: "center", letterSpacing: 1 }}
               onFocus={e => e.target.style.borderColor = gold} onBlur={e => e.target.style.borderColor = c.border} />
             <button onClick={handleForgotRequestOTP} disabled={forgotLoading} style={{ width: "100%", padding: "13px 0", borderRadius: 12, border: "none", background: forgotLoading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`, color: "#fff", fontWeight: 800, fontSize: 15, cursor: forgotLoading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {forgotLoading ? <div style={{ width: 20, height: 20, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} /> : t("إرسال الكود", "Send Code")}
@@ -148,13 +146,7 @@ export default function LoginPage() {
           <div>
             <div style={{ fontSize: 36, marginBottom: 10 }}>🔑</div>
             <h3 style={{ fontSize: 17, fontWeight: 800, color: c.text, marginBottom: 6 }}>{t("أدخل كود التحقق", "Enter Verification Code")}</h3>
-            <p style={{ fontSize: 13, color: c.textMuted, marginBottom: 18, lineHeight: 1.6 }}>{t(`تم إرسال كود من 6 أرقام إلى ${forgotPhone}`, `A 6-digit code was sent to ${forgotPhone}`)}</p>
-            {sentOtp && (
-              <div style={{ background: "rgba(212,175,55,.08)", border: "1px solid rgba(212,175,55,.2)", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 13, textAlign: "center", color: gold }}>
-                📋 {t("كود التحقق:", "Your OTP:")} <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: 4 }}>{sentOtp}</span>
-                <p style={{ margin: "6px 0 0", fontSize: 11, color: c.textMuted }}>{t("(للتجربة فقط — سيتم إرساله عبر SMS)", "(For testing only — will be sent via SMS)")}</p>
-              </div>
-            )}
+            <p style={{ fontSize: 13, color: c.textMuted, marginBottom: 18, lineHeight: 1.6 }}>{t(`تم إرسال كود من 6 أرقام إلى ${forgotEmail}`, `A 6-digit code was sent to ${forgotEmail}`)}</p>
             {forgotErr && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 10, padding: "8px 12px", marginBottom: 14, color: c.error || "#ef4444", fontSize: 12, textAlign: "center" }}>⚠️ {forgotErr}</div>}
             <input type="text" inputMode="numeric" maxLength={6} placeholder="000000" value={forgotOtp} onChange={e => { setForgotOtp(e.target.value.replace(/\D/g, "")); setForgotErr(""); }}
               style={{ width: "100%", padding: "14px 16px", borderRadius: 14, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 22, fontWeight: 700, outline: "none", boxSizing: "border-box", marginBottom: 16, direction: "ltr", textAlign: "center", letterSpacing: 12 }}

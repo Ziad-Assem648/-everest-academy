@@ -2,6 +2,7 @@ import express from "express";
 import { query, queryOne, execute } from "../db.js";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
+import { sendOTPEmail } from "../utils/email.js";
 
 const router = express.Router();
 
@@ -120,6 +121,10 @@ router.post("/register", async (req, res) => {
     const { full_name, email, phone, address, password, referral_code } = req.body;
     const existing = await queryOne("SELECT id FROM users WHERE email = ?", [email]);
     if (existing) return res.status(400).json({ error: "Email already exists" });
+    if (phone) {
+      const existingPhone = await queryOne("SELECT id FROM users WHERE phone = ?", [phone]);
+      if (existingPhone) return res.status(400).json({ error: "Phone number is already registered to another account", error_ar: "رقم الهاتف مسجل بالفعل في حساب آخر" });
+    }
 
     const id = await generateUserId();
     const code = "EVR-" + id.slice(0, 6);
@@ -159,20 +164,26 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// Forgot Password: send OTP to phone
+// Forgot Password: send OTP to email
 router.post("/forgot-password", async (req, res) => {
   try {
-    const { phone } = req.body;
-    if (!phone) return res.status(400).json({ error: "Phone number is required" });
-    const user = await queryOne("SELECT id, full_name, phone FROM users WHERE phone = ?", [phone]);
-    if (!user) return res.status(404).json({ error: "No account found with this phone number" });
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
+    const user = await queryOne("SELECT id, full_name, email FROM users WHERE email = ?", [email]);
+    if (!user) return res.status(404).json({ error: "No account found with this email" });
     if (user.blocked) return res.status(403).json({ error: "Account is blocked" });
     const otp = String(Math.floor(100000 + Math.random() * 900000));
     const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
     await execute("DELETE FROM password_resets WHERE user_id = ?", [user.id]);
     await execute("INSERT INTO password_resets (id, user_id, otp, expires_at, created_at) VALUES (?, ?, ?, ?, datetime('now','localtime'))",
       [uuidv4(), user.id, otp, expires]);
-    res.json({ success: true, message: "OTP sent to your phone", otp_for_testing: otp });
+    try {
+      await sendOTPEmail(email, otp);
+    } catch (emailErr) {
+      console.error("Email send failed:", emailErr.message);
+      return res.status(500).json({ error: "Failed to send verification email. Please try again." });
+    }
+    res.json({ success: true, message: "OTP sent to your email" });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -181,10 +192,10 @@ router.post("/forgot-password", async (req, res) => {
 // Verify OTP (step 2 of forgot password)
 router.post("/verify-otp", async (req, res) => {
   try {
-    const { phone, otp } = req.body;
-    if (!phone || !otp) return res.status(400).json({ error: "Phone and OTP are required" });
-    const user = await queryOne("SELECT id FROM users WHERE phone = ?", [phone]);
-    if (!user) return res.status(404).json({ error: "No account found with this phone number" });
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ error: "Email and OTP are required" });
+    const user = await queryOne("SELECT id FROM users WHERE email = ?", [email]);
+    if (!user) return res.status(404).json({ error: "No account found with this email" });
     const reset = await queryOne("SELECT * FROM password_resets WHERE user_id = ? AND otp = ? ORDER BY created_at DESC LIMIT 1", [user.id, otp]);
     if (!reset) return res.status(400).json({ error: "Invalid OTP code" });
     if (new Date(reset.expires_at) < new Date()) {
@@ -200,11 +211,11 @@ router.post("/verify-otp", async (req, res) => {
 // Reset Password: set new password (after OTP verified)
 router.post("/reset-password", async (req, res) => {
   try {
-    const { phone, otp, new_password } = req.body;
-    if (!phone || !otp || !new_password) return res.status(400).json({ error: "All fields are required" });
+    const { email, otp, new_password } = req.body;
+    if (!email || !otp || !new_password) return res.status(400).json({ error: "All fields are required" });
     if (new_password.length < 6) return res.status(400).json({ error: "Password must be at least 6 characters" });
-    const user = await queryOne("SELECT id FROM users WHERE phone = ?", [phone]);
-    if (!user) return res.status(404).json({ error: "No account found with this phone number" });
+    const user = await queryOne("SELECT id FROM users WHERE email = ?", [email]);
+    if (!user) return res.status(404).json({ error: "No account found with this email" });
     const reset = await queryOne("SELECT * FROM password_resets WHERE user_id = ? AND otp = ? ORDER BY created_at DESC LIMIT 1", [user.id, otp]);
     if (!reset) return res.status(400).json({ error: "Invalid OTP code" });
     if (new Date(reset.expires_at) < new Date()) {
