@@ -248,6 +248,12 @@ function createSchema(driver, isTursoDb) {
       created_at TEXT DEFAULT (datetime('now','localtime')),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )`,
+    `CREATE TABLE IF NOT EXISTS password_resets (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL, otp TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now','localtime')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`,
     `CREATE TABLE IF NOT EXISTS weekly_history (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,

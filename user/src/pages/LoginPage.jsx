@@ -33,6 +33,14 @@ export default function LoginPage() {
   const [err, setErr] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [forgotStep, setForgotStep] = useState(0); // 0=off, 1=phone, 2=otp, 3=newPass
+  const [forgotPhone, setForgotPhone] = useState("");
+  const [forgotOtp, setForgotOtp] = useState("");
+  const [forgotNewPass, setForgotNewPass] = useState("");
+  const [forgotConfirmPass, setForgotConfirmPass] = useState("");
+  const [forgotErr, setForgotErr] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
   const emailRef = useRef(null);
   const passRef = useRef(null);
 
@@ -74,6 +82,102 @@ export default function LoginPage() {
   };
 
   const gold = "#d4af37";
+
+  const handleForgotRequestOTP = async () => {
+    if (!forgotPhone.trim()) { setForgotErr(t("أدخل رقم الهاتف", "Enter your phone number")); return; }
+    setForgotLoading(true); setForgotErr("");
+    try {
+      await api("/api/auth/forgot-password", { method: "POST", body: JSON.stringify({ phone: forgotPhone.trim() }) });
+      setForgotStep(2);
+    } catch (e) { setForgotErr(e.message || t("حدث خطأ", "Error")); }
+    setForgotLoading(false);
+  };
+
+  const handleForgotVerifyOTP = async () => {
+    if (!forgotOtp.trim() || forgotOtp.trim().length !== 6) { setForgotErr(t("أدخل كود OTP صحيح", "Enter valid OTP")); return; }
+    setForgotLoading(true); setForgotErr("");
+    try {
+      await api("/api/auth/verify-otp", { method: "POST", body: JSON.stringify({ phone: forgotPhone.trim(), otp: forgotOtp.trim() }) });
+      setForgotStep(3);
+    } catch (e) { setForgotErr(e.message || t("الكود غير صحيح", "Invalid code")); }
+    setForgotLoading(false);
+  };
+
+  const handleForgotResetPassword = async () => {
+    if (!forgotNewPass || forgotNewPass.length < 6) { setForgotErr(t("كلمة المرور يجب أن تكون 6 أحرف على الأقل", "Password must be at least 6 characters")); return; }
+    if (forgotNewPass !== forgotConfirmPass) { setForgotErr(t("كلمتا المرور غير متطابقتين", "Passwords do not match")); return; }
+    setForgotLoading(true); setForgotErr("");
+    try {
+      await api("/api/auth/reset-password", { method: "POST", body: JSON.stringify({ phone: forgotPhone.trim(), otp: forgotOtp.trim(), new_password: forgotNewPass }) });
+      setForgotSuccess(true);
+    } catch (e) { setForgotErr(e.message || t("حدث خطأ", "Error")); }
+    setForgotLoading(false);
+  };
+
+  const resetForgot = () => { setForgotStep(0); setForgotPhone(""); setForgotOtp(""); setForgotNewPass(""); setForgotConfirmPass(""); setForgotErr(""); setForgotSuccess(false); };
+
+  const ForgotModal = () => {
+    if (!forgotStep) return null;
+    return (
+      <div onClick={resetForgot} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,.6)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+        <div onClick={e => e.stopPropagation()} style={{ background: c.bgCard, border: `1px solid ${c.borderLight}`, borderRadius: 20, padding: m ? "24px 18px" : "32px 28px", width: "100%", maxWidth: 420, position: "relative" }}>
+          <button onClick={resetForgot} style={{ position: "absolute", top: 14, left: 14, background: c.bgInput, border: `1px solid ${c.borderLight}`, borderRadius: "50%", width: 32, height: 32, cursor: "pointer", fontSize: 14, color: c.text, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+          {forgotSuccess ? (
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: c.text, marginBottom: 8 }}>{t("تم تغيير كلمة المرور!", "Password changed!")}</h3>
+              <p style={{ fontSize: 13, color: c.textMuted, marginBottom: 20 }}>{t("يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.", "You can now login with your new password.")}</p>
+              <button onClick={resetForgot} style={{ width: "100%", padding: "12px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${gold}, ${gold}cc)`, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+                {t("تسجيل الدخول", "Login")}
+              </button>
+            </div>
+          ) : forgotStep === 1 ? (
+            <div>
+              <div style={{ fontSize: 36, marginBottom: 10 }}>📱</div>
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: c.text, marginBottom: 6 }}>{t("نسيت كلمة المرور؟", "Forgot Password?")}</h3>
+              <p style={{ fontSize: 13, color: c.textMuted, marginBottom: 18, lineHeight: 1.6 }}>{t("أدخل رقم الهاتف المرتبط بحسابك وسنرسل لك كود التحقق.", "Enter the phone number linked to your account and we'll send you a verification code.")}</p>
+              {forgotErr && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 10, padding: "8px 12px", marginBottom: 14, color: c.error || "#ef4444", fontSize: 12, textAlign: "center" }}>⚠️ {forgotErr}</div>}
+              <input type="tel" placeholder={t("رقم الهاتف", "Phone number")} value={forgotPhone} onChange={e => { setForgotPhone(e.target.value); setForgotErr(""); }}
+                style={{ width: "100%", padding: "14px 16px", borderRadius: 14, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 15, outline: "none", boxSizing: "border-box", marginBottom: 16, direction: "ltr", textAlign: "center", letterSpacing: 2 }}
+                onFocus={e => e.target.style.borderColor = gold} onBlur={e => e.target.style.borderColor = c.border} />
+              <button onClick={handleForgotRequestOTP} disabled={forgotLoading} style={{ width: "100%", padding: "13px 0", borderRadius: 12, border: "none", background: forgotLoading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`, color: "#fff", fontWeight: 800, fontSize: 15, cursor: forgotLoading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                {forgotLoading ? <div style={{ width: 20, height: 20, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} /> : t("إرسال الكود", "Send Code")}
+              </button>
+            </div>
+          ) : forgotStep === 2 ? (
+            <div>
+              <div style={{ fontSize: 36, marginBottom: 10 }}>🔑</div>
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: c.text, marginBottom: 6 }}>{t("أدخل كود التحقق", "Enter Verification Code")}</h3>
+              <p style={{ fontSize: 13, color: c.textMuted, marginBottom: 18, lineHeight: 1.6 }}>{t(`تم إرسال كود من 6 أرقام إلى ${forgotPhone}`, `A 6-digit code was sent to ${forgotPhone}`)}</p>
+              {forgotErr && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 10, padding: "8px 12px", marginBottom: 14, color: c.error || "#ef4444", fontSize: 12, textAlign: "center" }}>⚠️ {forgotErr}</div>}
+              <input type="text" inputMode="numeric" maxLength={6} placeholder="000000" value={forgotOtp} onChange={e => { setForgotOtp(e.target.value.replace(/\D/g, "")); setForgotErr(""); }}
+                style={{ width: "100%", padding: "14px 16px", borderRadius: 14, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 22, fontWeight: 700, outline: "none", boxSizing: "border-box", marginBottom: 16, direction: "ltr", textAlign: "center", letterSpacing: 12 }}
+                onFocus={e => e.target.style.borderColor = gold} onBlur={e => e.target.style.borderColor = c.border} />
+              <button onClick={handleForgotVerifyOTP} disabled={forgotLoading} style={{ width: "100%", padding: "13px 0", borderRadius: 12, border: "none", background: forgotLoading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`, color: "#fff", fontWeight: 800, fontSize: 15, cursor: forgotLoading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                {forgotLoading ? <div style={{ width: 20, height: 20, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} /> : t("تحقق", "Verify")}
+              </button>
+            </div>
+          ) : forgotStep === 3 ? (
+            <div>
+              <div style={{ fontSize: 36, marginBottom: 10 }}>🔒</div>
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: c.text, marginBottom: 6 }}>{t("كلمة مرور جديدة", "New Password")}</h3>
+              <p style={{ fontSize: 13, color: c.textMuted, marginBottom: 18 }}>{t("أدخل كلمة المرور الجديدة لحسابك.", "Enter the new password for your account.")}</p>
+              {forgotErr && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 10, padding: "8px 12px", marginBottom: 14, color: c.error || "#ef4444", fontSize: 12, textAlign: "center" }}>⚠️ {forgotErr}</div>}
+              <input type="password" placeholder={t("كلمة المرور الجديدة", "New password")} value={forgotNewPass} onChange={e => { setForgotNewPass(e.target.value); setForgotErr(""); }}
+                style={{ width: "100%", padding: "14px 16px", borderRadius: 14, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 15, outline: "none", boxSizing: "border-box", marginBottom: 12 }}
+                onFocus={e => e.target.style.borderColor = gold} onBlur={e => e.target.style.borderColor = c.border} />
+              <input type="password" placeholder={t("تأكيد كلمة المرور", "Confirm password")} value={forgotConfirmPass} onChange={e => { setForgotConfirmPass(e.target.value); setForgotErr(""); }}
+                style={{ width: "100%", padding: "14px 16px", borderRadius: 14, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 15, outline: "none", boxSizing: "border-box", marginBottom: 16 }}
+                onFocus={e => e.target.style.borderColor = gold} onBlur={e => e.target.style.borderColor = c.border} />
+              <button onClick={handleForgotResetPassword} disabled={forgotLoading} style={{ width: "100%", padding: "13px 0", borderRadius: 12, border: "none", background: forgotLoading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`, color: "#fff", fontWeight: 800, fontSize: 15, cursor: forgotLoading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                {forgotLoading ? <div style={{ width: 20, height: 20, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} /> : t("تغيير كلمة المرور", "Change Password")}
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
+  };
 
   // ─── MOBILE LAYOUT ───
   if (m) {
@@ -163,11 +267,11 @@ export default function LoginPage() {
             {/* Email */}
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
-                {t("البريد الإلكتروني / الهاتف", "Email / Phone")}
+                {t("البريد الإلكتروني", "Email")}
               </label>
               <input
                 type="text" required
-                placeholder={t("أدخل بريدك أو رقم الهاتف", "Enter email or phone")}
+                placeholder={t("أدخل بريدك الإلكتروني", "Enter your email")}
                 ref={emailRef} readOnly autoComplete="off"
                 value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
                 style={{
@@ -218,7 +322,7 @@ export default function LoginPage() {
                   style={{ width: 15, height: 15, accentColor: gold }} />
                 <span style={{ fontSize: 12, color: c.textSoft }}>{t("إظهار الباسورد", "Show")}</span>
               </label>
-              <a href="#" style={{ fontSize: 12, color: gold, textDecoration: "none", fontWeight: 600 }}>
+              <a href="#" onClick={(e) => { e.preventDefault(); setForgotStep(1); }} style={{ fontSize: 12, color: gold, textDecoration: "none", fontWeight: 600 }}>
                 {t("نسيت كلمة المرور؟", "Forgot?")}
               </a>
             </div>
@@ -251,6 +355,7 @@ export default function LoginPage() {
             </p>
           </div>
         </div>
+        <ForgotModal />
       </div>
     );
   }
@@ -418,11 +523,11 @@ export default function LoginPage() {
               {/* Email */}
               <div style={{ marginBottom: 18 }}>
                 <label style={{ display: "block", marginBottom: 8, fontSize: 13, fontWeight: 700, color: c.text }}>
-                  {t("البريد الإلكتروني / الهاتف", "Email / Phone")}
+                  {t("البريد الإلكتروني", "Email")}
                 </label>
                 <input
                   type="text" required
-                  placeholder={t("أدخل بريدك الإلكتروني أو رقم الهاتف", "Enter your email or phone")}
+                  placeholder={t("أدخل بريدك الإلكتروني", "Enter your email")}
                   ref={emailRef} readOnly autoComplete="off"
                   value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
                   style={{
@@ -475,7 +580,7 @@ export default function LoginPage() {
                     style={{ width: 16, height: 16, accentColor: gold }} />
                   <span style={{ fontSize: 13, color: c.textSoft }}>{t("إظهار الباسورد", "Show Password")}</span>
                 </label>
-                <a href="#" style={{ fontSize: 13, color: gold, textDecoration: "none", fontWeight: 600 }}>
+                <a href="#" onClick={(e) => { e.preventDefault(); setForgotStep(1); }} style={{ fontSize: 13, color: gold, textDecoration: "none", fontWeight: 600 }}>
                   {t("نسيت كلمة المرور؟", "Forgot Password?")}
                 </a>
               </div>
@@ -516,6 +621,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      <ForgotModal />
     </>
   );
 }

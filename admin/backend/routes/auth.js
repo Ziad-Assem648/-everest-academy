@@ -159,4 +159,65 @@ router.post("/register", async (req, res) => {
   }
 });
 
+// Forgot Password: send OTP to phone
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ error: "Phone number is required" });
+    const user = await queryOne("SELECT id, full_name, phone FROM users WHERE phone = ?", [phone]);
+    if (!user) return res.status(404).json({ error: "No account found with this phone number" });
+    if (user.blocked) return res.status(403).json({ error: "Account is blocked" });
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    await execute("DELETE FROM password_resets WHERE user_id = ?", [user.id]);
+    await execute("INSERT INTO password_resets (id, user_id, otp, expires_at, created_at) VALUES (?, ?, ?, ?, datetime('now','localtime'))",
+      [uuidv4(), user.id, otp, expires]);
+    res.json({ success: true, message: "OTP sent to your phone", otp_for_testing: otp });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Verify OTP (step 2 of forgot password)
+router.post("/verify-otp", async (req, res) => {
+  try {
+    const { phone, otp } = req.body;
+    if (!phone || !otp) return res.status(400).json({ error: "Phone and OTP are required" });
+    const user = await queryOne("SELECT id FROM users WHERE phone = ?", [phone]);
+    if (!user) return res.status(404).json({ error: "No account found with this phone number" });
+    const reset = await queryOne("SELECT * FROM password_resets WHERE user_id = ? AND otp = ? ORDER BY created_at DESC LIMIT 1", [user.id, otp]);
+    if (!reset) return res.status(400).json({ error: "Invalid OTP code" });
+    if (new Date(reset.expires_at) < new Date()) {
+      await execute("DELETE FROM password_resets WHERE user_id = ?", [user.id]);
+      return res.status(400).json({ error: "OTP code has expired. Please request a new one." });
+    }
+    res.json({ success: true, message: "OTP verified" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Reset Password: set new password (after OTP verified)
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { phone, otp, new_password } = req.body;
+    if (!phone || !otp || !new_password) return res.status(400).json({ error: "All fields are required" });
+    if (new_password.length < 6) return res.status(400).json({ error: "Password must be at least 6 characters" });
+    const user = await queryOne("SELECT id FROM users WHERE phone = ?", [phone]);
+    if (!user) return res.status(404).json({ error: "No account found with this phone number" });
+    const reset = await queryOne("SELECT * FROM password_resets WHERE user_id = ? AND otp = ? ORDER BY created_at DESC LIMIT 1", [user.id, otp]);
+    if (!reset) return res.status(400).json({ error: "Invalid OTP code" });
+    if (new Date(reset.expires_at) < new Date()) {
+      await execute("DELETE FROM password_resets WHERE user_id = ?", [user.id]);
+      return res.status(400).json({ error: "OTP code has expired. Please request a new one." });
+    }
+    const hashed = await bcrypt.hash(new_password, 10);
+    await execute("UPDATE users SET password = ? WHERE id = ?", [hashed, user.id]);
+    await execute("DELETE FROM password_resets WHERE user_id = ?", [user.id]);
+    res.json({ success: true, message: "Password reset successfully" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 export default router;
