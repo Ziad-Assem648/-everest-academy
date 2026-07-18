@@ -67,6 +67,13 @@ export default function AppNavbar() {
     return loc.pathname === p;
   };
 
+  const getNavLabel = (item) => {
+    if (item.to === "/courses" && user?.account_type === "student") {
+      return t("ماي كورسيس", "My Courses");
+    }
+    return t(item.label_ar, item.label_en);
+  };
+
   return (
     <>
       {/* Mobile Header (phone only) */}
@@ -125,7 +132,7 @@ export default function AppNavbar() {
                   borderBottom: active ? `2px solid ${c.primary}` : "2px solid transparent",
                   marginBottom: -2, letterSpacing: "0.2px"
               }}>
-                {t(item.label_ar, item.label_en)}
+                {getNavLabel(item)}
               </Link>
             );
           })}
@@ -179,7 +186,7 @@ export default function AppNavbar() {
               }}>
                 <span className="tab-icon"><i className={item.icon} style={{fontSize:18}}></i></span>
                 <span className="tab-label" style={{color: active ? "#d4af37" : c.textMuted}}>
-                  {t(item.label_ar, item.label_en)}
+                  {getNavLabel(item)}
                 </span>
                 {active && (
                   <div style={{
