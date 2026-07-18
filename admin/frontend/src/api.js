@@ -42,14 +42,17 @@ const BUNNY_API_KEY = "3d6b2748-5547-4c92-af11-1ddbc5a6ea9aa5f2d9a9-54d0-460f-98
 const BUNNY_CDN_HOST = `${BUNNY_LIBRARY_ID}.b-cdn.net`;
 
 export async function uploadVideoToBunny(file, onProgress) {
-  const createRes = await fetch(`https://video.bunnycdn.com/library/${BUNNY_LIBRARY_ID}/videos`, {
+  const h = getAdminHeaders();
+  const createRes = await fetch(`${BACKEND_URL}/api/bunny/create`, {
     method: "POST",
-    headers: { "ContentKey": BUNNY_API_KEY, "Content-Type": "application/json" },
+    headers: { ...h, "Content-Type": "application/json" },
     body: JSON.stringify({ title: file.name }),
   });
   if (!createRes.ok) throw new Error("Failed to create video entry");
-  const videoData = await createRes.json();
-  const videoId = videoData.guid;
+  const { videoId } = await createRes.json();
+
+  const formData = new FormData();
+  formData.append("file", file);
 
   await new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -58,10 +61,9 @@ export async function uploadVideoToBunny(file, onProgress) {
     });
     xhr.addEventListener("load", () => { if (xhr.status >= 200 && xhr.status < 300) resolve(); else reject(new Error("Upload failed")); });
     xhr.addEventListener("error", () => reject(new Error("Upload failed")));
-    xhr.open("PUT", `https://video.bunnycdn.com/library/${BUNNY_LIBRARY_ID}/videos/${videoId}`);
-    xhr.setRequestHeader("ContentKey", BUNNY_API_KEY);
-    xhr.setRequestHeader("Content-Type", "application/octet-stream");
-    xhr.send(file);
+    xhr.open("POST", `${BACKEND_URL}/api/bunny/upload/${videoId}`);
+    Object.entries(h).forEach(([k, v]) => { if (k !== "Content-Type") xhr.setRequestHeader(k, v); });
+    xhr.send(formData);
   });
 
   return `https://${BUNNY_CDN_HOST}/${videoId}/playlist.m3u8`;

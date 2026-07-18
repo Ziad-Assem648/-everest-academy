@@ -108,6 +108,7 @@ import feedbacksRoutes from "./routes/feedbacks.js";
 import proofsRoutes from "./routes/proofs.js";
 import adminLogsRoutes from "./routes/admin_logs.js";
 import settingsRoutes from "./routes/settings.js";
+import bunnyRoutes from "./routes/bunny.js";
 import adminAuthRoutes, { seedAdmins } from "./routes/admin_auth.js";
 
 app.use("/api", sessionAuth, apiLimiter);
@@ -127,6 +128,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/feedbacks", feedbacksRoutes);
 app.use("/api/proofs", proofsRoutes);
 app.use("/api/admin-logs", adminAuth, adminLogsRoutes);
+app.use("/api/bunny", adminAuth, bunnyRoutes);
 app.use("/api/settings", adminAuth, settingsRoutes);
 
 // Public customer service settings (no auth needed)
