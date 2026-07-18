@@ -38,8 +38,8 @@ export async function uploadApi(formData) {
 }
 
 const BUNNY_LIBRARY_ID = "707074";
-const BUNNY_API_KEY = "3d6b2748-5547-4c92-af11-1ddbc5a6ea9aa5f2d9a9-54d0-460f-9887-7547180ab9c9";
-const BUNNY_CDN_HOST = `${BUNNY_LIBRARY_ID}.b-cdn.net`;
+const BUNNY_API_KEY = "f7d47361-1d7b-4154-8f8d64339b51-1c8e-4c20";
+const BUNNY_CDN_HOST = "vz-a5ed34de-382.b-cdn.net";
 
 export async function uploadVideoToBunny(file, onProgress) {
   const h = getAdminHeaders();

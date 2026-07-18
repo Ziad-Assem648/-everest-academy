@@ -41,7 +41,7 @@ export default function FreeCourseViewPage() {
   const current = playing || freeLessons[0] || null;
   const isYoutube = (url) => url && (url.includes("youtube.com") || url.includes("youtu.be") || url.includes("youtube.com/embed"));
   const isBunny = (url) => url && (url.includes("player.mediadelivery.net") || url.includes("bunnycdn.com") || url.includes(".b-cdn.net"));
-  const getBunnyEmbed = (url) => { if (url.includes(".b-cdn.net")) { const m = url.match(/\.b-cdn\.net\/([a-f0-9-]+)\//); return m ? `https://video.bunnycdn.com/embed/${url.match(/(\d+)\.b-cdn/)?.[1] || "707074"}/${m[1]}?autoplay=true` : url; } return url.replace("/play/", "/embed/").replace(/(\?.*)?$/, "?autoplay=true"); };
+  const getBunnyEmbed = (url) => { if (url.includes(".b-cdn.net")) { const m = url.match(/\.b-cdn\.net\/([a-f0-9-]+)\//); return m ? `https://video.bunnycdn.com/embed/707074/${m[1]}?autoplay=true` : url; } return url.replace("/play/", "/embed/").replace(/(\?.*)?$/, "?autoplay=true"); };
   const getYtEmbed = (url) => { const m2 = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/); return m2 ? `https://www.youtube.com/embed/${m2[1]}?autoplay=1&rel=0` : null; };
   const videoSrc = current?.video_url ? (isYoutube(current.video_url) ? getYtEmbed(current.video_url) : isBunny(current.video_url) ? getBunnyEmbed(current.video_url) : current.video_url) : null;
 

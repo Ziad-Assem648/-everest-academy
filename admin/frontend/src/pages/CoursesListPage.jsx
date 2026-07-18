@@ -671,7 +671,7 @@ export default function CoursesListPage() {
     return m ? `https://www.youtube.com/embed/${m[1]}` : null;
   };
   const isBunny = (url) => url && url.includes(".b-cdn.net");
-  const getBunnyEmbed = (url) => { const m = url.match(/\.b-cdn\.net\/([a-f0-9-]+)\//); return m ? `https://video.bunnycdn.com/embed/${url.match(/(\d+)\.b-cdn/)?.[1] || "707074"}/${m[1]}` : url; };
+  const getBunnyEmbed = (url) => { const m = url.match(/\.b-cdn\.net\/([a-f0-9-]+)\//); return m ? `https://video.bunnycdn.com/embed/707074/${m[1]}` : url; };
 
   if (viewCourse && viewData) {
     const allLessons = (viewData.topics || []).flatMap((t) => (t.lessons || []).map((l) => ({ ...l, topicTitle: t.title || t.title_ar })));
