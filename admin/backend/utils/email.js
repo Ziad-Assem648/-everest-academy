@@ -1,4 +1,5 @@
 import tls from "tls";
+import net from "net";
 
 export function sendOTPEmail(to, otp) {
   const user = process.env.SMTP_USER;
@@ -6,41 +7,63 @@ export function sendOTPEmail(to, otp) {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
   const port = Number(process.env.SMTP_PORT) || 465;
 
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => { sock.destroy(); reject(new Error("SMTP timeout")); }, 15000);
-    let step = "connect";
+  const otpHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px;">
+      <h2 style="color: #d4af37; text-align: center;">Everest Academy</h2>
+      <p style="font-size: 15px; color: #333;">Hello,</p>
+      <p style="font-size: 14px; color: #555;">Your verification code is:</p>
+      <div style="text-align: center; margin: 20px 0;">
+        <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #d4af37;">${otp}</span>
+      </div>
+      <p style="font-size: 13px; color: #888;">This code expires in 10 minutes. If you didn't request this, ignore this email.</p>
+      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+      <p style="font-size: 11px; color: #aaa; text-align: center;">Everest Academy &copy; ${new Date().getFullYear()}</p>
+    </div>
+  `;
 
-    const sock = tls.connect(port, host, { rejectUnauthorized: false }, () => {});
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => { sock.destroy(); reject(new Error("SMTP timeout")); }, 20000);
+    let step = "connect";
+    let useTls = false;
+    let sock;
+
+    if (port === 465) {
+      sock = tls.connect(port, host, { rejectUnauthorized: false }, () => {});
+    } else {
+      sock = net.createConnection(port, host, () => {});
+    }
 
     const send = (line) => { sock.write(line + "\r\n"); };
 
-    const otpHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #d4af37; text-align: center;">Everest Academy</h2>
-        <p style="font-size: 15px; color: #333;">Hello,</p>
-        <p style="font-size: 14px; color: #555;">Your verification code is:</p>
-        <div style="text-align: center; margin: 20px 0;">
-          <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #d4af37;">${otp}</span>
-        </div>
-        <p style="font-size: 13px; color: #888;">This code expires in 10 minutes. If you didn't request this, ignore this email.</p>
-        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
-        <p style="font-size: 11px; color: #aaa; text-align: center;">Everest Academy &copy; ${new Date().getFullYear()}</p>
-      </div>
-    `;
-
-    sock.on("data", (data) => {
+    const onData = (data) => {
       const lines = data.toString().split("\r\n").filter(l => l.length > 0);
 
       for (const line of lines) {
         const code = parseInt(line.substring(0, 3));
-        const isLast = line[3] === " ";
+        const isLast = line.length >= 4 && line[3] === " ";
 
         if (step === "connect" && code === 220) {
           send("EHLO everest");
           step = "ehlo";
         } else if (step === "ehlo" && isLast && code === 250) {
-          send("AUTH LOGIN");
-          step = "auth-user";
+          if (port !== 465) {
+            send("STARTTLS");
+            step = "starttls";
+          } else {
+            send("AUTH LOGIN");
+            step = "auth-user";
+          }
+        } else if (step === "starttls" && code === 220) {
+          useTls = true;
+          const existingListeners = sock.listeners("data");
+          sock.removeAllListeners("data");
+          const tlsSock = tls.connect({ socket: sock, rejectUnauthorized: false }, () => {
+            send("AUTH LOGIN");
+            step = "auth-user";
+          });
+          tlsSock.on("data", onData);
+          sock = tlsSock;
+          return;
         } else if (step === "auth-user" && code === 334) {
           send(Buffer.from(user).toString("base64"));
           step = "auth-pass";
@@ -60,7 +83,7 @@ export function sendOTPEmail(to, otp) {
           send("DATA");
           step = "data";
         } else if (step === "data" && code === 354) {
-          const encodedSubject = "=?UTF-8?B?" + Buffer.from("Everest Academy — Password Reset Code").toString("base64") + "?=";
+          const encodedSubject = "=?UTF-8?B?" + Buffer.from("Everest Academy - Password Reset Code").toString("base64") + "?=";
           const msg = `From: Everest Academy <${user}>\r\nTo: <${to}>\r\nSubject: ${encodedSubject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n${otpHtml}\r\n.`;
           send(msg);
           step = "data-sent";
@@ -70,8 +93,9 @@ export function sendOTPEmail(to, otp) {
           resolve({ success: true, messageId: `otp-${Date.now()}` });
         }
       }
-    });
+    };
 
+    sock.on("data", onData);
     sock.on("error", (e) => { clearTimeout(timer); reject(e); });
   });
 }
