@@ -11,6 +11,7 @@ export default function UsersPage() {
   const [amount, setAmount] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [search, setSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [sendAmtModal, setSendAmtModal] = useState(null);
   const [editing, setEditing] = useState(false);
@@ -133,11 +134,39 @@ export default function UsersPage() {
     u.id?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filtered.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filtered.map(u => u.id));
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const bulkDelete = async () => {
+    if (!confirm(t("هل أنت متأكد من حذف " + selectedIds.length + " مستخدم؟ لا يمكن التراجع.", "Are you sure you want to delete " + selectedIds.length + " users? This cannot be undone."))) return;
+    for (const id of selectedIds) {
+      try { await api(`/api/users/${id}`, { method: "DELETE" }); } catch {}
+    }
+    setSelectedIds([]);
+    loadUsers();
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">{t("👤 إدارة المستخدمين", "👤 User Management")}</h2>
-        <span className="text-sm text-gray-400 bg-white px-3 py-1.5 rounded-lg border">{filtered.length} {t("مستخدم", "users")}</span>
+        <div className="flex items-center gap-3">
+          {selectedIds.length > 0 && (
+            <button onClick={bulkDelete} className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition">
+              🗑️ {t("حذف المحدد", "Delete Selected")} ({selectedIds.length})
+            </button>
+          )}
+          <span className="text-sm text-gray-400 bg-white px-3 py-1.5 rounded-lg border">{filtered.length} {t("مستخدم", "users")}</span>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-6">
@@ -151,6 +180,9 @@ export default function UsersPage() {
         <table className="w-full table-data">
           <thead>
             <tr className="bg-gray-50 text-gray-600 text-xs uppercase">
+              <th className="w-10">
+                <input type="checkbox" checked={selectedIds.length === filtered.length && filtered.length > 0} onChange={toggleSelectAll} className="rounded cursor-pointer" />
+              </th>
               <th>{t("الاسم", "Name")}</th>
               <th>{t("البريد", "Email")}</th>
               <th>{t("الدور", "Role")}</th>
@@ -164,6 +196,9 @@ export default function UsersPage() {
           <tbody>
             {filtered.map((u) => (
               <tr key={u.id} className="border-t hover:bg-gray-50">
+                <td className="w-10">
+                  <input type="checkbox" checked={selectedIds.includes(u.id)} onChange={() => toggleSelect(u.id)} className="rounded cursor-pointer" />
+                </td>
                 <td className="font-medium">{u.full_name}</td>
                 <td className="text-gray-500 text-xs">{u.email}</td>
                 <td>

@@ -270,6 +270,14 @@ router.put("/:courseId/show-homepage", async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+router.put("/:courseId/show-courses", async (req, res) => {
+  try {
+    const { is_show_courses } = req.body;
+    await execute("UPDATE courses SET is_show_courses = ? WHERE id = ?", [is_show_courses ? 1 : 0, req.params.courseId]);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 router.get("/:id", async (req, res) => {
   const course = await queryOne("SELECT * FROM courses WHERE id = ?", [req.params.id]);
   if (!course) return res.status(404).json({ error: "Course not found" });

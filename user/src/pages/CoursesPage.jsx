@@ -30,6 +30,7 @@ export default function CoursesPage() {
   ];
 
   const filteredCourses = courses.filter((c) => {
+    if (c.is_show_courses === 0) return false;
     const q = search.toLowerCase();
     const matchSearch = !q || (c.title || "").toLowerCase().includes(q) || (c.title_ar || "").includes(q) || (c.description || "").toLowerCase().includes(q) || (c.description_ar || "").toLowerCase().includes(q);
     const matchFilter = filter === "all" || (c.category || "") === filter;

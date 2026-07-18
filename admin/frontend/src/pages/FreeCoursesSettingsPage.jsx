@@ -51,6 +51,22 @@ export default function FreeCoursesSettingsPage() {
     setSaving(null);
   };
 
+  const toggleCourses = async (courseId, current) => {
+    setSaving(courseId);
+    try {
+      await api(`/api/courses/${courseId}/show-courses`, {
+        method: "PUT",
+        body: JSON.stringify({ is_show_courses: current ? 0 : 1 }),
+      });
+      setCourses((prev) =>
+        prev.map((c) =>
+          c.id === courseId ? { ...c, is_show_courses: current ? 0 : 1 } : c
+        )
+      );
+    } catch (e) {}
+    setSaving(null);
+  };
+
   const published = courses.filter((c) => c.status === "published");
   const filtered = published.filter(
     (c) =>
@@ -61,6 +77,7 @@ export default function FreeCoursesSettingsPage() {
 
   const freeCount = filtered.filter((c) => c.is_show_free).length;
   const homeCount = filtered.filter((c) => c.is_show_homepage !== 0).length;
+  const coursesCount = filtered.filter((c) => c.is_show_courses !== 0).length;
 
   const Toggle = ({ checked, onChange, disabled }) => (
     <button
@@ -89,8 +106,8 @@ export default function FreeCoursesSettingsPage() {
         </h2>
         <p className="text-sm text-gray-500 mt-1">
           {t(
-            "تحكم في ظهور الكورسات في صفحة المجانيات والهوم بيج.",
-            "Control which courses appear on the free courses page and homepage."
+            "تحكم في ظهور الكورسات في صفحة المجانيات والهوم بيج وصفحة الكورسات.",
+            "Control which courses appear on the free courses page, homepage, and courses page."
           )}
         </p>
       </div>
@@ -100,6 +117,8 @@ export default function FreeCoursesSettingsPage() {
           <span className="bg-green-100 text-green-700 px-2 py-1 rounded-lg font-bold">🆓 {freeCount}</span>
           <span className="text-gray-400">|</span>
           <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-bold">🏠 {homeCount}</span>
+          <span className="text-gray-400">|</span>
+          <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-lg font-bold">📚 {coursesCount}</span>
           <span className="text-gray-400">|</span>
           <span className="text-gray-400">{filtered.length} {t("منشور", "published")}</span>
         </div>
@@ -114,10 +133,11 @@ export default function FreeCoursesSettingsPage() {
 
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="grid grid-cols-12 gap-4 px-5 py-3 bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase">
-          <div className="col-span-5">{t("الكورس", "Course")}</div>
-          <div className="col-span-3 text-center">🆓 {t("صفحة المجانيات", "Free Page")}</div>
-          <div className="col-span-3 text-center">🏠 {t("الهوم بيج", "Homepage")}</div>
-          <div className="col-span-1 text-center">💰 {t("السعر", "Price")}</div>
+          <div className="col-span-4">{t("الكورس", "Course")}</div>
+          <div className="col-span-2 text-center">🆓 {t("صفحة المجانيات", "Free Page")}</div>
+          <div className="col-span-2 text-center">🏠 {t("الهوم بيج", "Homepage")}</div>
+          <div className="col-span-2 text-center">📚 {t("صفحة الكورسات", "Courses Page")}</div>
+          <div className="col-span-2 text-center">💰 {t("السعر", "Price")}</div>
         </div>
 
         {filtered.map((course) => (
@@ -125,7 +145,7 @@ export default function FreeCoursesSettingsPage() {
             key={course.id}
             className="grid grid-cols-12 gap-4 items-center px-5 py-4 border-b border-gray-50 hover:bg-gray-50/50 transition"
           >
-            <div className="col-span-5 flex items-center gap-3 min-w-0">
+            <div className="col-span-4 flex items-center gap-3 min-w-0">
               {course.featured_image ? (
                 <img src={course.featured_image} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
               ) : (
@@ -137,7 +157,7 @@ export default function FreeCoursesSettingsPage() {
               </div>
             </div>
 
-            <div className="col-span-3 flex justify-center">
+            <div className="col-span-2 flex justify-center">
               <Toggle
                 checked={!!course.is_show_free}
                 onChange={() => toggleFree(course.id, course.is_show_free)}
@@ -145,7 +165,7 @@ export default function FreeCoursesSettingsPage() {
               />
             </div>
 
-            <div className="col-span-3 flex justify-center">
+            <div className="col-span-2 flex justify-center">
               <Toggle
                 checked={course.is_show_homepage !== 0}
                 onChange={() => toggleHomepage(course.id, course.is_show_homepage)}
@@ -153,7 +173,15 @@ export default function FreeCoursesSettingsPage() {
               />
             </div>
 
-            <div className="col-span-1 text-right text-xs text-gray-400">
+            <div className="col-span-2 flex justify-center">
+              <Toggle
+                checked={course.is_show_courses !== 0}
+                onChange={() => toggleCourses(course.id, course.is_show_courses)}
+                disabled={saving === course.id}
+              />
+            </div>
+
+            <div className="col-span-2 text-center text-xs text-gray-400">
               {course.is_free ? "🆓" : `${course.price} EM`}
             </div>
           </div>
