@@ -11,7 +11,8 @@ export function getAdminHeaders() {
 
 export async function api(path, opts = {}) {
   const headers = { ...getAdminHeaders(), ...(opts.headers || {}) };
-  const r = await fetch(path, { headers, ...opts });
+  const url = path.startsWith("http") ? path : `${BACKEND_URL}${path}`;
+  const r = await fetch(url, { headers, ...opts });
   const text = await r.text();
   let data;
   try { data = JSON.parse(text); } catch { data = null; }

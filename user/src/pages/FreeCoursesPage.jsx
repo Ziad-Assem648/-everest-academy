@@ -5,8 +5,12 @@ import { useTheme } from "../ThemeContext";
 import PublicNavbar from "../components/PublicNavbar";
 import FooterSection from "../components/FooterSection";
 
-const api = (path, opts = {}) =>
-  fetch(path, { headers: { "Content-Type": "application/json" }, ...opts }).then((r) => r.json());
+const BACKEND_URL = window.location.origin.includes("localhost") ? "http://localhost:5000" : "https://steadfast-energy-production-a9d1.up.railway.app";
+
+const api = (path, opts = {}) => {
+  const url = path.startsWith("http") ? path : `${BACKEND_URL}${path}`;
+  return fetch(url, { headers: { "Content-Type": "application/json" }, ...opts }).then((r) => r.json());
+};
 
 export default function FreeCoursesPage() {
   const { t, dir } = useLang();

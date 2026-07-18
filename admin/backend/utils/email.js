@@ -1,11 +1,6 @@
-import tls from "tls";
-import net from "net";
-
-export function sendOTPEmail(to, otp) {
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  const host = process.env.SMTP_HOST || "smtp.gmail.com";
-  const port = Number(process.env.SMTP_PORT) || 465;
+export async function sendOTPEmail(to, otp) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.SMTP_USER || "Everest Academy <onboarding@resend.dev>";
 
   const otpHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px;">
@@ -21,81 +16,21 @@ export function sendOTPEmail(to, otp) {
     </div>
   `;
 
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => { sock.destroy(); reject(new Error("SMTP timeout")); }, 20000);
-    let step = "connect";
-    let useTls = false;
-    let sock;
-
-    if (port === 465) {
-      sock = tls.connect(port, host, { rejectUnauthorized: false }, () => {});
-    } else {
-      sock = net.createConnection(port, host, () => {});
-    }
-
-    const send = (line) => { sock.write(line + "\r\n"); };
-
-    const onData = (data) => {
-      const lines = data.toString().split("\r\n").filter(l => l.length > 0);
-
-      for (const line of lines) {
-        const code = parseInt(line.substring(0, 3));
-        const isLast = line.length >= 4 && line[3] === " ";
-
-        if (step === "connect" && code === 220) {
-          send("EHLO everest");
-          step = "ehlo";
-        } else if (step === "ehlo" && isLast && code === 250) {
-          if (port !== 465) {
-            send("STARTTLS");
-            step = "starttls";
-          } else {
-            send("AUTH LOGIN");
-            step = "auth-user";
-          }
-        } else if (step === "starttls" && code === 220) {
-          useTls = true;
-          const existingListeners = sock.listeners("data");
-          sock.removeAllListeners("data");
-          const tlsSock = tls.connect({ socket: sock, rejectUnauthorized: false }, () => {
-            send("AUTH LOGIN");
-            step = "auth-user";
-          });
-          tlsSock.on("data", onData);
-          sock = tlsSock;
-          return;
-        } else if (step === "auth-user" && code === 334) {
-          send(Buffer.from(user).toString("base64"));
-          step = "auth-pass";
-        } else if (step === "auth-pass" && code === 334) {
-          send(Buffer.from(pass).toString("base64"));
-          step = "auth-result";
-        } else if (step === "auth-result" && code === 235) {
-          send(`MAIL FROM:<${user}>`);
-          step = "mail-from";
-        } else if (step === "auth-result" && code >= 400) {
-          clearTimeout(timer);
-          reject(new Error("SMTP auth failed: " + line));
-        } else if (step === "mail-from" && isLast && code === 250) {
-          send(`RCPT TO:<${to}>`);
-          step = "rcpt-to";
-        } else if (step === "rcpt-to" && isLast && code === 250) {
-          send("DATA");
-          step = "data";
-        } else if (step === "data" && code === 354) {
-          const encodedSubject = "=?UTF-8?B?" + Buffer.from("Everest Academy - Password Reset Code").toString("base64") + "?=";
-          const msg = `From: Everest Academy <${user}>\r\nTo: <${to}>\r\nSubject: ${encodedSubject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n${otpHtml}\r\n.`;
-          send(msg);
-          step = "data-sent";
-        } else if (step === "data-sent" && isLast && code === 250) {
-          send("QUIT");
-          clearTimeout(timer);
-          resolve({ success: true, messageId: `otp-${Date.now()}` });
-        }
-      }
-    };
-
-    sock.on("data", onData);
-    sock.on("error", (e) => { clearTimeout(timer); reject(e); });
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from,
+      to: [to],
+      subject: "Everest Academy — Password Reset Code",
+      html: otpHtml,
+    }),
   });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Email send failed");
+  return { success: true, messageId: data.id };
 }

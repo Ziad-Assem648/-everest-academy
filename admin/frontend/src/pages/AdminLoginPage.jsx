@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useLang } from "../LangContext";
+import { BACKEND_URL } from "../api.js";
 
 export default function AdminLoginPage({ onLogin }) {
   const { t: tFn } = useLang();
@@ -14,7 +15,7 @@ export default function AdminLoginPage({ onLogin }) {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch("/api/admin-auth/login", {
+      const r = await fetch(`${BACKEND_URL}/api/admin-auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

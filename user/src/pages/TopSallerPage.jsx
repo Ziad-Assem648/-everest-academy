@@ -85,6 +85,8 @@ function RankRow({ s, i, t, c, m }) {
   );
 }
 
+const BACKEND_URL = window.location.origin.includes("localhost") ? "http://localhost:5000" : "https://steadfast-energy-production-a9d1.up.railway.app";
+
 export default function TopSallerPage() {
   const { t, dir } = useLang();
   const { colors: c } = useTheme();
@@ -95,7 +97,7 @@ export default function TopSallerPage() {
   const [activeTab, setActiveTab] = useState("podium");
 
   useEffect(() => {
-    fetch("/api/courses/top-quiz-performers")
+    fetch(`${BACKEND_URL}/api/courses/top-quiz-performers`)
       .then(r => r.json())
       .then(d => setPerformers(Array.isArray(d) ? d : []))
       .catch(() => {})

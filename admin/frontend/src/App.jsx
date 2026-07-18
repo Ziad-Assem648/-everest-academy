@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { LangProvider, useLang } from "./LangContext";
-import { api } from "./api.js";
+import { api, BACKEND_URL } from "./api.js";
 import AdminLoginPage from "./pages/AdminLoginPage.jsx";
 import RoleManagementPage from "./pages/RoleManagementPage.jsx";
 import TopUpsPage from "./pages/TopUpsPage.jsx";
@@ -34,7 +34,7 @@ function AppInner() {
   useEffect(() => {
     const s = JSON.parse(localStorage.getItem("admin_session") || "{}");
     if (!s.userId || !s.token) { setChecking(false); return; }
-    fetch("/api/admin-auth/me", { headers: { "Content-Type": "application/json", "x-user-id": s.userId, "x-session-token": s.token } })
+    fetch(`${BACKEND_URL}/api/admin-auth/me`, { headers: { "Content-Type": "application/json", "x-user-id": s.userId, "x-session-token": s.token } })
       .then(r => r.json())
       .then(d => { if (d.error) { localStorage.removeItem("admin_session"); } else { setCurrentUser(d); } })
       .catch(() => localStorage.removeItem("admin_session"))

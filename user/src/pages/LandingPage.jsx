@@ -5,6 +5,8 @@ import { useTheme } from "../ThemeContext";
 import PublicNavbar from "../components/PublicNavbar";
 import FooterSection from "../components/FooterSection";
 
+const BACKEND_URL = window.location.origin.includes("localhost") ? "http://localhost:5000" : "https://steadfast-energy-production-a9d1.up.railway.app";
+
 const pscStyles = `
 @keyframes pscFadeUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
 @keyframes pscIconPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
@@ -240,7 +242,7 @@ export default function LandingPage() {
   const [stats, setStats] = useState({ totalMembers: 0, satisfactionRate: 95, totalFeedbacks: 0 });
 
   useEffect(() => {
-    fetch("/api/dashboard/public-stats").then(r => r.json()).then(setStats).catch(() => {});
+    fetch(`${BACKEND_URL}/api/dashboard/public-stats`).then(r => r.json()).then(setStats).catch(() => {});
   }, []);
 
   useEffect(() => {

@@ -4,6 +4,8 @@ import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
 import { useNavigate } from "react-router-dom";
 
+const BACKEND_URL = window.location.origin.includes("localhost") ? "http://localhost:5000" : "https://steadfast-energy-production-a9d1.up.railway.app";
+
 const useIsMobile = () => {
   const [m, setM] = useState(window.innerWidth <= 768);
   useEffect(() => {
@@ -71,7 +73,7 @@ export default function AssistantPage() {
     setChatLoading(true);
     try {
       const history = conv.messages.slice(0, -1).map(m => ({ role: m.role === "user" ? "user" : "model", text: m.text }));
-      const res = await fetch("/api/chat", {
+      const res = await fetch(`${BACKEND_URL}/api/chat`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: msg, history })
       });

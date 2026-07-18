@@ -1,0 +1,6 @@
+RewriteEngine On
+
+# Redirect all admin routes to admin index.html for SPA
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ /admin/index.html [L]
