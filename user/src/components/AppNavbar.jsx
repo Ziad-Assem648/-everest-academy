@@ -32,7 +32,6 @@ const navItems = [
   { to: "/home", label_ar: "الرئيسية", label_en: "Home", icon: "fa-solid fa-house" },
   { to: "/my-courses", label_ar: "كورساتي", label_en: "My Courses", icon: "fa-solid fa-book-open", hideForStudent: true },
   { to: "/courses", label_ar: "الكورسات", label_en: "Courses", icon: "fa-solid fa-graduation-cap" },
-  { to: "/assistant", label_ar: "مساعد Everest", label_en: "Assistant", icon: "fa-solid fa-robot" },
   { to: "/rankings", label_ar: "الرتب", label_en: "Ranks", icon: "fa-solid fa-trophy" },
   { to: "/affiliate?tab=team", label_ar: "التسويق", label_en: "Affiliate", icon: "fa-solid fa-handshake" },
   { to: "/top-saller", label_ar: "الأفضل", label_en: "Top", icon: "fa-solid fa-star" },
@@ -44,7 +43,6 @@ const mobileTabItems = [
   { to: "/home", label_ar: "الرئيسية", label_en: "Home", icon: "fa-solid fa-house" },
   { to: "/my-courses", label_ar: "كورساتي", label_en: "My Courses", icon: "fa-solid fa-book-open", hideForStudent: true },
   { to: "/courses", label_ar: "الكورسات", label_en: "Courses", icon: "fa-solid fa-graduation-cap" },
-  { to: "/assistant", label_ar: "مساعد", label_en: "Assistant", icon: "fa-solid fa-robot" },
   { to: "/rankings", label_ar: "الرتب", label_en: "Ranks", icon: "fa-solid fa-trophy" },
   { to: "/affiliate?tab=team", label_ar: "التسويق", label_en: "Affiliate", icon: "fa-solid fa-handshake" },
   { to: "/top-saller", label_ar: "الأفضل", label_en: "Top", icon: "fa-solid fa-star" },
@@ -90,7 +88,18 @@ export default function AppNavbar() {
           <Link to="/home" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
             <img src="/image/new_logo-removebg-preview.png" alt="Logo" style={{ height: 52, objectFit:"contain" }} />
           </Link>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Link to="/assistant" title="مساعد Everest" style={{
+              width: 36, height: 36, borderRadius: 12, border: `1px solid ${c.border}`,
+              background: "linear-gradient(135deg, rgba(124,58,237,.15), rgba(59,130,246,.15))",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              textDecoration: "none", color: "#a78bfa", fontSize: 16, transition: "0.3s",
+              position: "relative", overflow: "hidden",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = "linear-gradient(135deg, rgba(124,58,237,.3), rgba(59,130,246,.3))"; e.currentTarget.style.transform = "scale(1.08)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "linear-gradient(135deg, rgba(124,58,237,.15), rgba(59,130,246,.15))"; e.currentTarget.style.transform = "scale(1)"; }}>
+              <i className="fa-solid fa-robot" style={{fontSize:15}}></i>
+            </Link>
             {user && <NotificationBell userId={user.id} />}
             {user && (
               <div style={{ cursor: "pointer" }} onClick={() => nav("/profile")}>
@@ -140,8 +149,22 @@ export default function AppNavbar() {
           })}
         </nav>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {user && <NotificationBell userId={user.id} />}
+          {user && (
+            <Link to="/assistant" title="مساعد Everest" style={{
+              padding: "7px 16px", borderRadius: 12, border: `1px solid ${c.border}`,
+              background: "linear-gradient(135deg, rgba(124,58,237,.12), rgba(59,130,246,.12))",
+              display: "flex", alignItems: "center", gap: 7, textDecoration: "none",
+              color: "#a78bfa", fontSize: 13, fontWeight: 700, transition: "0.3s",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = "linear-gradient(135deg, rgba(124,58,237,.25), rgba(59,130,246,.25))"; e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.borderColor = "rgba(124,58,237,.4)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "linear-gradient(135deg, rgba(124,58,237,.12), rgba(59,130,246,.12))"; e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.borderColor = c.border; }}>
+              <i className="fa-solid fa-robot" style={{fontSize:14}}></i>
+              {t("مساعد Everest", "Assistant")}
+            </Link>
+          )}
           <ThemeToggle c={c} />
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => nav("/profile")}>
