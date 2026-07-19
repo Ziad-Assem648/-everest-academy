@@ -85,7 +85,7 @@ function GuardAdmin({ children }) {
 
 function MyCoursesRedirect() {
   const { user } = useAuth();
-  if (user?.account_type === "student") return <Navigate to="/courses" />;
+  if (!user) return <Navigate to="/courses" />;
   return <MyCoursesPage />;
 }
 
