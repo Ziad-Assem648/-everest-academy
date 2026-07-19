@@ -177,6 +177,10 @@ function createSchema(driver, isTursoDb) {
       avatar TEXT, icon TEXT DEFAULT '🏆', sort_order INTEGER DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now','localtime'))
     )`,
+    `CREATE TABLE IF NOT EXISTS excluded_leaders (
+      user_id TEXT PRIMARY KEY,
+      excluded_at TEXT DEFAULT (datetime('now','localtime'))
+    )`,
     `CREATE TABLE IF NOT EXISTS notifications (
       id TEXT PRIMARY KEY, user_id TEXT NOT NULL, title TEXT NOT NULL,
       message TEXT, type TEXT DEFAULT 'info', is_read INTEGER DEFAULT 0,

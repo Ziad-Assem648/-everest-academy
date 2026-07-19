@@ -1,6 +1,7 @@
 import express from "express";
 import { query, queryOne, execute } from "../db.js";
 import { v4 as uuidv4 } from "uuid";
+import { advanceUserRank } from "./ranks.js";
 
 const router = express.Router();
 
@@ -467,7 +468,7 @@ async function incrementTeamSales(userId, excludeEnrollmentId) {
     const upline = await queryOne("SELECT account_type FROM users WHERE id = ?", [uplineId]);
     if (upline && upline.account_type === "student") {
       await execute("UPDATE users SET total_team_sales = total_team_sales + 1 WHERE id = ?", [uplineId]);
-      await updateUserRankAndReward(uplineId);
+      await advanceUserRank(uplineId);
     }
     const next = await queryOne("SELECT referred_by FROM users WHERE id = ?", [uplineId]);
     uplineId = next?.referred_by;
@@ -489,6 +490,7 @@ router.put("/enrollments/:id/approve", async (req, res) => {
   if (pendingTx) await execute("UPDATE wallet_transactions SET status = 'completed' WHERE id = ?", [pendingTx.id]);
   const nid = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type, related_id) VALUES (?, ?, ?, ?, 'success', ?)", [nid, enrollment.user_id, "✅ تم الموافقة على الاشتراك", `تم تأكيد اشتراكك في ${course?.title_ar || course?.title || "الكورس"}`, enrollment.course_id]);
   await incrementTeamSales(enrollment.user_id, enrollment.id);
+  await advanceUserRank(enrollment.user_id);
   res.json({ success: true, message: "Enrollment approved" });
 });
 

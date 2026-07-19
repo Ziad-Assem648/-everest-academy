@@ -21,13 +21,21 @@ const RANK_ORDER = `CASE rank
 END DESC`;
 
 async function refreshLeaders() {
+  const excluded = await query("SELECT user_id FROM excluded_leaders");
+  const excludedIds = excluded.map(e => e.user_id);
+  let excludeClause = "";
+  const params = [];
+  if (excludedIds.length > 0) {
+    excludeClause = `AND id NOT IN (${excludedIds.map(() => "?").join(",")})`;
+    params.push(...excludedIds);
+  }
   const topUsers = await query(`
     SELECT id, full_name as name, avatar, rank, e_money, direct_count
     FROM users
-    WHERE role NOT IN ('admin', 'manager') AND rank IS NOT NULL AND rank != ''
+    WHERE role NOT IN ('admin', 'manager') AND rank IS NOT NULL AND rank != '' ${excludeClause}
     ORDER BY ${RANK_ORDER}, direct_count DESC
     LIMIT 10
-  `);
+  `, params);
   await execute("DELETE FROM leaders");
   for (const u of topUsers) {
     await execute(
@@ -85,6 +93,8 @@ router.post("/add", async (req, res) => {
     const existing = await queryOne("SELECT id FROM leaders WHERE id = ?", [userId]);
     if (existing) return res.status(400).json({ error: "User already in leaders" });
 
+    await execute("DELETE FROM excluded_leaders WHERE user_id = ?", [userId]);
+
     await execute(
       "INSERT INTO leaders (id, name, rank, avatar, icon) VALUES (?, ?, ?, ?, ?)",
       [userId, user.full_name, user.rank, user.avatar, RANK_ICONS[user.rank] || "🏆"]
@@ -97,6 +107,7 @@ router.post("/add", async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
+  await execute("INSERT OR IGNORE INTO excluded_leaders (user_id) VALUES (?)", [req.params.id]);
   await execute("DELETE FROM leaders WHERE id = ?", [req.params.id]);
   res.json({ success: true });
 });
