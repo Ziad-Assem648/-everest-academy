@@ -59,9 +59,10 @@ router.post("/login", async (req, res) => {
   await execute("DELETE FROM user_sessions WHERE user_id = ?", [user.id]);
 
   // No active session — create new session
+  const nowHb = new Date().toISOString();
   await execute(
-    "INSERT INTO user_sessions (id, user_id, session_token, device_type, device_info) VALUES (?, ?, ?, ?, ?)",
-    [uuidv4(), user.id, session_token, deviceType, req.headers["user-agent"] || ""]
+    "INSERT INTO user_sessions (id, user_id, session_token, device_type, device_info, last_heartbeat) VALUES (?, ?, ?, ?, ?, ?)",
+    [uuidv4(), user.id, session_token, deviceType, req.headers["user-agent"] || "", nowHb]
   );
 
   // Also keep backward compatibility with users.session_token
@@ -107,10 +108,14 @@ router.post("/cleanup-sessions", async (req, res) => {
 router.post("/heartbeat", async (req, res) => {
   try {
     const { user_id } = req.body;
-    const sessionToken = req.headers["x-session-token"];
-    if (!user_id || !sessionToken) return res.json({ success: false });
+    if (!user_id) return res.json({ success: false });
     const now = new Date().toISOString();
-    await execute("UPDATE user_sessions SET last_heartbeat = ? WHERE user_id = ? AND session_token = ?", [now, user_id, sessionToken]);
+    const sessionToken = req.headers["x-session-token"];
+    if (sessionToken) {
+      await execute("UPDATE user_sessions SET last_heartbeat = ? WHERE user_id = ? AND session_token = ?", [now, user_id, sessionToken]);
+    } else {
+      await execute("UPDATE user_sessions SET last_heartbeat = ? WHERE user_id = ?", [now, user_id]);
+    }
     res.json({ success: true });
   } catch (e) {
     res.json({ success: true });
