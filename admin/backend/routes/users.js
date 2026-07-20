@@ -1,6 +1,7 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import { query, queryOne, execute } from "../db.js";
+import { advanceUserRank } from "./ranks.js";
 import { v4 as uuidv4 } from "uuid";
 
 const router = express.Router();
@@ -165,17 +166,27 @@ router.put("/:id/approve-registration", async (req, res) => {
 
     // If approved as student AND has a sponsor → pay commission to direct referrer ONLY (Level 1)
     if (accountType === "student" && user.referred_by) {
-      // Prevent double commission
-      const existingCommission = await queryOne("SELECT id FROM commissions WHERE from_user_id = ? AND level = 1", [req.params.id]);
-      if (!existingCommission) {
-        const directReferrer = await queryOne("SELECT id, account_type FROM users WHERE id = ?", [user.referred_by]);
-        if (directReferrer && directReferrer.account_type === "student") {
+      const directReferrer = await queryOne("SELECT id, account_type FROM users WHERE id = ?", [user.referred_by]);
+      if (directReferrer && directReferrer.account_type === "student") {
+        // Prevent double commission
+        const existingCommission = await queryOne("SELECT id FROM commissions WHERE from_user_id = ? AND level = 1", [req.params.id]);
+        if (!existingCommission) {
           const comId = uuidv4();
           await execute("INSERT INTO commissions (id, from_user_id, to_user_id, level, amount) VALUES (?, ?, ?, 1, 1000)",
             [comId, req.params.id, directReferrer.id]);
           await execute("UPDATE users SET e_money = e_money + 1000 WHERE id = ?", [directReferrer.id]);
           await execute("UPDATE users SET direct_count = direct_count + 1 WHERE id = ?", [directReferrer.id]);
           const nid2 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'commission')", [nid2, directReferrer.id, "💰 عمولة جديدة", `ربحت 1000 E-Money كمكافأة عن تسجيل عضو جديد`]);
+        }
+        // Advance referrer rank now so rank bonus is paid at approval time
+        // rank_bonuses dedup table prevents incrementTeamSales from paying a second bonus later
+        try {
+          const rankResult = await advanceUserRank(directReferrer.id);
+          if (rankResult && rankResult.promoted) {
+            console.log("[approve-registration] Referrer", directReferrer.id, "rank advanced to", rankResult.newRank, "- bonus:", rankResult.bonus);
+          }
+        } catch (rankErr) {
+          console.error("[approve-registration] advanceUserRank error for referrer", directReferrer.id, rankErr);
         }
       }
     }
