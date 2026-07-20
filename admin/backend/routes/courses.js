@@ -514,7 +514,7 @@ router.post("/:courseId/final-quiz", async (req, res) => {
     const { title, questions, total_marks, pass_mark, quiz_type } = req.body;
     await execute("DELETE FROM quizzes WHERE course_id = ? AND type = 'final'", [req.params.courseId]);
     const id = uuidv4();
-    await execute("INSERT INTO quizzes (id, topic_id, course_id, type, title, questions, total_marks, pass_mark, quiz_type) VALUES (?, '___none___', ?, 'final', ?, ?, ?, ?, ?)",
+    await execute("INSERT INTO quizzes (id, topic_id, course_id, type, title, questions, total_marks, pass_mark, quiz_type) VALUES (?, NULL, ?, 'final', ?, ?, ?, ?, ?)",
       [id, req.params.courseId, title, JSON.stringify(questions || []), total_marks || 0, pass_mark || 50, quiz_type || "mixed"]);
     res.json({ id, success: true });
   } catch (err) {

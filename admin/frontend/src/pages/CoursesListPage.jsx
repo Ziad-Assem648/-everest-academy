@@ -156,13 +156,17 @@ export default function CoursesListPage() {
   };
 
   const addFinalQuiz = async () => {
-    await api(`/api/courses/${detail.id}/final-quiz`, {
-      method: "POST",
-      body: JSON.stringify({ title: t("الاختبار النهائي", "Final Quiz"), questions: [], total_marks: 0, pass_mark: 50 }),
-    });
-    const fresh = await api(`/api/courses/${detail.id}`);
-    setDetail(fresh);
-    openQuizEditor("final");
+    try {
+      await api(`/api/courses/${detail.id}/final-quiz`, {
+        method: "POST",
+        body: JSON.stringify({ title: t("الاختبار النهائي", "Final Quiz"), questions: [], total_marks: 0, pass_mark: 50, quiz_type: "mixed" }),
+      });
+      const fresh = await api(`/api/courses/${detail.id}`);
+      setDetail(fresh);
+      openQuizEditor("final", null, null, fresh.final_quiz);
+    } catch (err) {
+      alert(t("خطأ في إضافة الاختبار النهائي: ", "Error adding final quiz: ") + err.message);
+    }
   };
 
   const openQuizEditor = (type, topicId, lessonId, quiz) => {
