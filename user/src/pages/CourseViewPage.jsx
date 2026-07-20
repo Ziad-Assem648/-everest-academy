@@ -292,7 +292,7 @@ export default function CourseViewPage() {
           </div>
         )}
 
-        {!isEnrolled && !isPending && !isFree && (
+        {!isEnrolled && !isPending && !isFree && !isStudentAccount && (
           <div style={{textAlign:"center",padding:m?"12px 0":"16px 0",marginBottom:m?12:20}}>
             {!user ? (
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:m?10:14}}>
