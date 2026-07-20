@@ -27,6 +27,7 @@ export default function CourseViewPage() {
   const [quizProgress, setQuizProgress] = useState([]);
   const [activeQuiz, setActiveQuiz] = useState(null);
   const [completedLessons, setCompletedLessons] = useState(new Set());
+  const [verifiedType, setVerifiedType] = useState(false);
   const [reviewData, setReviewData] = useState({ reviews: [], avg_rating: 0, count: 0 });
   const [myRating, setMyRating] = useState(0);
   const [myComment, setMyComment] = useState("");
@@ -89,7 +90,10 @@ export default function CourseViewPage() {
     if (user?.id) {
       api(`/api/users/${user.id}`).then((u) => {
         login({ ...user, ...u, session_token: user.session_token });
-      }).catch(() => {});
+        setVerifiedType(true);
+      }).catch(() => setVerifiedType(true));
+    } else {
+      setVerifiedType(true);
     }
   }, []);
 
@@ -292,7 +296,7 @@ export default function CourseViewPage() {
           </div>
         )}
 
-        {!isEnrolled && !isPending && !isFree && !isStudentAccount && (
+        {!isEnrolled && !isPending && !isFree && !isStudentAccount && verifiedType && (
           <div style={{textAlign:"center",padding:m?"12px 0":"16px 0",marginBottom:m?12:20}}>
             {!user ? (
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:m?10:14}}>
