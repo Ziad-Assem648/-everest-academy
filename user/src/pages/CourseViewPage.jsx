@@ -88,7 +88,7 @@ export default function CourseViewPage() {
     }).catch(() => {});
     if (user?.id) {
       api(`/api/users/${user.id}`).then((u) => {
-        login({ ...user, e_money: u.e_money });
+        login({ ...user, ...u, session_token: user.session_token });
       }).catch(() => {});
     }
   }, []);
@@ -129,7 +129,7 @@ export default function CourseViewPage() {
       });
       setEnrollment(result);
       const freshUser = await api(`/api/users/${user.id}`);
-      login({ ...user, e_money: freshUser.e_money });
+      login({ ...user, ...freshUser, session_token: user.session_token });
     } catch (e) {
       alert(t("خطأ: ", "Error: ") + (e.message || t("فشل عملية الشراء", "Purchase failed")));
     }

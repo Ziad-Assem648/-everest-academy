@@ -15,6 +15,23 @@ export function AuthProvider({ children }) {
     } catch { return null; }
   });
 
+  // Refresh stale user data on mount (old localStorage may lack account_type etc.)
+  useEffect(() => {
+    if (!user?.id || !user?.session_token) return;
+    fetch(`${API}/users/${user.id}`, {
+      headers: { "x-user-id": user.id, "x-session-token": user.session_token }
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(fresh => {
+        if (fresh && fresh.account_type) {
+          const updated = { ...user, ...fresh, session_token: user.session_token };
+          setUser(updated);
+          localStorage.setItem("everest_user", JSON.stringify(updated));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Heartbeat: ping server every 3 seconds + auto-logout if session killed
   useEffect(() => {
     if (!user?.id || !user?.session_token) return;
