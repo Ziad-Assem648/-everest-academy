@@ -17,16 +17,20 @@ export function AuthProvider({ children }) {
 
   // Heartbeat: ping server every 5 seconds to keep session alive
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !user?.session_token) return;
     const interval = setInterval(() => {
       fetch(`${API}/auth/heartbeat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": user.id,
+          "x-session-token": user.session_token,
+        },
         body: JSON.stringify({ user_id: user.id }),
       }).catch(() => {});
     }, 5000);
     return () => clearInterval(interval);
-  }, [user?.id]);
+  }, [user?.id, user?.session_token]);
 
   const login = (u, sessionToken) => {
     const userData = { ...u, session_token: sessionToken || u.session_token };

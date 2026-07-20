@@ -107,9 +107,10 @@ router.post("/cleanup-sessions", async (req, res) => {
 router.post("/heartbeat", async (req, res) => {
   try {
     const { user_id } = req.body;
-    if (!user_id) return res.json({ success: false });
+    const sessionToken = req.headers["x-session-token"];
+    if (!user_id || !sessionToken) return res.json({ success: false });
     const now = new Date().toISOString().slice(0, 19).replace("T", " ");
-    await execute("UPDATE user_sessions SET last_heartbeat = ? WHERE user_id = ?", [now, user_id]);
+    await execute("UPDATE user_sessions SET last_heartbeat = ? WHERE user_id = ? AND session_token = ?", [now, user_id, sessionToken]);
     res.json({ success: true });
   } catch (e) {
     res.json({ success: true });
