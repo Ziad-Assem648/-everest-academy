@@ -10,3 +10,5 @@ help-wal
 .vscode/
 pro/
 *.log
+
+hostinger-upload/

@@ -1,9 +1,0 @@
-RewriteEngine On
-
-# Redirect all routes to index.html for SPA (React Router)
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_URI} !^/admin
-RewriteCond %{REQUEST_URI} !^/api
-RewriteCond %{REQUEST_URI} !^/uploads
-RewriteRule ^ /index.html [L]
