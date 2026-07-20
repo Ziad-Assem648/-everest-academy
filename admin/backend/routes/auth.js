@@ -36,9 +36,9 @@ router.post("/login", async (req, res) => {
   // Single Active Device: check if user already has ANY active session
   const existingSessions = await query("SELECT id, device_type, device_info, last_heartbeat FROM user_sessions WHERE user_id = ?", [user.id]);
 
-  // Filter stale sessions in JS (heartbeat older than 3 minutes = browser closed)
+  // Filter stale sessions in JS (heartbeat older than 15 seconds = browser closed)
   const now = Date.now();
-  const HEARTBEAT_TIMEOUT = 180 * 1000; // 3 minutes
+  const HEARTBEAT_TIMEOUT = 15 * 1000; // 15 seconds
   const activeSessions = existingSessions.filter(s => {
     if (!s.last_heartbeat) return false; // old session without heartbeat = stale
     const lastHb = new Date(s.last_heartbeat).getTime();
@@ -110,12 +110,15 @@ router.post("/heartbeat", async (req, res) => {
     const { user_id } = req.body;
     if (!user_id) return res.json({ success: false });
     const now = new Date().toISOString();
+
+    // Check if user's session_token was changed by another login
+    const user = await queryOne("SELECT id, session_token FROM users WHERE id = ?", [user_id]);
     const sessionToken = req.headers["x-session-token"];
-    if (sessionToken) {
-      await execute("UPDATE user_sessions SET last_heartbeat = ? WHERE user_id = ? AND session_token = ?", [now, user_id, sessionToken]);
-    } else {
-      await execute("UPDATE user_sessions SET last_heartbeat = ? WHERE user_id = ?", [now, user_id]);
+    if (sessionToken && user && user.session_token !== sessionToken) {
+      return res.json({ success: false, logout: true });
     }
+
+    await execute("UPDATE user_sessions SET last_heartbeat = ? WHERE user_id = ?", [now, user_id]);
     res.json({ success: true });
   } catch (e) {
     res.json({ success: true });

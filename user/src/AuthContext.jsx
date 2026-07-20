@@ -15,22 +15,35 @@ export function AuthProvider({ children }) {
     } catch { return null; }
   });
 
-  // Heartbeat: ping server every 5 seconds + immediate ping on tab focus
+  // Heartbeat: ping server every 3 seconds + auto-logout if session killed
   useEffect(() => {
     if (!user?.id || !user?.session_token) return;
+    let failedCount = 0;
     const sendHeartbeat = () => {
       fetch(`${API}/auth/heartbeat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": user.id,
-          "x-session-token": user.session_token,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: user.id }),
-      }).catch(() => {});
+      }).then(res => {
+        failedCount = 0;
+        return res.json();
+      }).then(data => {
+        if (data && data.logout) {
+          setUser(null);
+          localStorage.removeItem("everest_user");
+          localStorage.removeItem("everest_session_token");
+        }
+      }).catch(() => {
+        failedCount++;
+        if (failedCount >= 5) {
+          setUser(null);
+          localStorage.removeItem("everest_user");
+          localStorage.removeItem("everest_session_token");
+        }
+      });
     };
     sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 5000);
+    const interval = setInterval(sendHeartbeat, 3000);
     const onVisible = () => { if (document.visibilityState === "visible") sendHeartbeat(); };
     document.addEventListener("visibilitychange", onVisible);
     return () => { clearInterval(interval); document.removeEventListener("visibilitychange", onVisible); };
