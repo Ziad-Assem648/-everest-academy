@@ -380,9 +380,11 @@ async function seedDataTurso(driver, exec) {
       args: ["admin-001","Admin Everest","admin@everest.com","admin123","admin","EVEREST-ADMIN","Star"] });
   }
 
-  // Check if mock users already seeded
-  const mockCheck = await exec("SELECT id FROM users WHERE email = 'ahmed@test.com'");
-  if (mockCheck.length) return;
+  // Check if mock data was already seeded (permanent flag - survives deletion)
+  try {
+    const flagCheck = await exec("SELECT value FROM settings WHERE key = 'mock_data_seeded'");
+    if (flagCheck.length && flagCheck[0].value === 'true') return;
+  } catch(e) { return; }
 
   const pw = await bcrypt.hash("password123", 10);
   const users = getSeedUsers();
@@ -485,6 +487,7 @@ async function seedDataTurso(driver, exec) {
   }
 
   console.log("  Turso mock data seeded: 18 users, 3 courses, 5 topics, 11 lessons, 8 quizzes");
+  await driver.execute({ sql: "INSERT OR REPLACE INTO settings (key,value) VALUES ('mock_data_seeded','true')" }).catch(()=>{});
 }
 
 function seedDataLocal(driver) {
@@ -517,8 +520,11 @@ function seedDataLocal(driver) {
       ["admin-001","Admin Everest","admin@everest.com","admin123","admin","EVEREST-ADMIN","Star"]);
   }
 
-  // Check if mock users already seeded
-  if (exists("users", "email = ?", ["ahmed@test.com"])) return;
+  // Check if mock data was already seeded (permanent flag)
+  try {
+    const flagCheck = driver.exec("SELECT value FROM settings WHERE key = 'mock_data_seeded'");
+    if (flagCheck.length && flagCheck[0].values.length && flagCheck[0].values[0][0] === 'true') return;
+  } catch(e) { return; }
 
   const users = getSeedUsers();
   const pw = bcrypt.hashSync("password123", 10);
@@ -644,6 +650,7 @@ function seedDataLocal(driver) {
   }
 
   console.log("  Mock data seeded: 18 users, 3 courses, 5 topics, 11 lessons, 8 quizzes");
+  safe(() => driver.run("INSERT OR REPLACE INTO settings (key,value) VALUES (?,?)", ["mock_data_seeded", "true"]));
 }
 
 export function saveDb() {
