@@ -15,10 +15,10 @@ export function AuthProvider({ children }) {
     } catch { return null; }
   });
 
-  // Heartbeat: ping server every 5 seconds to keep session alive
+  // Heartbeat: ping server every 5 seconds + immediate ping on tab focus
   useEffect(() => {
     if (!user?.id || !user?.session_token) return;
-    const interval = setInterval(() => {
+    const sendHeartbeat = () => {
       fetch(`${API}/auth/heartbeat`, {
         method: "POST",
         headers: {
@@ -28,8 +28,12 @@ export function AuthProvider({ children }) {
         },
         body: JSON.stringify({ user_id: user.id }),
       }).catch(() => {});
-    }, 5000);
-    return () => clearInterval(interval);
+    };
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 5000);
+    const onVisible = () => { if (document.visibilityState === "visible") sendHeartbeat(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(interval); document.removeEventListener("visibilitychange", onVisible); };
   }, [user?.id, user?.session_token]);
 
   const login = (u, sessionToken) => {

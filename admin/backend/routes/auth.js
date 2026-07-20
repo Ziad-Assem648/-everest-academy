@@ -36,9 +36,9 @@ router.post("/login", async (req, res) => {
   // Single Active Device: check if user already has ANY active session
   const existingSessions = await query("SELECT id, device_type, device_info, last_heartbeat FROM user_sessions WHERE user_id = ?", [user.id]);
 
-  // Filter stale sessions in JS (heartbeat older than 30 seconds = browser closed)
+  // Filter stale sessions in JS (heartbeat older than 3 minutes = browser closed)
   const now = Date.now();
-  const HEARTBEAT_TIMEOUT = 30 * 1000; // 30 seconds
+  const HEARTBEAT_TIMEOUT = 180 * 1000; // 3 minutes
   const activeSessions = existingSessions.filter(s => {
     if (!s.last_heartbeat) return false; // old session without heartbeat = stale
     const lastHb = new Date(s.last_heartbeat).getTime();
