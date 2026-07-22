@@ -65,7 +65,7 @@ export default function PurchaseRequestsPage() {
                   <p className="text-xs text-gray-400">{r.student_email}</p>
                 </td>
                 <td className="p-3 font-medium">{r.course_name_ar || r.course_name}</td>
-                <td className="p-3 font-bold text-everest-700">{r.amount ? `${r.amount} EGP` : "—"}</td>
+                <td className="p-3 font-bold text-everest-700">{r.course_price != null ? `${r.course_price} E-Money` : "—"}</td>
                 <td className="p-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs ${
                     r.payment_method === "emoney" ? "bg-green-100 text-green-700"

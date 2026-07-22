@@ -147,7 +147,7 @@ router.post("/sync-leaderboard", async (req, res) => {
 router.get("/enrollments/list", async (req, res) => {
   const { status } = req.query;
   let sql = `
-    SELECT e.*, u.full_name as student_name, u.email as student_email, c.title as course_name, c.title_ar as course_name_ar
+    SELECT e.*, u.full_name as student_name, u.email as student_email, c.title as course_name, c.title_ar as course_name_ar, c.price as course_price
     FROM enrollments e
     JOIN users u ON e.user_id = u.id
     JOIN courses c ON e.course_id = c.id
