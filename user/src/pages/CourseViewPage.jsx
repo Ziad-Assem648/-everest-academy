@@ -532,7 +532,7 @@ export default function CourseViewPage() {
             {course.title_ar || course.title}
           </h2>
           <p style={{color:c.textMuted,fontSize:m?12:14,lineHeight:m?1.6:1.8,marginBottom:m?14:20}}>{course.description_ar || course.description}</p>
-          <div style={{display:"grid",gridTemplateColumns:m?"1fr 1fr":"1fr 1fr 1fr",gap:m?10:16}}>
+          <div style={{display:"grid",gridTemplateColumns:m?"1fr 1fr":"1fr 1fr",gap:m?10:16}}>
             <div style={{background:c.bgInput,borderRadius:10,padding:m?"10px 12px":"14px 16px"}}>
               <p style={{fontSize:m?10:11,color:c.textMuted,margin:"0 0 3px",fontWeight:600}}>{t("المستوى", "Level")}</p>
               <p style={{fontSize:m?12:14,fontWeight:700,color:c.text,margin:0}}>
@@ -542,12 +542,6 @@ export default function CourseViewPage() {
             <div style={{background:c.bgInput,borderRadius:10,padding:m?"10px 12px":"14px 16px"}}>
               <p style={{fontSize:m?10:11,color:c.textMuted,margin:"0 0 3px",fontWeight:600}}>{t("الدروس", "Lessons")}</p>
               <p style={{fontSize:m?12:14,fontWeight:700,color:c.text,margin:0}}>{allLessons.length} {t("درس", "lessons")}</p>
-            </div>
-            <div style={{background:c.bgInput,borderRadius:10,padding:m?"10px 12px":"14px 16px"}}>
-              <p style={{fontSize:m?10:11,color:c.textMuted,margin:"0 0 3px",fontWeight:600}}>{t("السعر", "Price")}</p>
-              <p style={{fontSize:m?12:14,fontWeight:700,color:c.text,margin:0}}>
-                {!isFree && `${course.price} E-Money`}{isFree && t("مجاني", "Free")}
-              </p>
             </div>
             {reviewData.avg_rating > 0 && (
               <div style={{background:c.bgInput,borderRadius:10,padding:m?"10px 12px":"14px 16px"}}>

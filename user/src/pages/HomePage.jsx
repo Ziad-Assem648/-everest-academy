@@ -296,12 +296,18 @@ export default function HomePage() {
               <div style={s.courseFooter}>
                 <div>
                   <div style={{color:"#ffb800",fontSize:"0.85rem"}}>{course.avg_rating > 0 ? `⭐ ${course.avg_rating} (${course.review_count})` : "⭐⭐⭐⭐⭐"}</div>
-                  <div style={{fontSize:"0.9rem",color:c.text,marginTop:3,fontWeight:700}}>{course.price} E-Money</div>
+                  {user?.account_type !== "student" && <div style={{fontSize:"0.9rem",color:c.text,marginTop:3,fontWeight:700}}>{course.price} E-Money</div>}
                 </div>
               </div>
               <div style={{display:"flex",gap:8,marginTop:10}}>
-                <button onClick={() => setModal(course)} style={{flex:1,textAlign:"center",padding:m?"8px 6px":"10px 8px",borderRadius:12,fontSize:m?"0.72rem":"0.82rem",background:"transparent",color:c.text,border:`1px solid ${c.borderLight}`,cursor:"pointer",fontWeight:600,transition:"0.3s"}}>{t("معاينة","Preview")}</button>
-                <Link to={`/courses/${course.id}`} style={{...s.courseBtn,flex:1,justifyContent:"center"}}>{t("اشترك ←","Enroll →")}</Link>
+                {user?.account_type === "student" ? (
+                  <Link to={`/courses/${course.id}`} style={{...s.courseBtn,flex:1,justifyContent:"center"}}>{t("مشاهدة","Watch")}</Link>
+                ) : (
+                  <>
+                    <button onClick={() => setModal(course)} style={{flex:1,textAlign:"center",padding:m?"8px 6px":"10px 8px",borderRadius:12,fontSize:m?"0.72rem":"0.82rem",background:"transparent",color:c.text,border:`1px solid ${c.borderLight}`,cursor:"pointer",fontWeight:600,transition:"0.3s"}}>{t("معاينة","Preview")}</button>
+                    <Link to={`/courses/${course.id}`} style={{...s.courseBtn,flex:1,justifyContent:"center"}}>{t("اشترك ←","Enroll →")}</Link>
+                  </>
+                )}
               </div>
             </div>
           ))}

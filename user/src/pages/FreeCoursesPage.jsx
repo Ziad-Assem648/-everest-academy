@@ -18,54 +18,43 @@ export default function FreeCoursesPage() {
   const [lessons, setLessons] = useState([]);
   const [coursesMap, setCoursesMap] = useState({});
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
   const [popupCourse, setPopupCourse] = useState(null);
 
   useEffect(() => {
-    api("/api/courses/free-lessons").then((data) => {
-      setLessons(data || []);
-      const map = {};
-      (data || []).forEach((l) => {
-        if (!map[l.course_id]) {
-          map[l.course_id] = {
-            id: l.course_id,
-            title: l.course_title,
-            title_ar: l.course_title_ar,
-            description: l.course_description,
-            description_ar: l.course_description_ar,
-            image: l.course_image,
-            difficulty: l.difficulty,
-            price: l.price,
+    const fetchCourses = async () => {
+      try {
+        const [lessonsData, coursesData] = await Promise.all([
+          api("/api/courses/free-lessons"),
+          api("/api/courses?status=published"),
+        ]);
+        setLessons(lessonsData || []);
+        const map = {};
+        (coursesData || []).forEach((c) => {
+          map[c.id] = {
+            id: c.id,
+            title: c.title,
+            title_ar: c.title_ar,
+            description: c.description,
+            description_ar: c.description_ar,
+            image: c.featured_image,
+            difficulty: c.difficulty,
+            price: c.price,
             freeCount: 0,
           };
-        }
-        map[l.course_id].freeCount++;
-      });
-      setCoursesMap(map);
-    }).catch(() => {});
+        });
+        (lessonsData || []).forEach((l) => {
+          if (map[l.course_id]) map[l.course_id].freeCount++;
+        });
+        setCoursesMap(map);
+      } catch {}
+    };
+    fetchCourses();
   }, []);
 
   const uniqueCourses = Object.values(coursesMap).filter((course) => {
     const q = search.toLowerCase();
     return !q || (course.title || "").toLowerCase().includes(q) || (course.title_ar || "").includes(q) || (course.description || "").toLowerCase().includes(q) || (course.description_ar || "").includes(q);
   });
-
-  const cats = [
-    { id: "all", emoji: "\uD83C\uDF10", label: t("الكل", "All") },
-    { id: "trading", emoji: "\uD83D\uDCC8", label: t("التداول", "Trading") },
-    { id: "marketing", emoji: "\uD83D\uDCA1", label: t("التسويق", "Marketing") },
-    { id: "dev", emoji: "\uD83D\uDCBB", label: t("البرمجة", "Programming") },
-    { id: "ai", emoji: "\uD83E\uDD16", label: t("الذكاء الاصطناعي", "AI") },
-    { id: "freelance", emoji: "\uD83D\uDC4D", label: t("العمل الحر", "Freelancing") },
-  ];
-
-  const categories = [
-    { id: "trading", type: "trading" },
-    { id: "marketing", type: "marketing" },
-    { id: "dev", type: "dev" },
-    { id: "ai", type: "ai" },
-    { id: "freelance", type: "freelance" },
-  ];
 
   const getDiffLabel = (d) => {
     if (d === "beginner") return t("مبتدئ", "Beginner");
@@ -217,21 +206,6 @@ export default function FreeCoursesPage() {
         </div>
       </section>
 
-      {/* ===== CATEGORIES ===== */}
-      <section className="fcp-categories">
-        <div className="fcp-cats-wrap">
-          {cats.map((cat) => (
-            <button
-              key={cat.id}
-              className={`fcp-cat-btn ${filter === cat.id ? "active" : ""}`}
-              onClick={() => setFilter(filter === cat.id ? "all" : cat.id)}
-            >
-              {cat.emoji} {cat.label}
-            </button>
-          ))}
-        </div>
-      </section>
-
       {/* ===== FREE COURSES ===== */}
       <section className="fcp-trending" id="lessons">
         <div className="fcp-section-heading">
@@ -249,7 +223,7 @@ export default function FreeCoursesPage() {
           <div className="fcp-cards-row">
             {uniqueCourses.map((course) => (
               <div key={course.id} className="fcp-trend-card">
-                <div className="fcp-free-tag">🔓 {t("مجاني", "Free")}</div>
+                {course.freeCount > 0 && <div className="fcp-free-tag">🔓 {t("مجاني", "Free")}</div>}
                 <div className="fcp-card-img-wrap">
                   {course.image ? (
                     <img src={course.image} alt={course.title_ar || course.title} />
@@ -297,7 +271,7 @@ export default function FreeCoursesPage() {
             <div className="fcp-feature">{t("📚 محتوى محدث", "Updated Content")}</div>
             <div className="fcp-feature">{t("💎 نظام E-Money مرن", "Flexible E-Money System")}</div>
             <div className="fcp-feature">{t("🤝 دعم الطلاب", "Student Support")}</div>
-            <div className="fcp-feature">{t("🌟 مكافآت الإحالة المالية خلال 48 ساعة", "Money Referral Refund in 48 hours")}</div>
+            <div className="fcp-feature">{t("🌟 مكافآت الإحالة المالية خلال 48 ساعة", "Referral Rewards in 48 hours")}</div>
           </div>
         </div>
         <div className="fcp-premium-card">
