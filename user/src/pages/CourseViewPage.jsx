@@ -462,7 +462,7 @@ export default function CourseViewPage() {
         </div>
 
         {/* 2. Course Content */}
-        <div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:m?12:16,padding:m?14:20,marginBottom:m?12:20}}>
+        {isEnrolled && (<div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:m?12:16,padding:m?14:20,marginBottom:m?12:20}}>
           <h3 style={{fontSize:m?14:15,fontWeight:700,color:"#e2c275",marginBottom:m?12:16,letterSpacing:1}}>{t("محتوى الكورس", "COURSE CONTENT")}</h3>
           {(course.topics || []).map((topic) => {
             const topicQuiz = getTopicQuiz(topic);
@@ -524,7 +524,7 @@ export default function CourseViewPage() {
               <span style={{fontSize:9,padding:"2px 6px",borderRadius:6,background:isQuizPassed(course.final_quiz.id) ? "rgba(34,197,94,.15)" : "rgba(255,91,91,.15)",whiteSpace:"nowrap"}}>{isQuizPassed(course.final_quiz.id) ? "✅" : t("لم يُكمل", "Pending")}</span>
             </button>
           )}
-        </div>
+        </div>)}
 
         {/* 3. Course Information */}
         <div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:m?12:16,padding:m?16:28,marginBottom:m?12:20}}>
