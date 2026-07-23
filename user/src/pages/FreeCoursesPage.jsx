@@ -203,7 +203,6 @@ export default function FreeCoursesPage() {
       {/* ===== HERO ===== */}
       <section className="fcp-hero">
         <div className="fcp-hero-inner">
-          <span className="fcp-hero-badge">{t("كورسات خارجية للعرض", "EXTERNAL COURSES FOR PREVIEW")}</span>
           <h1>{t("جرّب مجاناً قبل ما تشتري", "Try Before You Buy")}</h1>
           <p>{t("استكشف دروساً مجانية من كورسات مدفوعة — تعرّف على المحتوى والأسلوب قبل الاشتراك.", "Explore free lessons from paid courses — experience the content and style before subscribing.")}</p>
           <div className="fcp-search-box">
