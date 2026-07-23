@@ -236,8 +236,8 @@ export default function FreeCoursesPage() {
       {/* ===== FREE COURSES ===== */}
       <section className="fcp-trending" id="lessons">
         <div className="fcp-section-heading">
-          <span>{t("كورسات مجانية", "FREE COURSES")}</span>
-          <h2>{t("جرّب قبل ما تشتري", "Preview Before You Buy")}</h2>
+          <span>{t("استكشف مجاناً", "EXPLORE FOR FREE")}</span>
+          <h2>{t("استكشف دروساً تعليمية فاخرة، واكتشف مهارات جديدة، وابدأ دروسك الأولى مجاناً.", "Discover premium courses, learn new skills, and start your first lessons for free.")}</h2>
         </div>
 
         {uniqueCourses.length === 0 ? (

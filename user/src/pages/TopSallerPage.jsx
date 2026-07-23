@@ -22,13 +22,13 @@ const podiumHeights = { 1: 240, 2: 190, 3: 160 };
 function scoreColor(s) { return s >= 90 ? "#10b981" : s >= 75 ? "#3b82f6" : s >= 60 ? "#f97316" : "#ef4444"; }
 function gradeBadge(s) { return s >= 90 ? { ar: "ممتاز", en: "Excellent", bg: "#10b98118", fg: "#10b981" } : s >= 75 ? { ar: "جيد جداً", en: "Very Good", bg: "#3b82f618", fg: "#3b82f6" } : s >= 60 ? { ar: "جيد", en: "Good", bg: "#f9731618", fg: "#f97316" } : { ar: "مقبول", en: "Pass", bg: "#ef444418", fg: "#ef4444" }; }
 
-function PodiumCard({ s, position, t, c, m }) {
+function PodiumCard({ s, position, t, c, m, onClick }) {
   const isTop = position === 1;
   const init = (s.full_name || "?").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   const sc = scoreColor(s.avg_score);
   const g = gradeBadge(s.avg_score);
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", order: position === 2 ? 0 : position === 1 ? -1 : 1, flex: position === 1 ? "1.2 1 0" : "1 1 0", animation: `podiumRise 0.8s ease ${position * 0.15}s both`, maxWidth: m ? 110 : "none" }}>
+    <div onClick={() => onClick?.(s)} style={{ cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", order: position === 2 ? 0 : position === 1 ? -1 : 1, flex: position === 1 ? "1.2 1 0" : "1 1 0", animation: `podiumRise 0.8s ease ${position * 0.15}s both`, maxWidth: m ? 110 : "none", transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.03)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
       <div style={{ position: "relative", marginBottom: m ? 6 : 12 }}>
         <div style={{ width: isTop ? (m ? 64 : 90) : (m ? 50 : 70), height: isTop ? (m ? 64 : 90) : (m ? 50 : 70), borderRadius: "50%", background: `linear-gradient(135deg, ${sc}25, ${sc}10)`, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${isTop ? sc : sc + "40"}`, boxShadow: isTop ? `0 8px 30px ${sc}30` : "none" }}>
           {s.avatar ? <img src={s.avatar} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} onError={e => { e.target.style.display = "none"; }} /> : null}
@@ -55,13 +55,13 @@ function PodiumCard({ s, position, t, c, m }) {
   );
 }
 
-function RankRow({ s, i, t, c, m }) {
+function RankRow({ s, i, t, c, m, onClick }) {
   const init = (s.full_name || "?").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   const sc = scoreColor(s.avg_score);
   const g = gradeBadge(s.avg_score);
   const posColor = i === 0 ? "#fbbf24" : i === 1 ? "#94a3b8" : i === 2 ? "#d97706" : c.textMuted;
   return (
-    <div style={{ display: "grid", gridTemplateColumns: m ? "40px 1fr auto" : "50px 1fr 140px 140px 90px 80px", alignItems: "center", padding: m ? "10px 12px" : "12px 16px", borderBottom: `1px solid ${c.border}`, background: i < 3 ? "rgba(212,175,55,0.03)" : "transparent" }}>
+    <div onClick={() => onClick?.(s)} style={{ cursor: "pointer", display: "grid", gridTemplateColumns: m ? "40px 1fr auto" : "50px 1fr 140px 140px 90px 80px", alignItems: "center", padding: m ? "10px 12px" : "12px 16px", borderBottom: `1px solid ${c.border}`, background: i < 3 ? "rgba(212,175,55,0.03)" : "transparent", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(212,175,55,0.08)"} onMouseLeave={e => e.currentTarget.style.background = i < 3 ? "rgba(212,175,55,0.03)" : "transparent"}>
       <span style={{ fontWeight: 800, fontSize: i < 3 ? (m ? 14 : 16) : (m ? 11 : 12), color: posColor, textAlign: "center" }}>{i < 3 ? medals[i + 1] : `#${i + 1}`}</span>
       <div style={{ display: "flex", alignItems: "center", gap: m ? 8 : 10, minWidth: 0 }}>
         <div style={{ width: m ? 30 : 36, height: m ? 30 : 36, borderRadius: "50%", flexShrink: 0, background: sc + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: m ? 10 : 12, fontWeight: 700, color: sc }}>
@@ -95,6 +95,8 @@ export default function TopSallerPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("podium");
+  const [selectedPerformer, setSelectedPerformer] = useState(null);
+  const [modalCourse, setModalCourse] = useState(null);
 
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/courses/top-quiz-performers`)
@@ -153,12 +155,12 @@ export default function TopSallerPage() {
           <>
             {activeTab === "podium" && top3.length > 0 && !search && (
               <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 16, marginBottom: 60, padding: "0 20px", animation: "fadeInUp 0.6s ease 0.3s both" }}>
-                {top3.length === 1 && <PodiumCard s={top3[0]} position={1} t={t} c={c} m={m} />}
+                {top3.length === 1 && <PodiumCard s={top3[0]} position={1} t={t} c={c} m={m} onClick={setSelectedPerformer} />}
                 {top3.length === 2 && <>
-                  <PodiumCard s={top3[0]} position={1} t={t} c={c} m={m} />
-                  <PodiumCard s={top3[1]} position={2} t={t} c={c} m={m} />
+                  <PodiumCard s={top3[0]} position={1} t={t} c={c} m={m} onClick={setSelectedPerformer} />
+                  <PodiumCard s={top3[1]} position={2} t={t} c={c} m={m} onClick={setSelectedPerformer} />
                 </>}
-                {top3.length >= 3 && podiumOrder.map(pos => <PodiumCard key={pos} s={top3[pos - 1]} position={pos} t={t} c={c} m={m} />)}
+                {top3.length >= 3 && podiumOrder.map(pos => <PodiumCard key={pos} s={top3[pos - 1]} position={pos} t={t} c={c} m={m} onClick={setSelectedPerformer} />)}
               </div>
             )}
             {activeTab === "podium" && rest.length > 0 && !search && (
@@ -169,7 +171,7 @@ export default function TopSallerPage() {
                     const sc = scoreColor(s.avg_score);
                     const init = (s.full_name || "?").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
                     return (
-                      <div key={s.user_id + s.course_id} style={{ display: "flex", alignItems: "center", gap: 12, background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 14, padding: "12px 16px" }}>
+                      <div key={s.user_id + s.course_id} onClick={() => setSelectedPerformer(s)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 12, background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 14, padding: "12px 16px", transition: "border-color 0.2s, transform 0.2s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.transform = "scale(1.02)"; }} onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.transform = "scale(1)"; }}>
                         <span style={{ fontSize: 13, fontWeight: 700, color: c.textMuted, width: 30, textAlign: "center" }}>#{i + 4}</span>
                         <div style={{ width: 40, height: 40, borderRadius: "50%", flexShrink: 0, background: sc + "15", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: sc, border: `1px solid ${sc}25` }}>
                           {s.avatar ? <img src={s.avatar} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} /> : init}
@@ -198,17 +200,85 @@ export default function TopSallerPage() {
                 </div>}
                 {filtered.length === 0 ? (
                   <div style={{ padding: "50px 0", textAlign: "center", color: c.textMuted, fontSize: 13 }}>{t("لا يوجد نتائج", "No results")}</div>
-                ) : filtered.map((s, i) => <RankRow key={s.user_id + s.course_id} s={s} i={i} t={t} c={c} m={m} />)}
+                ) : filtered.map((s, i) => <RankRow key={s.user_id + s.course_id} s={s} i={i} t={t} c={c} m={m} onClick={setSelectedPerformer} />)}
               </div>
             )}
           </>
         )}
       </div>
+      {/* Performer Detail Modal */}
+      {selectedPerformer && (() => {
+        const s = selectedPerformer;
+        const sc = scoreColor(s.avg_score);
+        const g = gradeBadge(s.avg_score);
+        const init = (s.full_name || "?").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+        const courseName = s.course_title_ar || s.course_title || "—";
+        const courseDesc = s.course_description_ar || s.course_description || "";
+        return (
+          <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(4px)" }} onClick={() => setSelectedPerformer(null)}>
+            <div style={{ background: c.bgCard, borderRadius: 24, border: `1px solid ${c.border}`, width: "100%", maxWidth: 480, maxHeight: "85vh", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.3)", animation: "modalIn 0.3s ease" }} onClick={e => e.stopPropagation()}>
+              {/* Header */}
+              <div style={{ position: "relative", padding: "28px 24px 20px", textAlign: "center", background: `linear-gradient(135deg, ${sc}12, ${sc}05)`, borderBottom: `1px solid ${c.border}` }}>
+                <button onClick={() => setSelectedPerformer(null)} style={{ position: "absolute", top: 12, left: 12, background: "rgba(0,0,0,0.06)", border: "none", borderRadius: "50%", width: 32, height: 32, fontSize: 16, cursor: "pointer", color: c.textMuted, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                <div style={{ width: 72, height: 72, borderRadius: "50%", margin: "0 auto 12px", background: `linear-gradient(135deg, ${sc}30, ${sc}10)`, border: `3px solid ${sc}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 20px ${sc}25` }}>
+                  {s.avatar ? <img src={s.avatar} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} /> : <span style={{ fontSize: 26, fontWeight: 900, color: sc }}>{init}</span>}
+                </div>
+                <h3 style={{ fontSize: 20, fontWeight: 800, color: c.text, margin: "0 0 4px" }}>{s.full_name}</h3>
+                <p style={{ fontSize: 12, color: c.textMuted, margin: 0 }}>{s.email || "—"}</p>
+                {s.rank && <span style={{ display: "inline-block", marginTop: 8, padding: "3px 12px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: `${GOLD}15`, color: GOLD, border: `1px solid ${GOLD}30` }}>{s.rank}</span>}
+              </div>
+              {/* Score */}
+              <div style={{ padding: "20px 24px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, textAlign: "center" }}>
+                <div style={{ padding: "12px 8px", borderRadius: 14, background: `${sc}10`, border: `1px solid ${sc}25` }}>
+                  <p style={{ fontSize: 24, fontWeight: 900, color: sc, margin: 0 }}>{Math.round(s.avg_score)}%</p>
+                  <p style={{ fontSize: 10, color: c.textMuted, margin: "4px 0 0" }}>{t("معدل الدرجات", "Avg Score")}</p>
+                </div>
+                <div style={{ padding: "12px 8px", borderRadius: 14, background: `${sc}10`, border: `1px solid ${sc}25` }}>
+                  <p style={{ fontSize: 24, fontWeight: 900, color: "#10b981", margin: 0 }}>{s.best_score != null ? Math.round(s.best_score) : "—"}%</p>
+                  <p style={{ fontSize: 10, color: c.textMuted, margin: "4px 0 0" }}>{t("أفضل درجة", "Best Score")}</p>
+                </div>
+                <div style={{ padding: "12px 8px", borderRadius: 14, background: `${sc}10`, border: `1px solid ${sc}25` }}>
+                  <p style={{ fontSize: 24, fontWeight: 900, color: c.text, margin: 0 }}>{s.total_attempts}</p>
+                  <p style={{ fontSize: 10, color: c.textMuted, margin: "4px 0 0" }}>{t("عدد المحاولات", "Attempts")}</p>
+                </div>
+              </div>
+              {/* Results */}
+              <div style={{ padding: "0 24px 20px", display: "flex", gap: 12 }}>
+                <div style={{ flex: 1, textAlign: "center", padding: "10px 0", borderRadius: 12, background: "#10b98110", border: "1px solid #10b98125" }}>
+                  <span style={{ fontSize: 18, fontWeight: 800, color: "#10b981" }}>✓ {s.passed}</span>
+                  <p style={{ fontSize: 10, color: c.textMuted, margin: "4px 0 0" }}>{t("ناجح", "Passed")}</p>
+                </div>
+                <div style={{ flex: 1, textAlign: "center", padding: "10px 0", borderRadius: 12, background: "#ef444410", border: "1px solid #ef444425" }}>
+                  <span style={{ fontSize: 18, fontWeight: 800, color: "#ef4444" }}>✗ {s.failed}</span>
+                  <p style={{ fontSize: 10, color: c.textMuted, margin: "4px 0 0" }}>{t("راسب", "Failed")}</p>
+                </div>
+                <div style={{ flex: 1, textAlign: "center", padding: "10px 0", borderRadius: 12, background: `${g.bg}`, border: `1px solid ${g.fg}25` }}>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: g.fg }}>{t(g.ar, g.en)}</span>
+                  <p style={{ fontSize: 10, color: c.textMuted, margin: "4px 0 0" }}>{t("التقدير", "Grade")}</p>
+                </div>
+              </div>
+              {/* Course */}
+              <div style={{ padding: "0 24px 24px" }}>
+                <div style={{ borderRadius: 16, border: `1px solid ${c.border}`, overflow: "hidden" }}>
+                  {s.course_image && <img src={s.course_image} alt="" style={{ width: "100%", height: 160, objectFit: "cover" }} />}
+                  <div style={{ padding: "16px 18px" }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: GOLD, textTransform: "uppercase", letterSpacing: 1, margin: "0 0 6px" }}>{t("الكورس", "Course")}</p>
+                    <h4 style={{ fontSize: 16, fontWeight: 800, color: c.text, margin: "0 0 8px" }}>{courseName}</h4>
+                    {courseDesc && <p style={{ fontSize: 12, color: c.textMuted, margin: 0, lineHeight: 1.6 }}>{courseDesc.length > 160 ? courseDesc.slice(0, 160) + "..." : courseDesc}</p>}
+                    {s.course_price != null && <p style={{ fontSize: 13, fontWeight: 700, color: sc, marginTop: 10 }}>{s.course_price} E-Money</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       <FooterSection />
       <style>{`
         @keyframes fadeInUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
         @keyframes podiumRise { from { opacity:0; transform:translateY(40px) scale(.9); } to { opacity:1; transform:translateY(0) scale(1); } }
         @keyframes spin { to { transform:rotate(360deg); } }
+        @keyframes modalIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
       `}</style>
     </div>
   );
