@@ -116,15 +116,17 @@ export default function RegisterPage() {
     if (form.password !== form.confirm) { setErr(t("كلمات المرور غير متطابقة!", "Passwords do not match!")); setLoading(false); return; }
     if (!idCardFront || !idCardBack) { setErr(t("يجب رفع صورة البطاقة الأمامية والخلفية", "Please upload both front and back ID card images")); setLoading(false); return; }
     try {
-      const uploadFile = async (file) => {
+      const pubUpload = async (file) => {
         const fd = new FormData();
         fd.append("file", file);
-        const result = await uploadApi(fd);
-        return `${BACKEND_URL}${result.url}`;
+        const res = await fetch(`${BACKEND_URL}/api/public-upload`, { method: "POST", body: fd });
+        if (!res.ok) throw new Error("Image upload failed");
+        const data = await res.json();
+        return `${BACKEND_URL}${data.url}`;
       };
       const [frontUrl, backUrl] = await Promise.all([
-        idCardFrontFile ? uploadFile(idCardFrontFile) : Promise.resolve(idCardFront),
-        idCardBackFile ? uploadFile(idCardBackFile) : Promise.resolve(idCardBack)
+        idCardFrontFile ? pubUpload(idCardFrontFile) : Promise.resolve(idCardFront),
+        idCardBackFile ? pubUpload(idCardBackFile) : Promise.resolve(idCardBack)
       ]);
       const body = { full_name: form.full_name, email: form.email, phone: form.phone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, id_card_front: frontUrl, id_card_back: backUrl };
       await api("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
@@ -398,8 +400,8 @@ export default function RegisterPage() {
                 </div>
               ) : (
                 <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${c.border}`, color: c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
-                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardBack)} />
-                  {uploadingImg === setIdCardBack ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Tap to upload")}
+                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardBack, setIdCardBackFile)} />
+                    {uploadingImg === setIdCardBack ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Tap to upload")}
                 </label>
               )}
             </div>

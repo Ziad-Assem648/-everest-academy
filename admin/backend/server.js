@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
+import multer from "multer";
 import { initDb, execute, query, queryOne } from "./db.js";
 import { pool as geminiPool } from "./geminiKeys.js";
 
@@ -139,6 +140,19 @@ app.get("/api/customer-service", async (req, res) => {
     for (const r of rows) obj[r.key] = r.value;
     res.json(obj);
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Public upload for registration (no auth needed, rate-limited, images only)
+const pubUploadDir = join(__dirname, "uploads");
+if (!fs.existsSync(pubUploadDir)) fs.mkdirSync(pubUploadDir, { recursive: true });
+const pubStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, pubUploadDir),
+  filename: (req, file, cb) => { const ext = file.originalname.split(".").pop(); cb(null, `reg-${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`); }
+});
+const pubUpload = multer({ storage: pubStorage, limits: { fileSize: 10 * 1024 * 1024 }, fileFilter: (req, file, cb) => { const ok = ["image/jpeg","image/png","image/webp"].includes(file.mimetype); cb(ok ? null : new Error("Images only"), ok); }});
+app.post("/api/public-upload", pubUpload.single("file"), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "No file" });
+  res.json({ url: `/uploads/${req.file.filename}` });
 });
 
 // Global error handler
