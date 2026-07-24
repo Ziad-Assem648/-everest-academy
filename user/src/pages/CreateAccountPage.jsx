@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
-import { api, uploadApi } from "../App";
+import { api, uploadApi, BACKEND_URL } from "../App";
 import AppNavbar from "../components/AppNavbar";
 
 const GOVERNORATES = [
@@ -51,7 +51,8 @@ export default function CreateAccountPage() {
       const fd = new FormData();
       fd.append("file", file);
       const result = await uploadApi(fd);
-      setter(result.url);
+      const url = result.url.startsWith("data:") ? result.url : `${BACKEND_URL}${result.url}`;
+      setter(url);
     } catch (e) { setErr(t("فشل رفع الصورة", "Image upload failed")); }
     setUploadingImg(null);
   };

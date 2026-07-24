@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
-import { api } from "../api.js";
+import { api, BACKEND_URL } from "../api.js";
 
 export default function RegistrationApprovalsPage() {
   const { lang, t: tFn } = useLang();
@@ -136,13 +136,13 @@ export default function RegistrationApprovalsPage() {
               {viewUser.id_card_front && (
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8 }}>📷 {t("أمامي", "Front")}</p>
-                  <img src={viewUser.id_card_front} alt="ID Front" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
+                  <img src={viewUser.id_card_front.startsWith("data:") ? viewUser.id_card_front : `${BACKEND_URL}${viewUser.id_card_front}`} alt="ID Front" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
                 </div>
               )}
               {viewUser.id_card_back && (
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8 }}>📷 {t("خلفي", "Back")}</p>
-                  <img src={viewUser.id_card_back} alt="ID Back" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
+                  <img src={viewUser.id_card_back.startsWith("data:") ? viewUser.id_card_back : `${BACKEND_URL}${viewUser.id_card_back}`} alt="ID Back" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
                 </div>
               )}
             </div>

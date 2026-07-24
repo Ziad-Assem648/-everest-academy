@@ -169,14 +169,16 @@ router.post("/register", async (req, res) => {
     }
 
     // Send OTP to email
+    let otpSent = false;
     try {
       await sendOTPEmail(email, otp, "Everest Academy — Email Verification Code");
+      otpSent = true;
     } catch (emailErr) {
       console.error("Registration email send failed:", emailErr.message);
     }
 
     const user = await queryOne("SELECT id, full_name, email, phone, address, referral_code, referred_by, status, rank, e_money, account_type, created_at FROM users WHERE id = ?", [id]);
-    res.json({ user, otp_sent: true });
+    res.json({ user, otp_sent: otpSent });
   } catch (err) {
     console.error("Register error:", err);
     res.status(500).json({ error: err.message });

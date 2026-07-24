@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
-import { api, uploadApi } from "../App";
+import { api, uploadApi, BACKEND_URL } from "../App";
 
 const useIsMobile = () => {
   const [m, setM] = useState(typeof window !== "undefined" && window.innerWidth <= 768);
@@ -113,7 +113,11 @@ export default function RegisterPage() {
     if (form.password !== form.confirm) { setErr(t("كلمات المرور غير متطابقة!", "Passwords do not match!")); setLoading(false); return; }
     try {
       const body = { full_name: form.full_name, email: form.email, phone: form.phone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, id_card_front: idCardFront, id_card_back: idCardBack };
-      await api("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
+      const res = await api("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
+      if (res.otp_sent === false) {
+        setErr(t("تم التسجيل لكن فشل إرسال كود التحقق. حاول مرة أخرى.", "Registered but OTP send failed. Please try again."));
+        setLoading(false); return;
+      }
       setRegisteredEmail(form.email);
       setOtpStep(true);
       setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no", governorate: "" });
@@ -132,7 +136,8 @@ export default function RegisterPage() {
       const fd = new FormData();
       fd.append("file", file);
       const result = await uploadApi(fd);
-      setter(result.url);
+      const url = result.url.startsWith("data:") ? result.url : `${BACKEND_URL}${result.url}`;
+      setter(url);
     } catch (e) { setErr(t("فشل رفع الصورة", "Image upload failed")); }
     setUploadingImg(null);
   };
