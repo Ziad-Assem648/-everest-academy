@@ -132,13 +132,22 @@ export default function RegisterPage() {
   const handleImageUpload = async (file, setter) => {
     if (!file) return;
     setUploadingImg(setter);
+    // Show immediate preview using FileReader
+    const localPreview = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+    if (localPreview) setter(localPreview);
+    // Then upload to server
     try {
       const fd = new FormData();
       fd.append("file", file);
       const result = await uploadApi(fd);
       const url = result.url.startsWith("data:") ? result.url : `${BACKEND_URL}${result.url}`;
       setter(url);
-    } catch (e) { setErr(t("فشل رفع الصورة", "Image upload failed")); }
+    } catch (e) { console.error("Upload failed:", e); }
     setUploadingImg(null);
   };
 

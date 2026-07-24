@@ -135,6 +135,22 @@ router.post("/register", async (req, res) => {
       if (existingPhone) return res.status(400).json({ error: "Phone number is already registered to another account", error_ar: "رقم الهاتف مسجل بالفعل في حساب آخر" });
     }
 
+    // Clean up any rejected user with same email/phone to allow re-registration
+    const rejected = await queryOne("SELECT id FROM users WHERE email = ? AND status = 'rejected'", [email]);
+    if (rejected) {
+      await execute("DELETE FROM user_closure WHERE descendant = ? OR ancestor = ?", [rejected.id, rejected.id]);
+      await execute("DELETE FROM notifications WHERE user_id = ?", [rejected.id]);
+      await execute("DELETE FROM users WHERE id = ?", [rejected.id]);
+    }
+    if (phone) {
+      const rejectedPhone = await queryOne("SELECT id FROM users WHERE phone = ? AND status = 'rejected'", [phone]);
+      if (rejectedPhone) {
+        await execute("DELETE FROM user_closure WHERE descendant = ? OR ancestor = ?", [rejectedPhone.id, rejectedPhone.id]);
+        await execute("DELETE FROM notifications WHERE user_id = ?", [rejectedPhone.id]);
+        await execute("DELETE FROM users WHERE id = ?", [rejectedPhone.id]);
+      }
+    }
+
     const id = await generateUserId();
     const code = "EVR-" + id.slice(0, 6);
 
