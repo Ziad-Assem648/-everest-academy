@@ -50,8 +50,6 @@ export default function RegisterPage() {
   const inputRefs = useRef([]);
   const [idCardFront, setIdCardFront] = useState(null);
   const [idCardBack, setIdCardBack] = useState(null);
-  const [idCardFrontFile, setIdCardFrontFile] = useState(null);
-  const [idCardBackFile, setIdCardBackFile] = useState(null);
   const [uploadingImg, setUploadingImg] = useState(null);
   const [otpStep, setOtpStep] = useState(false);
   const [otpCode, setOtpCode] = useState("");
@@ -116,19 +114,7 @@ export default function RegisterPage() {
     if (form.password !== form.confirm) { setErr(t("كلمات المرور غير متطابقة!", "Passwords do not match!")); setLoading(false); return; }
     if (!idCardFront || !idCardBack) { setErr(t("يجب رفع صورة البطاقة الأمامية والخلفية", "Please upload both front and back ID card images")); setLoading(false); return; }
     try {
-      const pubUpload = async (file) => {
-        const fd = new FormData();
-        fd.append("file", file);
-        const res = await fetch(`${BACKEND_URL}/api/public-upload`, { method: "POST", body: fd });
-        if (!res.ok) throw new Error("Image upload failed");
-        const data = await res.json();
-        return `${BACKEND_URL}${data.url}`;
-      };
-      const [frontUrl, backUrl] = await Promise.all([
-        idCardFrontFile ? pubUpload(idCardFrontFile) : Promise.resolve(idCardFront),
-        idCardBackFile ? pubUpload(idCardBackFile) : Promise.resolve(idCardBack)
-      ]);
-      const body = { full_name: form.full_name, email: form.email, phone: form.phone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, id_card_front: frontUrl, id_card_back: backUrl };
+      const body = { full_name: form.full_name, email: form.email, phone: form.phone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, id_card_front: idCardFront, id_card_back: idCardBack };
       await api("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
       nav("/pending-activation", { replace: true });
     } catch (e) { setErr(e.message); }
@@ -139,16 +125,30 @@ export default function RegisterPage() {
   const onFocus = (e) => e.target.style.borderColor = gold;
   const onBlur = (e) => e.target.style.borderColor = c.border;
 
-  const handleImageUpload = async (file, setter, fileSetter) => {
-    if (!file) return;
-    const localPreview = await new Promise((resolve) => {
+  const compressImage = async (file) => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => resolve(null);
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const max = 800;
+          let w = img.width, h = img.height;
+          if (w > max || h > max) { if (w > h) { h = Math.round(h * max / w); w = max; } else { w = Math.round(w * max / h); h = max; } }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", 0.7));
+        };
+        img.src = reader.result;
+      };
       reader.readAsDataURL(file);
     });
-    if (localPreview) setter(localPreview);
-    if (fileSetter) fileSetter(file);
+  };
+
+  const handleImageUpload = async (file, setter) => {
+    if (!file) return;
+    const compressed = await compressImage(file);
+    if (compressed) setter(compressed);
   };
 
   const verifyOtp = async () => {
@@ -382,7 +382,7 @@ export default function RegisterPage() {
                 </div>
               ) : (
                 <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${c.border}`, color: c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
-                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardFront, setIdCardFrontFile)} />
+                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardFront)} />
                   {uploadingImg === setIdCardFront ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Tap to upload")}
                 </label>
               )}
@@ -400,7 +400,7 @@ export default function RegisterPage() {
                 </div>
               ) : (
                 <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${c.border}`, color: c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
-                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardBack, setIdCardBackFile)} />
+                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardBack)} />
                     {uploadingImg === setIdCardBack ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Tap to upload")}
                 </label>
               )}
@@ -669,7 +669,7 @@ export default function RegisterPage() {
                   </div>
                 ) : (
                   <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${c.border}`, color: c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
-                    <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardFront, setIdCardFrontFile)} />
+                    <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardFront)} />
                     {uploadingImg === setIdCardFront ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
                   </label>
                 )}
@@ -687,7 +687,7 @@ export default function RegisterPage() {
                   </div>
                 ) : (
                   <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${c.border}`, color: c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
-                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardBack, setIdCardBackFile)} />
+                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardBack)} />
                     {uploadingImg === setIdCardBack ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
                   </label>
                 )}
