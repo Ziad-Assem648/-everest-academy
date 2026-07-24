@@ -8,6 +8,8 @@ export default function RegistrationApprovalsPage() {
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewUser, setViewUser] = useState(null);
+  const [viewCards, setViewCards] = useState(null);
+  const [loadingCards, setLoadingCards] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -33,6 +35,17 @@ export default function RegistrationApprovalsPage() {
       load();
       setViewUser(null);
     } catch (e) { alert(e.message); }
+  };
+
+  const openViewUser = async (u) => {
+    setViewUser(u);
+    setViewCards(null);
+    setLoadingCards(true);
+    try {
+      const cards = await api(`/api/users/${u.id}/id-cards`);
+      setViewCards(cards);
+    } catch (e) { console.error(e); }
+    setLoadingCards(false);
   };
 
   return (
@@ -83,13 +96,9 @@ export default function RegistrationApprovalsPage() {
                     )}
                   </td>
                   <td className="text-xs">
-                    {u.id_card_front || u.id_card_back ? (
-                      <button onClick={() => setViewUser(u)} className="text-blue-600 hover:text-blue-800 font-medium underline">
-                        {t("عرض", "View")}
-                      </button>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )}
+                    <button onClick={() => openViewUser(u)} className="text-blue-600 hover:text-blue-800 font-medium underline">
+                      {t("عرض", "View")}
+                    </button>
                   </td>
                   <td className="text-gray-500 text-xs">{new Date(u.created_at).toLocaleDateString("ar-EG")}</td>
                   <td className="text-left">
@@ -120,35 +129,38 @@ export default function RegistrationApprovalsPage() {
       {/* ID Card Modal */}
       {viewUser && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
-          onClick={() => setViewUser(null)}>
+          onClick={() => { setViewUser(null); setViewCards(null); }}>
           <div style={{ background: "#fff", borderRadius: 16, padding: 24, maxWidth: 700, width: "100%", maxHeight: "90vh", overflow: "auto" }}
             onClick={e => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{viewUser.full_name} — {t("البطاقة الشخصية", "ID Card")}</h3>
-              <button onClick={() => setViewUser(null)} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#666" }}>✕</button>
+              <button onClick={() => { setViewUser(null); setViewCards(null); }} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#666" }}>✕</button>
             </div>
 
             {viewUser.governorate && (
               <p style={{ fontSize: 14, color: "#555", marginBottom: 16 }}>📍 {t("المحافظة", "Governorate")}: <strong>{viewUser.governorate}</strong></p>
             )}
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              {viewUser.id_card_front && (
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8 }}>📷 {t("أمامي", "Front")}</p>
-                  <img src={viewUser.id_card_front.startsWith("data:") ? viewUser.id_card_front : `${BACKEND_URL}${viewUser.id_card_front}`} alt="ID Front" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
-                </div>
-              )}
-              {viewUser.id_card_back && (
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8 }}>📷 {t("خلفي", "Back")}</p>
-                  <img src={viewUser.id_card_back.startsWith("data:") ? viewUser.id_card_back : `${BACKEND_URL}${viewUser.id_card_back}`} alt="ID Back" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
-                </div>
-              )}
-            </div>
-
-            {!viewUser.id_card_front && !viewUser.id_card_back && (
-              <p style={{ color: "#999", textAlign: "center", padding: 20 }}>{t("لا توجد صور بطاقة", "No ID card images")}</p>
+            {loadingCards ? (
+              <p style={{ color: "#999", textAlign: "center", padding: 20 }}>{t("جارٍ تحميل الصور...", "Loading images...")}</p>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                {viewCards?.id_card_front ? (
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8 }}>📷 {t("أمامي", "Front")}</p>
+                    <img src={viewCards.id_card_front.startsWith("data:") ? viewCards.id_card_front : `${BACKEND_URL}${viewCards.id_card_front}`} alt="ID Front" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
+                  </div>
+                ) : null}
+                {viewCards?.id_card_back ? (
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8 }}>📷 {t("خلفي", "Back")}</p>
+                    <img src={viewCards.id_card_back.startsWith("data:") ? viewCards.id_card_back : `${BACKEND_URL}${viewCards.id_card_back}`} alt="ID Back" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
+                  </div>
+                ) : null}
+                {!loadingCards && (!viewCards?.id_card_front && !viewCards?.id_card_back) && (
+                  <p style={{ color: "#999", textAlign: "center", padding: 20, gridColumn: "1 / -1" }}>{t("لا توجد صور بطاقة", "No ID card images")}</p>
+                )}
+              </div>
             )}
           </div>
         </div>

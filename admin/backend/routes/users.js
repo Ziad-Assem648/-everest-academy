@@ -42,7 +42,7 @@ router.get("/pending-registrations", async (req, res) => {
   try {
     const users = await query(`
       SELECT u.id, u.full_name, u.email, u.phone, u.role, u.referral_code, u.referred_by, u.created_by_user, u.created_at,
-             u.id_card_front, u.id_card_back, u.governorate,
+             u.governorate,
              c.full_name as creator_name, c.email as creator_email
       FROM users u
       LEFT JOIN users c ON u.created_by_user = c.id
@@ -54,6 +54,14 @@ router.get("/pending-registrations", async (req, res) => {
     console.error("pending-registrations error:", e.message);
     res.status(500).json({ error: e.message });
   }
+});
+
+router.get("/:id/id-cards", async (req, res) => {
+  try {
+    const user = await queryOne("SELECT id_card_front, id_card_back FROM users WHERE id = ?", [req.params.id]);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.get("/:id", async (req, res) => {

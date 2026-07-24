@@ -327,6 +327,8 @@ function createSchema(driver, isTursoDb) {
         await driver.execute("UPDATE users SET account_type = 'student' WHERE role NOT IN ('registration', 'admin', 'ghost') AND account_type = 'student'");
       } catch(e) {}
       try { await driver.execute("UPDATE ranks SET sales_required = 2 WHERE name = 'Star' AND sales_required = 0"); } catch(e) {}
+      try { await driver.execute("UPDATE users SET id_card_front = NULL WHERE LENGTH(id_card_front) > 500"); } catch(e) {}
+      try { await driver.execute("UPDATE users SET id_card_back = NULL WHERE LENGTH(id_card_back) > 500"); } catch(e) {}
       await seedDataTurso(driver, exec);
     })();
   }
@@ -370,6 +372,8 @@ function createSchema(driver, isTursoDb) {
     driver.run("UPDATE users SET account_type = 'student' WHERE role NOT IN ('registration', 'admin', 'ghost') AND account_type = 'student'");
   } catch(e) {}
   try { driver.run("UPDATE ranks SET sales_required = 2 WHERE name = 'Star' AND sales_required = 0"); } catch(e) {}
+  try { driver.run("UPDATE users SET id_card_front = NULL WHERE LENGTH(id_card_front) > 500"); } catch(e) {}
+  try { driver.run("UPDATE users SET id_card_back = NULL WHERE LENGTH(id_card_back) > 500"); } catch(e) {}
   seedDataLocal(driver);
 }
 
