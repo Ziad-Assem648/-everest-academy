@@ -44,24 +44,30 @@ export default function CreateAccountPage() {
   const onFocus = (e) => e.target.style.borderColor = gold;
   const onBlur = (e) => e.target.style.borderColor = c.border;
 
-  const handleImageUpload = async (file, setter) => {
-    if (!file) return;
-    setUploadingImg(setter);
-    const localPreview = await new Promise((resolve) => {
+  const compressImage = async (file) => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => resolve(null);
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const max = 800;
+          let w = img.width, h = img.height;
+          if (w > max || h > max) { if (w > h) { h = Math.round(h * max / w); w = max; } else { w = Math.round(w * max / h); h = max; } }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", 0.7));
+        };
+        img.src = reader.result;
+      };
       reader.readAsDataURL(file);
     });
-    if (localPreview) setter(localPreview);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const result = await uploadApi(fd);
-      const url = result.url.startsWith("data:") ? result.url : `${BACKEND_URL}${result.url}`;
-      setter(url);
-    } catch (e) { console.error("Upload failed:", e); }
-    setUploadingImg(null);
+  };
+
+  const handleImageUpload = async (file, setter) => {
+    if (!file) return;
+    const compressed = await compressImage(file);
+    if (compressed) setter(compressed);
   };
 
   const submit = async (e) => {

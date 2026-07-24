@@ -105,6 +105,15 @@ router.put("/:id/e-money", async (req, res) => {
   await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, ?, ?, 'completed')",
     [tid, req.params.id, Math.abs(amount), type, "Manual adjustment by admin"]);
   await logAdminAction(req, `e-money ${type}`, req.params.id, user.full_name, `${Math.abs(amount)} E-Money`);
+
+  const nid = uuidv4();
+  if (amount >= 0) {
+    await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'wallet')",
+      [nid, req.params.id, "💰 إضافة رصيد", `تم إضافة ${Math.abs(amount)} E-Money إلى حسابك من الإدارة`]);
+  } else {
+    await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'wallet')",
+      [nid, req.params.id, "💸 خصم رصيد", `تم خصم ${Math.abs(amount)} E-Money من حسابك من الإدارة`]);
+  }
   const updated = await queryOne("SELECT id, full_name, email, e_money, negative_allowed FROM users WHERE id = ?", [req.params.id]);
   res.json(updated);
 });
