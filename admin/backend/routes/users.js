@@ -221,8 +221,9 @@ router.put("/:id/reject-registration", async (req, res) => {
   try {
     const user = await queryOne("SELECT id, full_name, email FROM users WHERE id = ?", [req.params.id]);
     if (!user) return res.status(404).json({ error: "User not found" });
-    await execute("UPDATE users SET status = 'rejected', updated_at = datetime('now','localtime') WHERE id = ?", [req.params.id]);
-    const nid = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'error')", [nid, req.params.id, "❌ تم رفض الحساب", "نأسف، تم رفض طلب تسجيل حسابك"]);
+    await execute("DELETE FROM user_closure WHERE descendant = ? OR ancestor = ?", [req.params.id, req.params.id]);
+    await execute("DELETE FROM notifications WHERE user_id = ?", [req.params.id]);
+    await execute("DELETE FROM users WHERE id = ?", [req.params.id]);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
