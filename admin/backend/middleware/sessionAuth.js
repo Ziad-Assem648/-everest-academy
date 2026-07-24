@@ -1,7 +1,7 @@
 import { queryOne } from "../db.js";
 
 // Truly public paths — no auth needed
-const publicPaths = ["/auth/login", "/auth/register", "/auth/forgot-password", "/auth/verify-otp", "/auth/reset-password", "/auth/heartbeat", "/admin-auth"];
+const publicPaths = ["/auth/login", "/auth/register", "/auth/forgot-password", "/auth/verify-otp", "/auth/reset-password", "/auth/heartbeat", "/admin-auth", "/public-upload", "/customer-service"];
 
 export default async function sessionAuth(req, res, next) {
   if (publicPaths.some(p => req.path.startsWith(p))) return next();
