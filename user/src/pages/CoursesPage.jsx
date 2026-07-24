@@ -222,7 +222,7 @@ export default function CoursesPage() {
       {/* ===== COURSE SECTIONS BY CATEGORY ===== */}
       {orderedGroups.length > 0 ? (
         orderedGroups.map((groupKey, idx) => {
-          const g = grouped[groupKey];
+          const g = grouped[groupKey.id];
           return (
             <React.Fragment key={groupKey.id}>
               <section className="cp-cat-section">
