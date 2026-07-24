@@ -56,7 +56,7 @@ export default function CreateAccountPage() {
           if (w > max || h > max) { if (w > h) { h = Math.round(h * max / w); w = max; } else { w = Math.round(w * max / h); h = max; } }
           canvas.width = w; canvas.height = h;
           canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL("image/jpeg", 0.7));
+          canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.7);
         };
         img.src = reader.result;
       };
@@ -66,8 +66,17 @@ export default function CreateAccountPage() {
 
   const handleImageUpload = async (file, setter) => {
     if (!file) return;
-    const compressed = await compressImage(file);
-    if (compressed) setter(compressed);
+    const localPreview = URL.createObjectURL(file);
+    setter(localPreview);
+    try {
+      const blob = await compressImage(file);
+      const fd = new FormData();
+      fd.append("file", blob, "photo.jpg");
+      const res = await fetch(`${BACKEND_URL}/api/public-upload`, { method: "POST", body: fd });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      setter(`${BACKEND_URL}${data.url}`);
+    } catch (e) { console.error("Upload failed:", e); }
   };
 
   const submit = async (e) => {
