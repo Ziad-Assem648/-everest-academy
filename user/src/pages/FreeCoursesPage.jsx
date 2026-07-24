@@ -7,104 +7,106 @@ import FooterSection from "../components/FooterSection";
 
 const BACKEND_URL = window.location.origin.includes("localhost") ? "http://localhost:5000" : "https://steadfast-energy-production-a9d1.up.railway.app";
 
-const api = (path, opts = {}) => {
+const apiFetch = (path, opts = {}) => {
   const url = path.startsWith("http") ? path : `${BACKEND_URL}${path}`;
   return fetch(url, { headers: { "Content-Type": "application/json" }, ...opts }).then((r) => r.json());
 };
 
+const CATEGORY_ORDER = [
+  { id: "trading", emoji: "📈", labelAr: "التداول", labelEn: "Trading", priceKey: "pkg_price_trading" },
+  { id: "media_buying", emoji: "📦", labelAr: "الميديا باينج والدروب شيبينج", labelEn: "Media Buying & Dropshipping", priceKey: "pkg_price_media_buying" },
+  { id: "marketing", emoji: "📢", labelAr: "الماركتينج والتسويق الرقمي", labelEn: "Marketing & Digital Marketing", priceKey: "pkg_price_marketing" },
+  { id: "social_media", emoji: "📱", labelAr: "السوشيال ميديا براند", labelEn: "Social Media Brand", priceKey: "pkg_price_social_media" },
+  { id: "other", emoji: "📂", labelAr: "أخرى", labelEn: "Other", priceKey: "pkg_price_other" },
+];
+
+const CATEGORY_MAP = {};
+CATEGORY_ORDER.forEach(c => { CATEGORY_MAP[c.labelAr] = c; });
+
+function getCatInfo(catAr) {
+  return CATEGORY_MAP[catAr] || CATEGORY_ORDER.find(c => c.id === "other");
+}
+
 export default function FreeCoursesPage() {
   const { t, dir } = useLang();
   const { theme } = useTheme();
-  const [lessons, setLessons] = useState([]);
-  const [coursesMap, setCoursesMap] = useState({});
+  const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState("");
+  const [pricing, setPricing] = useState({});
   const [popupCourse, setPopupCourse] = useState(null);
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const load = async () => {
       try {
-        const [lessonsData, coursesData] = await Promise.all([
-          api("/api/courses/free-lessons"),
-          api("/api/courses?status=published"),
+        const [coursesData, pricingData] = await Promise.all([
+          apiFetch("/api/courses?status=published"),
+          apiFetch("/api/pricing"),
         ]);
-        setLessons(lessonsData || []);
-        const map = {};
-        (coursesData || []).forEach((c) => {
-          map[c.id] = {
-            id: c.id,
-            title: c.title,
-            title_ar: c.title_ar,
-            description: c.description,
-            description_ar: c.description_ar,
-            image: c.featured_image,
-            difficulty: c.difficulty,
-            price: c.price,
-            freeCount: 0,
-          };
-        });
-        (lessonsData || []).forEach((l) => {
-          if (map[l.course_id]) map[l.course_id].freeCount++;
-        });
-        setCoursesMap(map);
+        setCourses(coursesData || []);
+        setPricing(pricingData || {});
       } catch {}
     };
-    fetchCourses();
+    load();
   }, []);
 
-  const uniqueCourses = Object.values(coursesMap).filter((course) => {
-    const q = search.toLowerCase();
-    return !q || (course.title || "").toLowerCase().includes(q) || (course.title_ar || "").includes(q) || (course.description || "").toLowerCase().includes(q) || (course.description_ar || "").includes(q);
+  const visibleCourses = courses.filter(c => c.is_show_courses !== 0);
+  const q = search.toLowerCase();
+  const searched = q
+    ? visibleCourses.filter(c =>
+        (c.title || "").toLowerCase().includes(q) ||
+        (c.title_ar || "").toLowerCase().includes(q) ||
+        (c.description || "").toLowerCase().includes(q) ||
+        (c.description_ar || "").toLowerCase().includes(q) ||
+        (c.category_ar || "").toLowerCase().includes(q) ||
+        (c.category || "").toLowerCase().includes(q)
+      )
+    : visibleCourses;
+
+  const grouped = {};
+  searched.forEach(c => {
+    const catAr = c.category_ar || "";
+    const info = getCatInfo(catAr);
+    if (!grouped[info.id]) grouped[info.id] = { info, courses: [] };
+    grouped[info.id].courses.push(c);
   });
 
-  const getDiffLabel = (d) => {
-    if (d === "beginner") return t("مبتدئ", "Beginner");
-    if (d === "intermediate") return t("متوسط", "Intermediate");
-    return t("متقدم", "Advanced");
-  };
-  const getDiffColor = (d) => {
-    if (d === "beginner") return "#22c55e";
-    if (d === "intermediate") return "#f59e0b";
-    return "#ef4444";
-  };
+  const orderedGroups = CATEGORY_ORDER.filter(g => grouped[g.id]?.courses.length > 0);
 
   return (
     <div style={{ background: theme === "dark" ? "#1a1a2e" : "#fafafa", minHeight: "100vh", fontFamily: "'Cairo', sans-serif", direction: dir }}>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
         .fcp-hero{min-height:40vh;display:flex;align-items:center;justify-content:center;padding:140px 20px 80px;background:radial-gradient(circle at top right,rgba(212,175,55,.18),transparent 35%),radial-gradient(circle at bottom left,rgba(212,175,55,.1),transparent 35%),#fafafa}
         .fcp-hero-inner{width:min(100%,900px);text-align:center}
-        .fcp-hero-badge{display:inline-block;padding:8px 16px;border-radius:999px;background:#fff;border:1px solid rgba(212,175,55,.25);color:#b8860b;font-size:.85rem;font-weight:700;margin-bottom:24px}
         .fcp-hero h1{font-size:clamp(2.5rem,7vw,5.5rem);line-height:1;color:#111;margin:0 0 24px;font-weight:800}
         .fcp-hero p{max-width:650px;margin:auto;color:#666;line-height:1.8;font-size:1.05rem}
         .fcp-search-box{margin-top:40px;background:#fff;border-radius:999px;padding:10px;display:flex;gap:10px;box-shadow:0 15px 40px rgba(0,0,0,.06);max-width:700px;margin-inline:auto}
         .fcp-search-box input{flex:1;border:none;outline:none;padding:16px 20px;font-size:1rem;background:transparent;font-family:'Cairo',sans-serif}
         .fcp-search-box button{border:none;background:#111;color:#fff;padding:0 28px;border-radius:999px;cursor:pointer;font-weight:700;font-family:'Cairo',sans-serif;transition:.3s}
         .fcp-search-box button:hover{transform:translateY(-2px)}
-        .fcp-categories{padding:40px 10px;background:#fff}
-        .fcp-cats-wrap{max-width:1100px;margin:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:16px}
-        .fcp-cat-btn{border:none;padding:16px 26px;border-radius:999px;background:#e1dada;color:#111;font-weight:700;cursor:pointer;transition:.3s;font-size:.95rem;font-family:'Cairo',sans-serif}
-        .fcp-cat-btn:hover{transform:translateY(-4px);background:#111;color:#fff}
-        .fcp-cat-btn.active{background:#d4af37;color:#111}
-        .fcp-trending{padding:100px 20px;background:#faf8f3}
-        .fcp-section-heading{text-align:center;margin-bottom:50px}
-        .fcp-section-heading span{color:#c7a44c;font-weight:700;letter-spacing:1px;font-size:.9rem}
-        .fcp-section-heading h2{margin-top:10px;font-size:clamp(2rem,4vw,3rem);color:#111}
-        .fcp-cards-row{max-width:1300px;margin:auto;display:flex;gap:22px;overflow-x:auto;scroll-behavior:smooth;padding-bottom:10px;scrollbar-width:none}
+        .fcp-cat-section{padding:40px 20px 20px;max-width:1300px;margin:auto}
+        .fcp-cat-section-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+        .fcp-cat-section-header h2{margin:0;font-size:clamp(1.4rem,3vw,2rem);color:#111;font-weight:800}
+        .fcp-cat-section-header .fcp-cat-count{background:#f0f0f0;color:#777;padding:4px 12px;border-radius:999px;font-size:.8rem;font-weight:600}
+        .fcp-pkg-price{display:flex;align-items:center;gap:8px;margin:12px 0 20px;font-size:1.05rem;color:#c7a44c;font-weight:800}
+        .fcp-pkg-price span{background:linear-gradient(135deg,#d4af37,#f5d76e);color:#111;padding:6px 16px;border-radius:12px;font-size:1rem}
+        .fcp-cat-divider{border:none;border-top:2px solid #f0f0f0;margin:0 20px}
+        .fcp-cards-row{display:flex;gap:22px;overflow-x:auto;scroll-behavior:smooth;padding-bottom:10px;scrollbar-width:none}
         .fcp-cards-row::-webkit-scrollbar{display:none}
         .fcp-trend-card{min-width:250px;max-width:250px;background:#fff;border-radius:26px;overflow:hidden;position:relative;flex-shrink:0;box-shadow:0 12px 30px rgba(0,0,0,.05);transition:.35s}
         .fcp-trend-card:hover{transform:translateY(-8px)}
         .fcp-trend-card img{width:100%;height:180px;object-fit:cover}
         .fcp-free-tag{position:absolute;top:14px;right:14px;background:#059669;color:#fff;padding:6px 12px;border-radius:999px;font-size:.75rem;font-weight:700}
+        .fcp-card-img-wrap{position:relative;overflow:hidden}
+        .fcp-card-img-wrap img{transition:transform .5s}
+        .fcp-trend-card:hover .fcp-card-img-wrap img{transform:scale(1.05)}
         .fcp-trend-info{padding:18px}
         .fcp-trend-info h3{color:#111;margin:0 0 10px;font-size:1rem;font-weight:700}
         .fcp-trend-info p{color:#777;font-size:.9rem;line-height:1.6;height:45px;margin:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
         .fcp-course-meta{display:flex;justify-content:space-between;margin-top:15px;font-size:.85rem;color:#555}
-        .fcp-card-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:20px}
-        .fcp-price-text{color:#c7a44c;font-weight:800;font-size:1rem}
-        .fcp-card-actions{display:flex;gap:10px;margin-top:18px}
-        .fcp-preview-btn{flex:1;height:42px;border:none;border-radius:12px;background:#f5f5f5;color:#111;cursor:pointer;font-weight:700;font-family:'Cairo',sans-serif;transition:.2s}
-        .fcp-preview-btn:hover{background:#ececec}
-        .fcp-buy-btn{flex:1;height:42px;border:none;border-radius:12px;background:linear-gradient(135deg,#d4af37,#f5d76e);color:#111;cursor:pointer;font-weight:800;font-family:'Cairo',sans-serif;transition:.3s;text-decoration:none;display:flex;align-items:center;justify-content:center}
-        .fcp-buy-btn:hover{transform:translateY(-2px)}
+        .fcp-card-actions{margin-top:18px}
+        .fcp-view-btn{width:100%;height:46px;border:none;border-radius:14px;background:linear-gradient(135deg,#d4af37,#f5d76e);color:#111;cursor:pointer;font-weight:800;font-family:'Cairo',sans-serif;transition:.3s;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:.95rem;letter-spacing:.3px}
+        .fcp-view-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(212,175,55,.35)}
         .fcp-premium-section{max-width:1300px;margin:70px auto;padding:70px;border-radius:40px;background:linear-gradient(135deg,#0f0f0f,#1c1c1c);color:#fff;display:flex;justify-content:space-between;align-items:center;gap:60px;overflow:hidden;position:relative}
         .fcp-premium-section::before{content:'';position:absolute;width:500px;height:500px;background:#d4af37;opacity:.07;border-radius:50%;top:-250px;right:-150px}
         .fcp-premium-label{color:#d4af37;font-weight:700;letter-spacing:2px;font-size:.85rem}
@@ -118,7 +120,7 @@ export default function FreeCoursesPage() {
         .fcp-premium-card>p{color:#cfcfcf;margin-bottom:30px}
         .fcp-start-btn{width:100%;height:58px;display:flex;align-items:center;justify-content:center;border-radius:18px;background:#d4af37;color:#111;text-decoration:none;font-weight:800;transition:.3s;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:1rem}
         .fcp-start-btn:hover{transform:translateY(-3px)}
-        .fcp-emp{text-align:center;padding:80px 20px;color:#999}
+        .fcp-emp{text-align:center;padding:40px 20px;color:#999}
         .fcp-emp h3{color:#666;margin:0 0 8px}
         .fcp-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(10px);z-index:3000;display:flex;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:.3s;padding:15px}
         .fcp-modal-overlay.open{opacity:1;pointer-events:auto}
@@ -141,11 +143,6 @@ export default function FreeCoursesPage() {
           .fcp-hero h1{font-size:2.4rem}
           .fcp-search-box{flex-direction:column;border-radius:28px}
           .fcp-search-box button{height:52px}
-          .fcp-categories{padding:30px 10px}
-          .fcp-cats-wrap{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-          .fcp-cats-wrap::-webkit-scrollbar{display:none}
-          .fcp-cat-btn{white-space:nowrap;flex-shrink:0}
-          .fcp-trending{padding:60px 16px}
           .fcp-cards-row{gap:16px;padding:0 0 10px}
           .fcp-trend-card{min-width:240px;max-width:240px}
           .fcp-premium-section{flex-direction:column;padding:40px 24px;text-align:center;margin:40px 16px}
@@ -155,28 +152,21 @@ export default function FreeCoursesPage() {
           .fcp-modal-box{width:100%;max-height:90vh;border-radius:20px 20px 0 0}
         }
         @media(min-width:769px) and (max-width:1024px){.fcp-premium-features{grid-template-columns:1fr}}
-        .fcp-card-img-wrap{position:relative;overflow:hidden}
-        .fcp-card-img-wrap img{transition:transform .5s}
-        .fcp-trend-card:hover .fcp-card-img-wrap img{transform:scale(1.05)}
         [data-theme="dark"] .fcp-hero{background:radial-gradient(circle at top right,rgba(212,175,55,.12),transparent 35%),radial-gradient(circle at bottom left,rgba(212,175,55,.08),transparent 35%),#1a1a2e}
-        [data-theme="dark"] .fcp-hero-badge{background:#2a2a3e;color:#d4af37;border-color:rgba(212,175,55,.3)}
         [data-theme="dark"] .fcp-hero h1{color:#f0f0f0}
         [data-theme="dark"] .fcp-hero p{color:#aaa}
         [data-theme="dark"] .fcp-search-box{background:#2a2a3e;box-shadow:0 15px 40px rgba(0,0,0,.3)}
         [data-theme="dark"] .fcp-search-box input{color:#f0f0f0}
         [data-theme="dark"] .fcp-search-box button{background:#d4af37;color:#111}
-        [data-theme="dark"] .fcp-categories{background:#1a1a2e}
-        [data-theme="dark"] .fcp-cat-btn{background:#2a2a3e;color:#ccc}
-        [data-theme="dark"] .fcp-cat-btn:hover{background:#d4af37;color:#111}
-        [data-theme="dark"] .fcp-trending{background:#16213e}
-        [data-theme="dark"] .fcp-section-heading h2{color:#f0f0f0}
+        [data-theme="dark"] .fcp-cat-section-header h2{color:#f0f0f0}
+        [data-theme="dark"] .fcp-cat-section-header .fcp-cat-count{background:#2a2a3e;color:#aaa}
+        [data-theme="dark"] .fcp-cat-divider{border-top-color:#333}
         [data-theme="dark"] .fcp-trend-card{background:#1e1e2f;box-shadow:0 12px 30px rgba(0,0,0,.3)}
         [data-theme="dark"] .fcp-trend-info h3{color:#f0f0f0}
         [data-theme="dark"] .fcp-trend-info p{color:#aaa}
         [data-theme="dark"] .fcp-course-meta{color:#aaa}
-        [data-theme="dark"] .fcp-preview-btn{background:#2a2a3e;color:#f0f0f0}
-        [data-theme="dark"] .fcp-preview-btn:hover{background:#3a3a4e}
         [data-theme="dark"] .fcp-emp h3{color:#aaa}
+        [data-theme="dark"] .fcp-premium-section{background:linear-gradient(135deg,#0a0a1a,#151528)}
         [data-theme="dark"] .fcp-modal-overlay{background:rgba(0,0,0,.7)}
         [data-theme="dark"] .fcp-modal-box{background:#1e1e2f}
         [data-theme="dark"] .fcp-modal-header{border-bottom-color:#333}
@@ -206,61 +196,59 @@ export default function FreeCoursesPage() {
         </div>
       </section>
 
-      {/* ===== FREE COURSES ===== */}
-      <section className="fcp-trending" id="lessons">
-        <div className="fcp-section-heading">
-          <span>{t("استكشف مجاناً", "EXPLORE FOR FREE")}</span>
-          <h2>{t("استكشف دروساً تعليمية فاخرة، واكتشف مهارات جديدة، وابدأ دروسك الأولى مجاناً.", "Discover premium courses, learn new skills, and start your first lessons for free.")}</h2>
+      {/* ===== COURSE SECTIONS BY CATEGORY ===== */}
+      {orderedGroups.length > 0 ? (
+        orderedGroups.map((groupKey, idx) => {
+          const g = grouped[groupKey.id];
+          const pkgPrice = pricing[groupKey.priceKey] || "0";
+          return (
+            <React.Fragment key={groupKey.id}>
+              <section className="fcp-cat-section">
+                <div className="fcp-cat-section-header">
+                  <span style={{ fontSize: "2rem" }}>{groupKey.emoji}</span>
+                  <h2>{t(groupKey.labelAr, groupKey.labelEn)}</h2>
+                  <span className="fcp-cat-count">{g.courses.length} {t("كورس", "courses")}</span>
+                </div>
+                <div className="fcp-pkg-price">
+                  {t("سعر الباكدج:", "Package price:")}
+                  <span>{Number(pkgPrice).toLocaleString()} E-Money</span>
+                </div>
+                <div className="fcp-cards-row">
+                  {g.courses.map(c => (
+                    <div key={c.id} className="fcp-trend-card" onClick={() => setPopupCourse(c)} style={{ cursor: "pointer" }}>
+                      <div className="fcp-free-tag">🔓 {t("مجاني", "Free")}</div>
+                      <div className="fcp-card-img-wrap">
+                        {c.featured_image ? (
+                          <img src={c.featured_image} alt={c.title_ar || c.title} />
+                        ) : (
+                          <div style={{ width: "100%", height: 180, background: "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, color: "#ddd" }}>📚</div>
+                        )}
+                      </div>
+                      <div className="fcp-trend-info">
+                        <h3>{c.title_ar || c.title}</h3>
+                        <p>{c.description_ar || c.description || ""}</p>
+                        <div className="fcp-course-meta">
+                          <span>{c.lesson_count || 0} {t("درس", "Sessions")}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              {idx < orderedGroups.length - 1 && <hr className="fcp-cat-divider" />}
+            </React.Fragment>
+          );
+        })
+      ) : (
+        <div className="fcp-emp">
+          <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
+          <h3>{t("لا توجد نتائج", "No Results Found")}</h3>
+          <p>{t("جرب كلمات بحث مختلفة", "Try different search terms")}</p>
         </div>
-
-        {uniqueCourses.length === 0 ? (
-          <div className="fcp-emp">
-            <div style={{fontSize:48,marginBottom:16}}>📚</div>
-            <h3>{t("لا توجد كورسات مجانية متاحة", "No Free Courses Available")}</h3>
-            <p>{t("جرّب كلمات بحث مختلفة أو عدّ لاحقاً", "Try different search terms or check back later")}</p>
-          </div>
-        ) : (
-          <div className="fcp-cards-row">
-            {uniqueCourses.map((course) => (
-              <div key={course.id} className="fcp-trend-card">
-                {course.freeCount > 0 && <div className="fcp-free-tag">🔓 {t("مجاني", "Free")}</div>}
-                <div className="fcp-card-img-wrap">
-                  {course.image ? (
-                    <img src={course.image} alt={course.title_ar || course.title} />
-                  ) : (
-                    <div style={{width:"100%",height:180,background:"#f0f0f0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,color:"#ddd"}}>📚</div>
-                  )}
-                </div>
-                <div className="fcp-trend-info">
-                  <h3>{course.title_ar || course.title}</h3>
-                  <p>{course.description_ar || course.description || ""}</p>
-                  <div className="fcp-course-meta">
-                    <span style={{display:"flex",alignItems:"center",gap:5}}>
-                      <span style={{width:6,height:6,borderRadius:"50%",background:getDiffColor(course.difficulty),display:"inline-block"}}></span>
-                      {getDiffLabel(course.difficulty)}
-                    </span>
-                    <span>{course.freeCount} {t("مجانية", "Free")}</span>
-                  </div>
-                  <div className="fcp-card-bottom">
-                    <span className="fcp-price-text">{Number(course.price).toLocaleString()} E-Money</span>
-                  </div>
-                  <div className="fcp-card-actions">
-                    <button className="fcp-preview-btn" onClick={() => setPopupCourse(course)}>
-                      {t("معاينة", "Preview")}
-                    </button>
-                    <Link to={`/courses/${course.id}`} className="fcp-buy-btn">
-                      {t("اشتري الآن", "Buy Now")}
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+      )}
 
       {/* ===== WHY EVEREST ===== */}
-      <section className="fcp-premium-section"> 
+      <section className="fcp-premium-section">
         <div className="fcp-premium-content">
           <span className="fcp-premium-label">{t("لماذا إيفرست؟", "WHY EVEREST?")}</span>
           <h2>{t("أكثر من مجرد تعلم", "More Than Just Learning")}</h2>
@@ -276,13 +264,13 @@ export default function FreeCoursesPage() {
         </div>
         <div className="fcp-premium-card">
           <span>{t("مجتمعنا", "OUR COMMUNITY")}</span>
-          <h3>{uniqueCourses.length * 30}+</h3>
+          <h3>{courses.length * 30}+</h3>
           <p>{t("جلسة تعليمية فاخرة", "Premium Learning Sessions")}</p>
-          <button className="fcp-start-btn" onClick={() => window.scrollTo({top:0,behavior:'smooth'})}>{t("ابدأ التعلم", "Start Learning")}</button>
+          <button className="fcp-start-btn" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>{t("ابدأ التعلم", "Start Learning")}</button>
         </div>
       </section>
 
-      {/* ===== COURSE PREVIEW MODAL ===== */}
+      {/* ===== PREVIEW MODAL ===== */}
       <div className={`fcp-modal-overlay ${popupCourse ? "open" : ""}`} onClick={(e) => { if (e.target.classList.contains("fcp-modal-overlay")) setPopupCourse(null); }}>
         {popupCourse && (
           <div className="fcp-modal-box">
@@ -291,43 +279,30 @@ export default function FreeCoursesPage() {
               <button className="fcp-modal-close" onClick={() => setPopupCourse(null)}>✕</button>
             </div>
             <div className="fcp-modal-body">
-              {popupCourse.image ? (
-                <img src={popupCourse.image} alt="" className="fcp-modal-img" />
+              {popupCourse.featured_image ? (
+                <img src={popupCourse.featured_image} alt="" className="fcp-modal-img" />
               ) : (
-                <div style={{width:"100%",height:220,background:"#f0f0f0",borderRadius:20,display:"flex",alignItems:"center",justifyContent:"center",fontSize:50}}>📚</div>
+                <div style={{ width: "100%", height: 220, background: "#f0f0f0", borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 50 }}>📚</div>
               )}
               <h3 className="fcp-modal-title">{popupCourse.title_ar || popupCourse.title}</h3>
               <p className="fcp-modal-desc">{popupCourse.description_ar || popupCourse.description || ""}</p>
-              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20,flexWrap:"wrap"}}>
-                <span style={{display:"flex",alignItems:"center",gap:5,fontSize:14,color:"#555"}}>
-                  <span style={{width:8,height:8,borderRadius:"50%",background:getDiffColor(popupCourse.difficulty),display:"inline-block"}}></span>
-                  {getDiffLabel(popupCourse.difficulty)}
-                </span>
-                <span style={{fontSize:14,color:"#d4af37",fontWeight:700}}>{Number(popupCourse.price).toLocaleString()} E-Money</span>
-                <span style={{fontSize:13,color:"#059669",fontWeight:600}}>🔓 {popupCourse.freeCount} {t("درس مجاني", "Free Lessons")}</span>
-              </div>
               <div className="fcp-modal-perks">
-                {lessons.filter((l) => l.course_id === popupCourse.id).map((lesson) => (
-                  <Link
-                    key={lesson.id}
-                    to={`/courses/${popupCourse.id}?lesson=${lesson.id}`}
-                    className="fcp-modal-perk"
-                    onClick={() => setPopupCourse(null)}
-                    style={{cursor:"pointer",textDecoration:"none"}}
-                  >
-                    <span style={{color:"#d4af37",fontSize:16}}>🎬</span>
-                    <div style={{flex:1}}>
-                      <p style={{margin:0,fontWeight:600,color:"#333",fontSize:14}}>{lesson.title_ar || lesson.title}</p>
-                      <p style={{margin:0,fontSize:12,color:"#999"}}>{lesson.duration ? `${lesson.duration} ${t("دقيقة", "min")}` : ""}</p>
-                    </div>
-                    <span style={{color:"#d4af37",fontSize:12,fontWeight:600}}>→</span>
-                  </Link>
-                ))}
+                <div className="fcp-modal-perk">
+                  <i className="fa-solid fa-shield-halved"></i>
+                  {t("الجلستين الأولى مجانية تماماً بالمنصة", "First 2 sessions completely free on the platform")}
+                </div>
+                <div className="fcp-modal-perk">
+                  <i className="fa-solid fa-trophy"></i>
+                  {t("شهادة مهنية معتمدة فور إتمام المسار", "Professional certificate upon path completion")}
+                </div>
               </div>
-              <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:20}}>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <Link to={`/courses/${popupCourse.id}`} className="fcp-modal-start" onClick={() => setPopupCourse(null)}>
-                  {t("اشتري الآن", "Buy Now")}
+                  {t("اشتري الباكدج كامل", "Buy Full Package")}
                 </Link>
+                <button style={{ width: "auto", padding: "0 24px", height: 48, border: "none", borderRadius: 18, background: "#f0f0f0", color: "#111", cursor: "pointer", fontWeight: 700, fontFamily: "'Cairo',sans-serif", transition: ".3s", fontSize: ".9rem" }} onClick={() => setPopupCourse(null)}>
+                  {t("إغلاق", "Close")}
+                </button>
               </div>
             </div>
           </div>

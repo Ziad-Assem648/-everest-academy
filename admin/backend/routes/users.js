@@ -369,7 +369,8 @@ router.post("/create-for-others", async (req, res) => {
     const creator = await queryOne("SELECT id, session_token, e_money, full_name FROM users WHERE id = ?", [userId]);
     if (!creator || creator.session_token !== sessionToken) return res.status(401).json({ error: "Session invalid" });
 
-    const COST = 5500;
+    const costRow = await queryOne("SELECT value FROM settings WHERE key = 'create_account_cost'");
+    const COST = parseInt(costRow?.value) || 5500;
     if ((creator.e_money || 0) < COST) {
       return res.status(400).json({ error: `Insufficient E-Money. Required: ${COST}, Available: ${creator.e_money || 0}`, error_ar: `رصيد E-Money غير كافٍ. المطلوب: ${COST}، المتاح: ${creator.e_money || 0}` });
     }

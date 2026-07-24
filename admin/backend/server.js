@@ -142,6 +142,17 @@ app.get("/api/customer-service", async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Public pricing settings (no auth needed — used by landing page & registration)
+app.get("/api/pricing", async (req, res) => {
+  try {
+    const rows = await query("SELECT * FROM settings WHERE key IN ('pkg_price_trading', 'pkg_price_media_buying', 'pkg_price_marketing', 'pkg_price_social_media', 'pkg_price_other', 'create_account_cost')");
+    const obj = {};
+    for (const r of rows) obj[r.key] = r.value;
+    if (!obj.create_account_cost) obj.create_account_cost = "5500";
+    res.json(obj);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // Public upload for registration (no auth needed, rate-limited, images only)
 const pubUploadDir = join(__dirname, "uploads");
 if (!fs.existsSync(pubUploadDir)) fs.mkdirSync(pubUploadDir, { recursive: true });
@@ -152,7 +163,9 @@ const pubStorage = multer.diskStorage({
 const pubUpload = multer({ storage: pubStorage, limits: { fileSize: 10 * 1024 * 1024 }, fileFilter: (req, file, cb) => { const ok = ["image/jpeg","image/png","image/webp"].includes(file.mimetype); cb(ok ? null : new Error("Images only"), ok); }});
 app.post("/api/public-upload", pubUpload.single("file"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file" });
-  res.json({ url: `/uploads/${req.file.filename}` });
+  const host = req.headers["x-forwarded-host"] || req.get("host");
+  const proto = req.headers["x-forwarded-proto"] || req.protocol || "https";
+  res.json({ url: `${proto}://${host}/uploads/${req.file.filename}` });
 });
 
 // Global error handler

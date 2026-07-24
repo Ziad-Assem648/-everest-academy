@@ -374,6 +374,7 @@ function createSchema(driver, isTursoDb) {
   try { driver.run("UPDATE ranks SET sales_required = 2 WHERE name = 'Star' AND sales_required = 0"); } catch(e) {}
   try { driver.run("UPDATE users SET id_card_front = NULL WHERE LENGTH(id_card_front) > 500"); } catch(e) {}
   try { driver.run("UPDATE users SET id_card_back = NULL WHERE LENGTH(id_card_back) > 500"); } catch(e) {}
+  try { driver.run("UPDATE courses SET featured_image = 'https://steadfast-energy-production-a9d1.up.railway.app' || featured_image WHERE featured_image LIKE '/uploads/%'"); } catch(e) {}
   seedDataLocal(driver);
 }
 

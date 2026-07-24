@@ -22,6 +22,7 @@ import MembershipSettingsPage from "./pages/MembershipSettingsPage.jsx";
 import AdminsListPage from "./pages/AdminsListPage.jsx";
 import CustomerServicePage from "./pages/CustomerServicePage.jsx";
 import FreeCoursesSettingsPage from "./pages/FreeCoursesSettingsPage.jsx";
+import PricingSettingsPage from "./pages/PricingSettingsPage.jsx";
 
 
 function AppInner() {
@@ -72,6 +73,7 @@ function AppInner() {
     { id: "membership-settings", label: lang === "ar" ? "إعدادات العضوية" : "Membership", icon: "⏱️" },
     { id: "feedbacks", label: lang === "ar" ? "التقييمات" : "Feedbacks", icon: "💬" },
     { id: "cs", label: lang === "ar" ? "خدمة العملاء" : "Customer Service", icon: "📞" },
+    { id: "pricing", label: lang === "ar" ? "إعدادات الأسعار" : "Pricing Settings", icon: "💰" },
 
     ...(isManager ? [{ id: "admins-mgmt", label: lang === "ar" ? "👥 إدارة الأدمنز" : "👥 Admin Management", icon: "👥" }] : []),
     { id: "profile-settings", label: lang === "ar" ? "الإعدادات الشخصية" : "Settings", icon: "⚙️" },
@@ -114,6 +116,7 @@ function AppInner() {
           {page === "payment-gateway" && <PaymentGatewayPage />}
           {page === "feedbacks" && <FeedbacksPage />}
           {page === "cs" && <CustomerServicePage />}
+          {page === "pricing" && <PricingSettingsPage />}
 
           {page === "admin-logs" && <AdminLogsPage />}
           {page === "membership-settings" && <MembershipSettingsPage />}

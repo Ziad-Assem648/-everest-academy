@@ -8,11 +8,11 @@ import AppNavbar from "../components/AppNavbar";
 import FooterSection from "../components/FooterSection";
 
 const CATEGORY_ORDER = [
-  { id: "trading", emoji: "📈", labelAr: "التداول", labelEn: "Trading" },
-  { id: "media_buying", emoji: "📦", labelAr: "الميديا باينج والدروب شيبينج", labelEn: "Media Buying & Dropshipping" },
-  { id: "marketing", emoji: "📢", labelAr: "الماركتينج والتسويق الرقمي", labelEn: "Marketing & Digital Marketing" },
-  { id: "social_media", emoji: "📱", labelAr: "السوشيال ميديا براند", labelEn: "Social Media Brand" },
-  { id: "other", emoji: "📂", labelAr: "أخرى", labelEn: "Other" },
+  { id: "trading", emoji: "📈", labelAr: "التداول", labelEn: "Trading", priceKey: "pkg_price_trading" },
+  { id: "media_buying", emoji: "📦", labelAr: "الميديا باينج والدروب شيبينج", labelEn: "Media Buying & Dropshipping", priceKey: "pkg_price_media_buying" },
+  { id: "marketing", emoji: "📢", labelAr: "الماركتينج والتسويق الرقمي", labelEn: "Marketing & Digital Marketing", priceKey: "pkg_price_marketing" },
+  { id: "social_media", emoji: "📱", labelAr: "السوشيال ميديا براند", labelEn: "Social Media Brand", priceKey: "pkg_price_social_media" },
+  { id: "other", emoji: "📂", labelAr: "أخرى", labelEn: "Other", priceKey: "pkg_price_other" },
 ];
 
 const CATEGORY_MAP = {};
@@ -24,14 +24,9 @@ function getCatInfo(catAr) {
 
 function CourseCard({ c, popupCourse, setPopupCourse, user }) {
   const { t } = useLang();
-  const isFree = c.free_lessons > 0 || c.price === 0 || c.price === "0";
   return (
-    <div className="cp-trend-card">
-      {isFree ? (
-        <div className="cp-free-tag">🔓 {c.free_lessons || 2} {t("مجانية", "Free")}</div>
-      ) : (
-        <div className="cp-premium-tag">{t("بريميوم", "Premium")}</div>
-      )}
+    <div className="cp-trend-card" onClick={() => setPopupCourse(c)} style={{ cursor: "pointer" }}>
+      <div className="cp-free-tag">🔓 {c.free_lessons || 2} {t("مجانية", "Free")}</div>
       <div className="cp-card-img-wrap">
         {c.featured_image ? (
           <img src={c.featured_image} alt={c.title_ar || c.title} />
@@ -40,17 +35,11 @@ function CourseCard({ c, popupCourse, setPopupCourse, user }) {
         )}
       </div>
       <div className="cp-trend-info">
-        <h3 style={{cursor:"pointer"}} onClick={() => setPopupCourse(c)}>{c.title_ar || c.title}</h3>
+        <h3>{c.title_ar || c.title}</h3>
         <p>{c.description_ar || c.description || ""}</p>
         <div className="cp-course-meta">
           <span>🔓 {c.free_lessons || 2} {t("مجانية", "Free")}</span>
           <span>{c.lesson_count || 0} {t("درس", "Sessions")}</span>
-        </div>
-        <div className="cp-card-bottom">
-          <span className="cp-price-text">{Number(c.price).toLocaleString()} E-Money</span>
-        </div>
-        <div className="cp-card-actions">
-          <Link to={`/courses/${c.id}`} className="cp-buy-btn">{user?.account_type === "student" ? t("مشاهدة", "Watch") : t("اشتري الآن", "Buy Now")}</Link>
         </div>
       </div>
     </div>
@@ -65,8 +54,12 @@ export default function CoursesPage() {
   const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState("");
   const [popupCourse, setPopupCourse] = useState(null);
+  const [pricing, setPricing] = useState({});
 
-  useEffect(() => { api("/api/courses?status=published").then(setCourses); }, []);
+  useEffect(() => {
+    api("/api/courses?status=published").then(setCourses);
+    fetch(`${window.location.origin.includes("localhost") ? "http://localhost:5000" : "https://steadfast-energy-production-a9d1.up.railway.app"}/api/pricing`).then(r => r.json()).then(setPricing).catch(() => {});
+  }, []);
 
   const visibleCourses = courses.filter(c => c.is_show_courses !== 0);
   const q = search.toLowerCase();
@@ -108,6 +101,8 @@ export default function CoursesPage() {
         .cp-cat-section-header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
         .cp-cat-section-header h2{margin:0;font-size:clamp(1.4rem,3vw,2rem);color:#111;font-weight:800}
         .cp-cat-section-header .cp-cat-count{background:#f0f0f0;color:#777;padding:4px 12px;border-radius:999px;font-size:.8rem;font-weight:600}
+        .cp-pkg-price{display:flex;align-items:center;gap:8px;margin:8px 0 20px;font-size:1.05rem;color:#c7a44c;font-weight:800}
+        .cp-pkg-price span{background:linear-gradient(135deg,#d4af37,#f5d76e);color:#111;padding:6px 16px;border-radius:12px;font-size:1rem}
         .cp-cat-divider{border:none;border-top:2px solid #f0f0f0;margin:0 20px}
         .cp-cards-row{display:flex;gap:22px;overflow-x:auto;scroll-behavior:smooth;padding-bottom:10px;scrollbar-width:none}
         .cp-cards-row::-webkit-scrollbar{display:none}
@@ -223,6 +218,7 @@ export default function CoursesPage() {
       {orderedGroups.length > 0 ? (
         orderedGroups.map((groupKey, idx) => {
           const g = grouped[groupKey.id];
+          const pkgPrice = pricing[groupKey.priceKey] || "0";
           return (
             <React.Fragment key={groupKey.id}>
               <section className="cp-cat-section">
@@ -230,6 +226,10 @@ export default function CoursesPage() {
                   <span style={{ fontSize: "2rem" }}>{g.info.emoji}</span>
                   <h2>{t(g.info.labelAr, g.info.labelEn)}</h2>
                   <span className="cp-cat-count">{g.courses.length} {t("كورس", "courses")}</span>
+                </div>
+                <div className="cp-pkg-price">
+                  {t("سعر الباكدج:", "Package price:")}
+                  <span>{Number(pkgPrice).toLocaleString()} E-Money</span>
                 </div>
                 <div className="cp-cards-row">
                   {g.courses.map(c => (
@@ -300,7 +300,7 @@ export default function CoursesPage() {
               </div>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <Link to={`/courses/${popupCourse.id}`} className="cp-modal-start" onClick={() => setPopupCourse(null)}>
-                  {t("ابدأ المسار الآن", "Start the Path Now")}
+                  {t("اشتري الباكدج كامل", "Buy Full Package")}
                 </Link>
                 <button style={{ width: "auto", padding: "0 24px", height: 48, border: "none", borderRadius: 18, background: "#f0f0f0", color: "#111", cursor: "pointer", fontWeight: 700, fontFamily: "'Cairo',sans-serif", transition: ".3s", fontSize: ".9rem" }} onClick={() => setPopupCourse(null)}>
                   {t("إغلاق", "Close")}

@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Link, Navigate } from "react-router-dom";
+import { Routes, Route, Link, Navigate, useParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { LangProvider, useLang } from "./LangContext";
 import { ThemeProvider } from "./ThemeContext";
@@ -90,6 +90,12 @@ function MyCoursesRedirect() {
   return <MyCoursesPage />;
 }
 
+function ReferralRedirect() {
+  const { code } = useParams();
+  localStorage.setItem("everest_referral_code", code || "");
+  return <Navigate to="/register" replace />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -126,6 +132,7 @@ export default function App() {
         <Route path="/pending-activation" element={<PendingActivationPage />} />
         <Route path="/assistant" element={<Guard><AssistantPage /></Guard>} />
         <Route path="/create-account" element={<Guard><CreateAccountPage /></Guard>} />
+        <Route path="/ref/:code" element={<ReferralRedirect />} />
       </Routes>
       </ThemeProvider>
       </LangProvider>

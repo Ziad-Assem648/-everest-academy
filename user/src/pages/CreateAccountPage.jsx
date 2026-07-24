@@ -12,8 +12,6 @@ const GOVERNORATES = [
   "سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح"
 ];
 
-const COST = 5500;
-
 const gold = "#d4af37";
 
 export default function CreateAccountPage() {
@@ -22,6 +20,7 @@ export default function CreateAccountPage() {
   const { colors: c } = useTheme();
   const nav = useNavigate();
   const m = window.innerWidth <= 768;
+  const [cost, setCost] = useState(5500);
 
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "", confirm: "", governorate: "" });
   const [err, setErr] = useState("");
@@ -38,6 +37,7 @@ export default function CreateAccountPage() {
     if (!user) return;
     api(`/api/users/${user.id}`).then(setProfile).catch(() => setProfile(user));
     api(`/api/users/created-by-me/${user.id}`).then(setCreatedUsers).catch(() => {});
+    fetch(`${BACKEND_URL}/api/pricing`).then(r => r.json()).then(d => { if (d.create_account_cost) setCost(parseInt(d.create_account_cost) || 5500); }).catch(() => {});
   }, [user]);
 
   const setField = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
@@ -83,8 +83,8 @@ export default function CreateAccountPage() {
     e.preventDefault(); setErr(""); setSuccess(""); setLoading(true);
 
     const balance = profile?.e_money || 0;
-    if (balance < COST) {
-      setErr(t(`رصيدك غير كافٍ. المطلوب: ${COST} E-Money، المتاح: ${Math.floor(balance)}`, `Insufficient balance. Required: ${COST} E-Money, Available: ${Math.floor(balance)}`));
+    if (balance < cost) {
+      setErr(t(`رصيدك غير كافٍ. المطلوب: ${cost} E-Money، المتاح: ${Math.floor(balance)}`, `Insufficient balance. Required: ${cost} E-Money, Available: ${Math.floor(balance)}`));
       setLoading(false); return;
     }
 
@@ -110,7 +110,7 @@ export default function CreateAccountPage() {
           id_card_front: idCardFront, id_card_back: idCardBack,
         }),
       });
-      setSuccess(t(`تم إنشاء الحساب بنجاح! تم خصم ${COST} E-Money`, `Account created! ${COST} E-Money deducted`));
+      setSuccess(t(`تم إنشاء الحساب بنجاح! تم خصم ${cost} E-Money`, `Account created! ${cost} E-Money deducted`));
       setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", governorate: "" });
       setIdCardFront(null); setIdCardBack(null);
       setProfile(p => ({ ...p, e_money: res.creator_balance }));
@@ -132,11 +132,11 @@ export default function CreateAccountPage() {
             {t("إنشاء حساب لشخص آخر", "Create Account for Another User")}
           </h1>
           <p style={{ fontSize: 13, color: c.textMuted }}>
-            {t(`سيتم خصم ${COST} E-Money من رصيدك`, `${COST} E-Money will be deducted from your balance`)}
+            {t(`سيتم خصم ${cost} E-Money من رصيدك`, `${cost} E-Money will be deducted from your balance`)}
           </p>
           {profile && (
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 10, padding: "8px 16px", borderRadius: 10, background: (profile.e_money || 0) >= COST ? "rgba(34,197,94,.1)" : "rgba(239,68,68,.1)", border: `1px solid ${(profile.e_money || 0) >= COST ? "rgba(34,197,94,.25)" : "rgba(239,68,68,.2)"}` }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: (profile.e_money || 0) >= COST ? "#22c55e" : "#ef4444" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 10, padding: "8px 16px", borderRadius: 10, background: (profile.e_money || 0) >= cost ? "rgba(34,197,94,.1)" : "rgba(239,68,68,.1)", border: `1px solid ${(profile.e_money || 0) >= cost ? "rgba(34,197,94,.25)" : "rgba(239,68,68,.2)"}` }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: (profile.e_money || 0) >= cost ? "#22c55e" : "#ef4444" }}>
                 {t("رصيدك:", "Your balance:")} {Math.floor(profile.e_money || 0)} E-Money
               </span>
             </div>
@@ -253,7 +253,7 @@ export default function CreateAccountPage() {
               display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
             }}>
               {loading ? <div style={{ width: 22, height: 22, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
-                : `👤 ${t(`إنشاء حساب (${COST} E-Money)`, `Create Account (${COST} E-Money)`)}`}
+                : `👤 ${t(`إنشاء حساب (${cost} E-Money)`, `Create Account (${cost} E-Money)`)}`}
             </button>
           </form>
         </div>

@@ -65,9 +65,11 @@ export default function RegisterPage() {
   }, [nav]);
 
   useEffect(() => {
+    const stored = localStorage.getItem("everest_referral_code") || "";
     const timer = setTimeout(() => {
       inputRefs.current.forEach(el => { if (el) { el.value = ""; el.removeAttribute("readOnly"); } });
-      setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no", governorate: "" });
+      setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: stored, hasReferral: stored ? "yes" : "no", governorate: "" });
+      if (stored) localStorage.removeItem("everest_referral_code");
     }, 50);
     return () => clearTimeout(timer);
   }, []);
