@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
-import { api } from "../api.js";
+import { api, BACKEND_URL } from "../api.js";
 
 export default function UsersPage() {
   const { t } = useLang();
@@ -24,6 +24,7 @@ export default function UsersPage() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [historyDetail, setHistoryDetail] = useState(null);
   const [showDirectDetail, setShowDirectDetail] = useState(false);
+  const [userCards, setUserCards] = useState(null);
 
   const loadUsers = () => api("/api/users").then(setUsers);
   useEffect(() => { loadUsers(); api("/api/ranks").then(d => setDbRanks(Array.isArray(d) ? d : [])).catch(() => {}); }, []);
@@ -49,10 +50,12 @@ export default function UsersPage() {
       setWeeklyHistory([]);
       setHistoryDetail(null);
       setShowDirectDetail(false);
+      setUserCards(null);
       api(`/api/mlm/rank-progress/${data.id}`).then(setRankProgress).catch(() => {});
       api(`/api/mlm/directs/${data.id}`).then(d => setDirectMembers(Array.isArray(d) ? d : [])).catch(() => {});
       api(`/api/mlm/weekly-history/${data.id}`).then(d => setWeeklyHistory(Array.isArray(d) ? d : [])).catch(() => {});
       api("/api/mlm/leaderboard").then(d => setLeaderboard(Array.isArray(d) ? d : [])).catch(() => {});
+      api(`/api/users/${data.id}/id-cards`).then(setUserCards).catch(() => {});
     });
   };
 
@@ -399,6 +402,27 @@ export default function UsersPage() {
                           <p className="text-sm font-bold text-green-600 mt-1">{selectedUser.e_money}</p>
                         </div>
                       </div>
+
+                      {/* ID Card Images */}
+                      {(userCards?.id_card_front || userCards?.id_card_back) && (
+                        <div className="mb-4">
+                          <h4 className="font-bold mb-3 text-sm">{t("📷 البطاقة الشخصية", "📷 ID Card")}</h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            {userCards.id_card_front && (
+                              <div>
+                                <p className="text-xs text-gray-400 mb-1">{t("أمامي", "Front")}</p>
+                                <img src={userCards.id_card_front.startsWith("data:") ? userCards.id_card_front : `${BACKEND_URL}${userCards.id_card_front}`} alt="ID Front" className="w-full rounded-lg border object-contain max-h-48" />
+                              </div>
+                            )}
+                            {userCards.id_card_back && (
+                              <div>
+                                <p className="text-xs text-gray-400 mb-1">{t("خلفي", "Back")}</p>
+                                <img src={userCards.id_card_back.startsWith("data:") ? userCards.id_card_back : `${BACKEND_URL}${userCards.id_card_back}`} alt="ID Back" className="w-full rounded-lg border object-contain max-h-48" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Account Type Quick Change */}
                       {selectedUser.role !== "admin" && (
