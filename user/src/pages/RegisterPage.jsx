@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
-import { api } from "../App";
+import { api, uploadApi } from "../App";
 
 const useIsMobile = () => {
   const [m, setM] = useState(typeof window !== "undefined" && window.innerWidth <= 768);
@@ -31,17 +31,29 @@ const inputStyle = (c) => ({
   color: c.text, fontSize: 14, outline: "none", transition: "0.3s",
 });
 
+const GOVERNORATES = [
+  "القاهرة","الجيزة","الإسكندرية","القليوبية","الدقهلية","الشرقية","الغربية","المنوفية","البحيرة","كفر الشيخ",
+  "دمياط","بورسعيد","السويس","الإسماعيلية","شمال سيناء","جنوب سيناء","بني سويف","الفيوم","المنيا","أسيوط",
+  "سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح"
+];
+
 export default function RegisterPage() {
   const { t, lang } = useLang();
   const { user: authUser, login } = useAuth();
   const { colors: c } = useTheme();
   const nav = useNavigate();
   const m = useIsMobile();
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no" });
+  const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no", governorate: "" });
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const inputRefs = useRef([]);
+  const [idCardFront, setIdCardFront] = useState(null);
+  const [idCardBack, setIdCardBack] = useState(null);
+  const [uploadingImg, setUploadingImg] = useState(null);
+  const [otpStep, setOtpStep] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   // Redirect browser back to landing page instead of previous history
   useEffect(() => {
@@ -54,7 +66,7 @@ export default function RegisterPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       inputRefs.current.forEach(el => { if (el) { el.value = ""; el.removeAttribute("readOnly"); } });
-      setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no" });
+      setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no", governorate: "" });
     }, 50);
     return () => clearTimeout(timer);
   }, []);
@@ -100,10 +112,11 @@ export default function RegisterPage() {
 
     if (form.password !== form.confirm) { setErr(t("كلمات المرور غير متطابقة!", "Passwords do not match!")); setLoading(false); return; }
     try {
-      await api("/api/auth/register", { method: "POST", body: JSON.stringify({ full_name: form.full_name, email: form.email, phone: form.phone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "" }) });
-      setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no" });
-      window.history.replaceState(null, "", "/pending-activation");
-      nav("/pending-activation", { replace: true });
+      const body = { full_name: form.full_name, email: form.email, phone: form.phone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, id_card_front: idCardFront, id_card_back: idCardBack };
+      await api("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
+      setRegisteredEmail(form.email);
+      setOtpStep(true);
+      setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no", governorate: "" });
     } catch (e) { setErr(e.message); }
     setLoading(false);
   };
@@ -111,6 +124,71 @@ export default function RegisterPage() {
   const setField = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
   const onFocus = (e) => e.target.style.borderColor = gold;
   const onBlur = (e) => e.target.style.borderColor = c.border;
+
+  const handleImageUpload = async (file, setter) => {
+    if (!file) return;
+    setUploadingImg(setter);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const result = await uploadApi(fd);
+      setter(result.url);
+    } catch (e) { setErr(t("فشل رفع الصورة", "Image upload failed")); }
+    setUploadingImg(null);
+  };
+
+  const verifyOtp = async () => {
+    if (!otpCode || otpCode.length !== 6) { setErr(t("أدخل الكود المكون من 6 أرقام", "Enter the 6-digit code")); return; }
+    setLoading(true); setErr("");
+    try {
+      await api("/api/auth/verify-email-otp", { method: "POST", body: JSON.stringify({ email: registeredEmail, otp: otpCode }) });
+      nav("/pending-activation", { replace: true });
+    } catch (e) { setErr(e.message); }
+    setLoading(false);
+  };
+
+  const resendOtp = async () => {
+    try {
+      await api("/api/auth/resend-email-otp", { method: "POST", body: JSON.stringify({ email: registeredEmail }) });
+      setErr(""); alert(t("تم إرسال كود جديد على إيميلك", "New code sent to your email"));
+    } catch (e) { setErr(e.message); }
+  };
+
+  if (otpStep) {
+    const otpInputStyle = { width: "100%", padding: "14px", borderRadius: 12, background: c.bgInput || c.bgCard, border: `2px solid ${c.border}`, color: c.text, fontSize: 22, textAlign: "center", letterSpacing: 12, fontWeight: 700, outline: "none", direction: "ltr" };
+    if (m) {
+      return (
+        <div style={{ minHeight: "100vh", background: c.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div style={{ width: "100%", maxWidth: 400, background: c.bgCard, borderRadius: 20, border: `1px solid ${c.borderLight}`, padding: "32px 24px", textAlign: "center" }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, rgba(212,175,55,.2), rgba(212,175,55,.05))", border: "2px solid rgba(212,175,55,.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 28 }}>📧</div>
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: c.text, marginBottom: 6 }}>{t("تحقق من بريدك", "Verify Your Email")}</h2>
+            <p style={{ fontSize: 13, color: c.textMuted, marginBottom: 20 }}>{t("أرسلنا كود تحقق إلى", "We sent a code to")} <strong style={{ color: gold }}>{registeredEmail}</strong></p>
+            {err && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 14, color: "#ef4444", fontSize: 12 }}>{err}</div>}
+            <input type="text" inputMode="numeric" maxLength={6} value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, ""))} placeholder="000000" style={otpInputStyle} />
+            <button onClick={verifyOtp} disabled={loading} style={{ width: "100%", height: 50, borderRadius: 14, border: "none", marginTop: 16, background: loading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`, color: "#fff", fontSize: 15, fontWeight: 800, cursor: loading ? "default" : "pointer" }}>
+              {loading ? <div style={{ width: 20, height: 20, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite", margin: "0 auto" }} /> : t("تحقق", "Verify")}
+            </button>
+            <p style={{ fontSize: 12, color: c.textMuted, marginTop: 14 }}>{t("لم تلتقط الكод؟", "Didn't receive the code?")} <button onClick={resendOtp} style={{ background: "none", border: "none", color: gold, fontWeight: 700, cursor: "pointer", fontSize: 12 }}>{t("إعادة إرسال", "Resend")}</button></p>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div style={{ minHeight: "100vh", background: c.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: "100%", maxWidth: 440, background: c.bgCard, borderRadius: 20, border: `1px solid ${c.borderLight}`, padding: "40px 36px", textAlign: "center" }}>
+          <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, rgba(212,175,55,.2), rgba(212,175,55,.05))", border: "2px solid rgba(212,175,55,.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px", fontSize: 32 }}>📧</div>
+          <h2 style={{ fontSize: 22, fontWeight: 900, color: c.text, marginBottom: 6 }}>{t("تحقق من بريدك", "Verify Your Email")}</h2>
+          <p style={{ fontSize: 14, color: c.textMuted, marginBottom: 24 }}>{t("أرسلنا كود تحقق إلى", "We sent a code to")} <strong style={{ color: gold }}>{registeredEmail}</strong></p>
+          {err && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 16, color: "#ef4444", fontSize: 13 }}>{err}</div>}
+          <input type="text" inputMode="numeric" maxLength={6} value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, ""))} placeholder="000000" style={otpInputStyle} />
+          <button onClick={verifyOtp} disabled={loading} style={{ width: "100%", height: 52, borderRadius: 14, border: "none", marginTop: 18, background: loading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`, color: "#fff", fontSize: 15, fontWeight: 800, cursor: loading ? "default" : "pointer" }}>
+            {loading ? <div style={{ width: 22, height: 22, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite", margin: "0 auto" }} /> : t("تحقق", "Verify")}
+          </button>
+          <p style={{ fontSize: 13, color: c.textMuted, marginTop: 16 }}>{t("لم تلتقط الكود؟", "Didn't receive the code?")} <button onClick={resendOtp} style={{ background: "none", border: "none", color: gold, fontWeight: 700, cursor: "pointer", fontSize: 13 }}>{t("إعادة إرسال", "Resend")}</button></p>
+        </div>
+      </div>
+    );
+  }
 
   // ─── MOBILE LAYOUT ───
   if (m) {
@@ -263,16 +341,39 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Address */}
+            {/* Governorate */}
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
-                {t("العنوان", "Address")}
+                {t("المحافظة", "Governorate")}
               </label>
-              <input type="text" required placeholder={t("المدينة، العنوان", "City, Address")}
-                ref={el => inputRefs.current[5] = el} readOnly autoComplete="off"
-                value={form.address} onChange={(e) => setField("address", e.target.value)}
+              <select required value={form.governorate} onChange={(e) => setField("governorate", e.target.value)}
                 style={{ width: "100%", padding: "13px 14px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 14, outline: "none", transition: "0.3s", boxSizing: "border-box" }}
-                onFocus={onFocus} onBlur={onBlur} />
+                onFocus={onFocus} onBlur={onBlur}>
+                <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
+                {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </div>
+
+            {/* ID Card Front */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
+                {t("صورة البطاقة (أمامي)", "ID Card (Front)")}
+              </label>
+              <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${idCardFront ? "#22c55e" : c.border}`, color: idCardFront ? "#22c55e" : c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
+                <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardFront)} />
+                {uploadingImg === setIdCardFront ? "⏳" : idCardFront ? "✅ " + t("تم الرفع", "Uploaded") : "📷 " + t("اضغط لرفع الصورة", "Tap to upload")}
+              </label>
+            </div>
+
+            {/* ID Card Back */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
+                {t("صورة البطاقة (خلفي)", "ID Card (Back)")}
+              </label>
+              <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${idCardBack ? "#22c55e" : c.border}`, color: idCardBack ? "#22c55e" : c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
+                <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardBack)} />
+                {uploadingImg === setIdCardBack ? "⏳" : idCardBack ? "✅ " + t("تم الرفع", "Uploaded") : "📷 " + t("اضغط لرفع الصورة", "Tap to upload")}
+              </label>
             </div>
 
             {/* Referral */}
@@ -515,12 +616,37 @@ export default function RegisterPage() {
                 <span style={{ fontSize: 12, color: c.textSoft }}>{t("إظهار كلمة المرور", "Show Password")}</span>
               </label>
 
-              {/* Address */}
+              {/* Governorate */}
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
-                  {t("العنوان", "Address")}
+                  {t("المحافظة", "Governorate")}
                 </label>
-                <input type="text" required placeholder={t("المحافظة، المدينة، العنوان", "Governorate, City, Address")} ref={el => inputRefs.current[5] = el} readOnly autoComplete="off" value={form.address} onChange={(e) => setField("address", e.target.value)} style={inputStyle(c)} onFocus={onFocus} onBlur={onBlur} />
+                <select required value={form.governorate} onChange={(e) => setField("governorate", e.target.value)} style={{ ...inputStyle(c), cursor: "pointer" }} onFocus={onFocus} onBlur={onBlur}>
+                  <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
+                  {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+
+              {/* ID Card Front */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
+                  {t("صورة البطاقة (أمامي)", "ID Card (Front)")}
+                </label>
+                <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${idCardFront ? "#22c55e" : c.border}`, color: idCardFront ? "#22c55e" : c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
+                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardFront)} />
+                  {uploadingImg === setIdCardFront ? "⏳" : idCardFront ? "✅ " + t("تم الرفع", "Uploaded") : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
+                </label>
+              </div>
+
+              {/* ID Card Back */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
+                  {t("صورة البطاقة (خلفي)", "ID Card (Back)")}
+                </label>
+                <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${idCardBack ? "#22c55e" : c.border}`, color: idCardBack ? "#22c55e" : c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
+                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardBack)} />
+                  {uploadingImg === setIdCardBack ? "⏳" : idCardBack ? "✅ " + t("تم الرفع", "Uploaded") : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
+                </label>
               </div>
 
               {/* Referral */}

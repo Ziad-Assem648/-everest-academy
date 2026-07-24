@@ -33,6 +33,7 @@ import MyCoursesPage from "./pages/MyCoursesPage";
 import TopSallerPage from "./pages/TopSallerPage";
 import PendingActivationPage from "./pages/PendingActivationPage";
 import AssistantPage from "./pages/AssistantPage";
+import CreateAccountPage from "./pages/CreateAccountPage";
 
 const BACKEND_URL = window.location.origin.includes("localhost") ? "http://localhost:5000" : "https://steadfast-energy-production-a9d1.up.railway.app";
 
@@ -124,6 +125,7 @@ export default function App() {
         <Route path="/payment/vodafone" element={<VodafoneCashPage />} />
         <Route path="/pending-activation" element={<PendingActivationPage />} />
         <Route path="/assistant" element={<Guard><AssistantPage /></Guard>} />
+        <Route path="/create-account" element={<Guard><CreateAccountPage /></Guard>} />
       </Routes>
       </ThemeProvider>
       </LangProvider>

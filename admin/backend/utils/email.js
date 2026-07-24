@@ -1,4 +1,4 @@
-export async function sendOTPEmail(to, otp) {
+export async function sendOTPEmail(to, otp, subject = "Everest Academy — Password Reset Code") {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.SMTP_USER || "Everest Academy <onboarding@resend.dev>";
 
@@ -25,7 +25,7 @@ export async function sendOTPEmail(to, otp) {
     body: JSON.stringify({
       from,
       to: [to],
-      subject: "Everest Academy — Password Reset Code",
+      subject,
       html: otpHtml,
     }),
   });

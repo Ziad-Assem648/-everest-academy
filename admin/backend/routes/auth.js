@@ -127,7 +127,7 @@ router.post("/heartbeat", async (req, res) => {
 
 router.post("/register", async (req, res) => {
   try {
-    const { full_name, email, phone, address, password, referral_code } = req.body;
+    const { full_name, email, phone, address, password, referral_code, governorate, id_card_front, id_card_back } = req.body;
     const existing = await queryOne("SELECT id FROM users WHERE email = ?", [email]);
     if (existing) return res.status(400).json({ error: "Email already exists" });
     if (phone) {
@@ -144,10 +144,13 @@ router.post("/register", async (req, res) => {
       if (refUser) referredBy = refUser.id;
     }
 
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
     const hashedPassword = await bcrypt.hash(password, 10);
     await execute(
-      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, referred_by, status, role, account_type, rank) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '')",
-      [id, full_name, email, phone || null, address || null, hashedPassword, code, referredBy]
+      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, referred_by, status, role, account_type, rank, governorate, id_card_front, id_card_back, email_otp, email_otp_expires) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?)",
+      [id, full_name, email, phone || null, address || null, hashedPassword, code, referredBy, governorate || null, id_card_front || null, id_card_back || null, otp, expires]
     );
 
     // Populate closure table (for tree visibility — commissions handled on admin approval)
@@ -165,11 +168,58 @@ router.post("/register", async (req, res) => {
         [referredBy, id]);
     }
 
+    // Send OTP to email
+    try {
+      await sendOTPEmail(email, otp, "Everest Academy — Email Verification Code");
+    } catch (emailErr) {
+      console.error("Registration email send failed:", emailErr.message);
+    }
+
     const user = await queryOne("SELECT id, full_name, email, phone, address, referral_code, referred_by, status, rank, e_money, account_type, created_at FROM users WHERE id = ?", [id]);
-    res.json({ user });
+    res.json({ user, otp_sent: true });
   } catch (err) {
     console.error("Register error:", err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Verify email OTP (registration verification)
+router.post("/verify-email-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ error: "Email and OTP are required" });
+    const user = await queryOne("SELECT id, email_otp, email_otp_expires FROM users WHERE email = ?", [email]);
+    if (!user) return res.status(404).json({ error: "No account found with this email" });
+    if (user.email_otp !== otp) return res.status(400).json({ error: "Invalid OTP code" });
+    if (new Date(user.email_otp_expires) < new Date()) {
+      return res.status(400).json({ error: "OTP code has expired. Please register again." });
+    }
+    await execute("UPDATE users SET email_verified = 1, email_otp = NULL, email_otp_expires = NULL WHERE email = ?", [email]);
+    res.json({ success: true, message: "Email verified" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Resend email OTP
+router.post("/resend-email-otp", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
+    const user = await queryOne("SELECT id, email_otp_expires FROM users WHERE email = ?", [email]);
+    if (!user) return res.status(404).json({ error: "No account found with this email" });
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    await execute("UPDATE users SET email_otp = ?, email_otp_expires = ? WHERE email = ?", [otp, expires, email]);
+    try {
+      await sendOTPEmail(email, otp, "Everest Academy — Email Verification Code");
+    } catch (emailErr) {
+      console.error("Resend OTP email failed:", emailErr.message);
+      return res.status(500).json({ error: "Failed to send verification email" });
+    }
+    res.json({ success: true, message: "OTP resent to your email" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 

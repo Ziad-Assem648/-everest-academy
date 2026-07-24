@@ -246,6 +246,10 @@ export default function ProfilePage() {
                 <button onClick={copyCode}>{t("نسخ", "Copy")}</button>
               </div>
             </div>
+
+            <button onClick={() => nav("/create-account")} style={{width:"100%",marginTop:14,padding:"12px 0",borderRadius:12,background:"linear-gradient(135deg,#7c3aed,#3b82f6)",color:"#fff",border:"none",fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              👤 {t("إنشاء حساب لشخص آخر", "Create Account for Another User")}
+            </button>
           </div>
         </div>
 

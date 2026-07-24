@@ -3,8 +3,18 @@ import bcrypt from "bcryptjs";
 import { query, queryOne, execute } from "../db.js";
 import { advanceUserRank } from "./ranks.js";
 import { v4 as uuidv4 } from "uuid";
+import { sendOTPEmail } from "../utils/email.js";
 
 const router = express.Router();
+
+async function generateUserId() {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const id = String(Math.floor(1000000000 + Math.random() * 9000000000));
+    const existing = await queryOne("SELECT id FROM users WHERE id = ?", [id]);
+    if (!existing) return id;
+  }
+  throw new Error("Could not generate unique user ID");
+}
 
 const stripPassword = (u) => { if (u) delete u.password; return u; };
 
@@ -317,6 +327,98 @@ router.post("/:id/renew-membership", async (req, res) => {
     await execute("UPDATE users SET membership_expires_at = ?, blocked = 0, updated_at = datetime('now','localtime') WHERE id = ?", [expiresStr, req.params.id]);
     res.json({ success: true, membership_expires_at: expiresStr, days });
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Create account for another user (costs 5500 E-Money)
+router.post("/create-for-others", async (req, res) => {
+  try {
+    const userId = req.headers["x-user-id"];
+    const sessionToken = req.headers["x-session-token"];
+    if (!userId || !sessionToken) return res.status(401).json({ error: "Unauthorized" });
+    const creator = await queryOne("SELECT id, session_token, e_money, full_name FROM users WHERE id = ?", [userId]);
+    if (!creator || creator.session_token !== sessionToken) return res.status(401).json({ error: "Session invalid" });
+
+    const COST = 5500;
+    if ((creator.e_money || 0) < COST) {
+      return res.status(400).json({ error: `Insufficient E-Money. Required: ${COST}, Available: ${creator.e_money || 0}`, error_ar: `رصيد E-Money غير كافٍ. المطلوب: ${COST}، المتاح: ${creator.e_money || 0}` });
+    }
+
+    const { full_name, email, phone, password, governorate, address, id_card_front, id_card_back } = req.body;
+    if (!full_name || !email || !phone || !password) {
+      return res.status(400).json({ error: "Full name, email, phone and password are required" });
+    }
+
+    const existing = await queryOne("SELECT id FROM users WHERE email = ?", [email]);
+    if (existing) return res.status(400).json({ error: "Email already exists" });
+    const existingPhone = await queryOne("SELECT id FROM users WHERE phone = ?", [phone]);
+    if (existingPhone) return res.status(400).json({ error: "Phone number is already registered", error_ar: "رقم الهاتف مسجل بالفعل" });
+
+    // Validate phone
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({ error: "Invalid phone number" });
+    }
+
+    const id = await generateUserId();
+    const code = "EVR-" + id.slice(0, 6);
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+    // Create user as pending
+    await execute(
+      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, status, role, account_type, rank, governorate, id_card_front, id_card_back, created_by_user, email_otp, email_otp_expires) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?, ?)",
+      [id, full_name, email, phone, address || null, hashedPassword, code, governorate || null, id_card_front || null, id_card_back || null, userId, otp, otpExpires]
+    );
+
+    // Populate closure table
+    await execute("INSERT INTO user_closure (ancestor, descendant, depth) VALUES (?, ?, 0)", [id, id]);
+    const ancestors = await query("SELECT ancestor, depth FROM user_closure WHERE descendant = ? AND ancestor != descendant", [userId]);
+    for (const a of ancestors) {
+      await execute("INSERT INTO user_closure (ancestor, descendant, depth) VALUES (?, ?, ?)", [a.ancestor, id, a.depth + 1]);
+    }
+    await execute("INSERT INTO user_closure (ancestor, descendant, depth) VALUES (?, ?, 1)", [userId, id]);
+
+    // Deduct 5500 E-Money
+    await execute("UPDATE users SET e_money = e_money - ? WHERE id = ?", [COST, userId]);
+    const tid = uuidv4();
+    await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, ?, ?, 'completed')",
+      [tid, userId, COST, "debit", `إنشاء حساب لـ ${full_name}`]);
+
+    // Send OTP to the new user's email
+    try {
+      await sendOTPEmail(email, otp, "Everest Academy — Email Verification Code");
+    } catch (emailErr) {
+      console.error("Create-for-others email send failed:", emailErr.message);
+    }
+
+    const newProfile = await queryOne("SELECT id, full_name, email, phone, governorate, status, created_at FROM users WHERE id = ?", [id]);
+    const updatedCreator = await queryOne("SELECT id, e_money FROM users WHERE id = ?", [userId]);
+    res.json({ success: true, user: newProfile, creator_balance: updatedCreator.e_money });
+  } catch (err) {
+    console.error("Create-for-others error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// List users created by a specific user
+router.get("/created-by-me/:userId", async (req, res) => {
+  try {
+    const userId = req.headers["x-user-id"];
+    const sessionToken = req.headers["x-session-token"];
+    if (!userId || !sessionToken) return res.status(401).json({ error: "Unauthorized" });
+    const requester = await queryOne("SELECT id, session_token FROM users WHERE id = ?", [userId]);
+    if (!requester || requester.session_token !== sessionToken) return res.status(401).json({ error: "Session invalid" });
+
+    const users = await query(
+      "SELECT id, full_name, email, phone, governorate, status, account_type, created_at FROM users WHERE created_by_user = ? ORDER BY created_at DESC",
+      [req.params.userId]
+    );
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;

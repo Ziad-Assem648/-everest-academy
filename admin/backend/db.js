@@ -313,6 +313,13 @@ function createSchema(driver, isTursoDb) {
   try { await driver.execute("ALTER TABLE courses ADD COLUMN is_show_free INTEGER DEFAULT 0"); } catch(e) {}
   try { await driver.execute("ALTER TABLE courses ADD COLUMN is_show_homepage INTEGER DEFAULT 1"); } catch(e) {}
   try { await driver.execute("ALTER TABLE courses ADD COLUMN is_show_courses INTEGER DEFAULT 1"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN id_card_front TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN id_card_back TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN governorate TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN created_by_user TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 0"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN email_otp TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN email_otp_expires TEXT"); } catch(e) {}
       try { await driver.execute("ALTER TABLE user_sessions ADD COLUMN last_heartbeat TEXT"); } catch(e) {}
       try {
         await driver.execute("UPDATE users SET account_type = 'registration', role = 'registration' WHERE account_type = 'registration_sponsor'");
@@ -350,6 +357,13 @@ function createSchema(driver, isTursoDb) {
   try { driver.run("ALTER TABLE courses ADD COLUMN is_show_free INTEGER DEFAULT 0"); } catch(e) {}
   try { driver.run("ALTER TABLE courses ADD COLUMN is_show_homepage INTEGER DEFAULT 1"); } catch(e) {}
   try { driver.run("ALTER TABLE courses ADD COLUMN is_show_courses INTEGER DEFAULT 1"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN id_card_front TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN id_card_back TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN governorate TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN created_by_user TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 0"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN email_otp TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN email_otp_expires TEXT"); } catch(e) {}
   try {
     driver.run("UPDATE users SET account_type = 'registration', role = 'registration' WHERE account_type = 'registration_sponsor'");
     driver.run("UPDATE users SET account_type = 'registration' WHERE role = 'registration' AND account_type = 'student'");
