@@ -192,19 +192,33 @@ export default function CreateAccountPage() {
             {/* ID Card Front */}
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("صورة البطاقة (أمامي)", "ID Card (Front)")}</label>
-              <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${idCardFront ? "#22c55e" : c.border}`, color: idCardFront ? "#22c55e" : c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
-                <input type="file" accept="image/*" hidden onChange={e => handleImageUpload(e.target.files[0], setIdCardFront)} />
-                {uploadingImg === setIdCardFront ? "⏳" : idCardFront ? "✅ " + t("تم الرفع", "Uploaded") : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
-              </label>
+              {idCardFront ? (
+                <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: `2px solid #22c55e` }}>
+                  <img src={idCardFront} alt="ID Front" style={{ width: "100%", maxHeight: 180, objectFit: "contain", background: "#000", display: "block" }} />
+                  <button type="button" onClick={() => setIdCardFront(null)} style={{ position: "absolute", top: 6, right: 6, width: 26, height: 26, borderRadius: "50%", background: "rgba(239,68,68,.9)", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                </div>
+              ) : (
+                <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${c.border}`, color: c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
+                  <input type="file" accept="image/*" hidden onChange={e => handleImageUpload(e.target.files[0], setIdCardFront)} />
+                  {uploadingImg === setIdCardFront ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
+                </label>
+              )}
             </div>
 
             {/* ID Card Back */}
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("صورة البطاقة (خلفي)", "ID Card (Back)")}</label>
-              <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${idCardBack ? "#22c55e" : c.border}`, color: idCardBack ? "#22c55e" : c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
-                <input type="file" accept="image/*" hidden onChange={e => handleImageUpload(e.target.files[0], setIdCardBack)} />
-                {uploadingImg === setIdCardBack ? "⏳" : idCardBack ? "✅ " + t("تم الرفع", "Uploaded") : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
-              </label>
+              {idCardBack ? (
+                <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: `2px solid #22c55e` }}>
+                  <img src={idCardBack} alt="ID Back" style={{ width: "100%", maxHeight: 180, objectFit: "contain", background: "#000", display: "block" }} />
+                  <button type="button" onClick={() => setIdCardBack(null)} style={{ position: "absolute", top: 6, right: 6, width: 26, height: 26, borderRadius: "50%", background: "rgba(239,68,68,.9)", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                </div>
+              ) : (
+                <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${c.border}`, color: c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
+                  <input type="file" accept="image/*" hidden onChange={e => handleImageUpload(e.target.files[0], setIdCardBack)} />
+                  {uploadingImg === setIdCardBack ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
+                </label>
+              )}
             </div>
 
             {/* Submit */}

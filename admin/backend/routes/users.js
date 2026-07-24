@@ -357,9 +357,9 @@ router.post("/create-for-others", async (req, res) => {
       return res.status(400).json({ error: "Full name, email, phone and password are required" });
     }
 
-    const existing = await queryOne("SELECT id FROM users WHERE email = ?", [email]);
+    const existing = await queryOne("SELECT id FROM users WHERE email = ? AND status != 'rejected'", [email]);
     if (existing) return res.status(400).json({ error: "Email already exists" });
-    const existingPhone = await queryOne("SELECT id FROM users WHERE phone = ?", [phone]);
+    const existingPhone = await queryOne("SELECT id FROM users WHERE phone = ? AND status != 'rejected'", [phone]);
     if (existingPhone) return res.status(400).json({ error: "Phone number is already registered", error_ar: "رقم الهاتف مسجل بالفعل" });
 
     // Validate phone

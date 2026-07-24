@@ -128,10 +128,10 @@ router.post("/heartbeat", async (req, res) => {
 router.post("/register", async (req, res) => {
   try {
     const { full_name, email, phone, address, password, referral_code, governorate, id_card_front, id_card_back } = req.body;
-    const existing = await queryOne("SELECT id FROM users WHERE email = ?", [email]);
+    const existing = await queryOne("SELECT id FROM users WHERE email = ? AND status != 'rejected'", [email]);
     if (existing) return res.status(400).json({ error: "Email already exists" });
     if (phone) {
-      const existingPhone = await queryOne("SELECT id FROM users WHERE phone = ?", [phone]);
+      const existingPhone = await queryOne("SELECT id FROM users WHERE phone = ? AND status != 'rejected'", [phone]);
       if (existingPhone) return res.status(400).json({ error: "Phone number is already registered to another account", error_ar: "رقم الهاتف مسجل بالفعل في حساب آخر" });
     }
 
