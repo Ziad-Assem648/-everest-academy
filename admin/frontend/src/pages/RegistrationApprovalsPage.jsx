@@ -7,6 +7,7 @@ export default function RegistrationApprovalsPage() {
   const t = (ar, en) => tFn(ar, en);
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewUser, setViewUser] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -22,6 +23,7 @@ export default function RegistrationApprovalsPage() {
     try {
       await api(`/api/users/${userId}/approve-registration`, { method: "PUT", body: JSON.stringify({ account_type }) });
       load();
+      setViewUser(null);
     } catch (e) { alert(e.message); }
   };
 
@@ -29,6 +31,7 @@ export default function RegistrationApprovalsPage() {
     try {
       await api(`/api/users/${userId}/reject-registration`, { method: "PUT" });
       load();
+      setViewUser(null);
     } catch (e) { alert(e.message); }
   };
 
@@ -56,16 +59,38 @@ export default function RegistrationApprovalsPage() {
                 <th>{t("الاسم", "Name")}</th>
                 <th>{t("البريد", "Email")}</th>
                 <th>{t("رقم الهاتف", "Phone")}</th>
-                <th>{t("تاريخ التسجيل", "Registration Date")}</th>
+                <th>{t("المحافظة", "Governorate")}</th>
+                <th>{t("أنشأه", "Created By")}</th>
+                <th>{t("البطاقة", "ID Card")}</th>
+                <th>{t("تاريخ التسجيل", "Date")}</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {pending.map((u) => (
                 <tr key={u.id} className="border-t hover:bg-gray-50">
-                  <td className="font-medium">{u.full_name}</td>
+                  <td className="font-medium text-sm">{u.full_name}</td>
                   <td className="text-gray-500 text-xs">{u.email}</td>
                   <td className="text-gray-500 text-xs">{u.phone || "—"}</td>
+                  <td className="text-gray-500 text-xs">{u.governorate || "—"}</td>
+                  <td className="text-xs">
+                    {u.created_by_user ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 font-medium" title={u.creator_email}>
+                        👤 {u.creator_name || u.creator_email || u.created_by_user}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
+                  <td className="text-xs">
+                    {u.id_card_front || u.id_card_back ? (
+                      <button onClick={() => setViewUser(u)} className="text-blue-600 hover:text-blue-800 font-medium underline">
+                        {t("عرض", "View")}
+                      </button>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
                   <td className="text-gray-500 text-xs">{new Date(u.created_at).toLocaleDateString("ar-EG")}</td>
                   <td className="text-left">
                     <div className="flex gap-2 justify-end items-start">
@@ -89,6 +114,43 @@ export default function RegistrationApprovalsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* ID Card Modal */}
+      {viewUser && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          onClick={() => setViewUser(null)}>
+          <div style={{ background: "#fff", borderRadius: 16, padding: 24, maxWidth: 700, width: "100%", maxHeight: "90vh", overflow: "auto" }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{viewUser.full_name} — {t("البطاقة الشخصية", "ID Card")}</h3>
+              <button onClick={() => setViewUser(null)} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#666" }}>✕</button>
+            </div>
+
+            {viewUser.governorate && (
+              <p style={{ fontSize: 14, color: "#555", marginBottom: 16 }}>📍 {t("المحافظة", "Governorate")}: <strong>{viewUser.governorate}</strong></p>
+            )}
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              {viewUser.id_card_front && (
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8 }}>📷 {t("أمامي", "Front")}</p>
+                  <img src={viewUser.id_card_front} alt="ID Front" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
+                </div>
+              )}
+              {viewUser.id_card_back && (
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8 }}>📷 {t("خلفي", "Back")}</p>
+                  <img src={viewUser.id_card_back} alt="ID Back" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
+                </div>
+              )}
+            </div>
+
+            {!viewUser.id_card_front && !viewUser.id_card_back && (
+              <p style={{ color: "#999", textAlign: "center", padding: 20 }}>{t("لا توجد صور بطاقة", "No ID card images")}</p>
+            )}
+          </div>
         </div>
       )}
     </div>

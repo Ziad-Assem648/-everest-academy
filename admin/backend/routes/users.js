@@ -39,7 +39,15 @@ router.get("/", async (req, res) => {
 
 // Pending registration approvals (must be before /:id)
 router.get("/pending-registrations", async (req, res) => {
-  const users = await query("SELECT id, full_name, email, phone, role, referral_code, referred_by, created_at FROM users WHERE status = 'pending' ORDER BY created_at DESC");
+  const users = await query(`
+    SELECT u.id, u.full_name, u.email, u.phone, u.role, u.referral_code, u.referred_by, u.created_by_user, u.created_at,
+           u.id_card_front, u.id_card_back, u.governorate,
+           c.full_name as creator_name, c.email as creator_email
+    FROM users u
+    LEFT JOIN users c ON u.created_by_user = c.id
+    WHERE u.status = 'pending'
+    ORDER BY u.created_at DESC
+  `);
   res.json(users);
 });
 
