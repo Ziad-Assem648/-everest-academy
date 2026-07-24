@@ -138,15 +138,12 @@ export default function CourseBuilderPage() {
           </div>
           <div className="bg-white rounded-xl shadow-sm border p-4">
             <h4 className="font-bold mb-3">{t("التصنيفات", "Categories")} {req}</h4>
-            <input type="text" value={course.category_ar} onChange={e => { handleChange("category_ar", e.target.value); setErrors(prev => ({...prev, category: false})); }} placeholder={t("أدخل التصنيف...", "Enter category...")} className={`w-full px-3 py-2 border rounded-lg text-sm mb-2 ${errors.category ? "border-red-500" : ""}`} />
-            <div className="space-y-1 max-h-32 overflow-y-auto">
-              {["تداول", "تسويق", "برمجة", "ذكاء اصطناعي", "فريلانس", "تصميم"].map(cat => (
-                <label key={cat} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5">
-                  <input type="radio" name="category" checked={course.category_ar === cat} onChange={() => { handleChange("category_ar", cat); setErrors(prev => ({...prev, category: false})); }} />
-                  <span className="text-sm">{cat}</span>
-                </label>
+            <select value={course.category_ar} onChange={e => { handleChange("category_ar", e.target.value); setErrors(prev => ({...prev, category: false})); }} className={`w-full px-3 py-2 border rounded-lg text-sm mb-2 ${errors.category ? "border-red-500" : ""}`}>
+              <option value="">{t("اختر التصنيف...", "Select category...")}</option>
+              {["التداول", "الميديا باينج والدروب شيبينج", "الماركتينج والتسويق الرقمي", "السوشيال ميديا براند"].map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
               ))}
-            </div>
+            </select>
           </div>
           <div className="bg-white rounded-xl shadow-sm border p-4">
             <h4 className="font-bold mb-3">{t("الوسوم", "Tags")} <span className="text-xs font-normal text-gray-400">({t("اختياري", "Optional")})</span></h4>

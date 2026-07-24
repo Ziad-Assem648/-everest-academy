@@ -7,6 +7,56 @@ import { api } from "../App";
 import AppNavbar from "../components/AppNavbar";
 import FooterSection from "../components/FooterSection";
 
+const CATEGORY_ORDER = [
+  { id: "trading", emoji: "📈", labelAr: "التداول", labelEn: "Trading" },
+  { id: "media_buying", emoji: "📦", labelAr: "الميديا باينج والدروب شيبينج", labelEn: "Media Buying & Dropshipping" },
+  { id: "marketing", emoji: "📢", labelAr: "الماركتينج والتسويق الرقمي", labelEn: "Marketing & Digital Marketing" },
+  { id: "social_media", emoji: "📱", labelAr: "السوشيال ميديا براند", labelEn: "Social Media Brand" },
+  { id: "other", emoji: "📂", labelAr: "أخرى", labelEn: "Other" },
+];
+
+const CATEGORY_MAP = {};
+CATEGORY_ORDER.forEach(c => { CATEGORY_MAP[c.labelAr] = c; });
+
+function getCatInfo(catAr) {
+  return CATEGORY_MAP[catAr] || CATEGORY_ORDER.find(c => c.id === "other");
+}
+
+function CourseCard({ c, popupCourse, setPopupCourse, user }) {
+  const { t } = useLang();
+  const isFree = c.free_lessons > 0 || c.price === 0 || c.price === "0";
+  return (
+    <div className="cp-trend-card">
+      {isFree ? (
+        <div className="cp-free-tag">🔓 {c.free_lessons || 2} {t("مجانية", "Free")}</div>
+      ) : (
+        <div className="cp-premium-tag">{t("بريميوم", "Premium")}</div>
+      )}
+      <div className="cp-card-img-wrap">
+        {c.featured_image ? (
+          <img src={c.featured_image} alt={c.title_ar || c.title} />
+        ) : (
+          <div style={{width:"100%",height:180,background:"#f0f0f0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,color:"#ddd"}}>📚</div>
+        )}
+      </div>
+      <div className="cp-trend-info">
+        <h3 style={{cursor:"pointer"}} onClick={() => setPopupCourse(c)}>{c.title_ar || c.title}</h3>
+        <p>{c.description_ar || c.description || ""}</p>
+        <div className="cp-course-meta">
+          <span>🔓 {c.free_lessons || 2} {t("مجانية", "Free")}</span>
+          <span>{c.lesson_count || 0} {t("درس", "Sessions")}</span>
+        </div>
+        <div className="cp-card-bottom">
+          <span className="cp-price-text">{Number(c.price).toLocaleString()} E-Money</span>
+        </div>
+        <div className="cp-card-actions">
+          <Link to={`/courses/${c.id}`} className="cp-buy-btn">{user?.account_type === "student" ? t("مشاهدة", "Watch") : t("اشتري الآن", "Buy Now")}</Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CoursesPage() {
   const { t, dir } = useLang();
   const { theme } = useTheme();
@@ -14,30 +64,32 @@ export default function CoursesPage() {
   const nav = useNavigate();
   const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
   const [popupCourse, setPopupCourse] = useState(null);
-  const [catPopup, setCatPopup] = useState(null);
 
   useEffect(() => { api("/api/courses?status=published").then(setCourses); }, []);
 
-  const cats = [
-    { id: "all", emoji: "\uD83C\uDF10", label: t("الكل", "All") },
-    { id: "trading", emoji: "\uD83D\uDCC8", label: t("التداول", "Trading") },
-    { id: "marketing", emoji: "\uD83D\uDCA1", label: t("التسويق", "Marketing") },
-    { id: "dev", emoji: "\uD83D\uDCBB", label: t("البرمجة", "Programming") },
-    { id: "ai", emoji: "\uD83E\uDD16", label: t("الذكاء الاصطناعي", "AI") },
-    { id: "freelance", emoji: "\uD83D\uDC4D", label: t("العمل الحر", "Freelancing") },
-  ];
+  const visibleCourses = courses.filter(c => c.is_show_courses !== 0);
+  const q = search.toLowerCase();
+  const searched = q
+    ? visibleCourses.filter(c =>
+        (c.title || "").toLowerCase().includes(q) ||
+        (c.title_ar || "").toLowerCase().includes(q) ||
+        (c.description || "").toLowerCase().includes(q) ||
+        (c.description_ar || "").toLowerCase().includes(q) ||
+        (c.category_ar || "").toLowerCase().includes(q) ||
+        (c.category || "").toLowerCase().includes(q)
+      )
+    : visibleCourses;
 
-  const filteredCourses = courses.filter((c) => {
-    if (c.is_show_courses === 0) return false;
-    const q = search.toLowerCase();
-    const matchSearch = !q || (c.title || "").toLowerCase().includes(q) || (c.title_ar || "").includes(q) || (c.description || "").toLowerCase().includes(q) || (c.description_ar || "").toLowerCase().includes(q);
-    const matchFilter = filter === "all" || (c.category || "") === filter;
-    return matchSearch && matchFilter;
+  const grouped = {};
+  searched.forEach(c => {
+    const catAr = c.category_ar || "";
+    const info = getCatInfo(catAr);
+    if (!grouped[info.id]) grouped[info.id] = { info, courses: [] };
+    grouped[info.id].courses.push(c);
   });
 
-  const catCourses = filter !== "all" ? filteredCourses : [];
+  const orderedGroups = CATEGORY_ORDER.filter(g => grouped[g.id]?.courses.length > 0);
 
   return (
     <div style={{ background: theme === "dark" ? "#1a1a2e" : "#fafafa", minHeight: "100vh", fontFamily: "'Cairo', sans-serif", direction: dir }}>
@@ -52,22 +104,21 @@ export default function CoursesPage() {
         .cp-search-box input{flex:1;border:none;outline:none;padding:16px 20px;font-size:1rem;background:transparent;font-family:'Cairo',sans-serif}
         .cp-search-box button{border:none;background:#111;color:#fff;padding:0 28px;border-radius:999px;cursor:pointer;font-weight:700;font-family:'Cairo',sans-serif;transition:.3s}
         .cp-search-box button:hover{transform:translateY(-2px)}
-        .cp-categories{padding:40px 10px;background:#fff}
-        .cp-cats-wrap{max-width:1100px;margin:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:16px}
-        .cp-cat-btn{border:none;padding:16px 26px;border-radius:999px;background:#e1dada;color:#111;font-weight:700;cursor:pointer;transition:.3s;font-size:.95rem;font-family:'Cairo',sans-serif}
-        .cp-cat-btn:hover{transform:translateY(-4px);background:#111;color:#fff}
-        .cp-cat-btn.active{background:#d4af37;color:#111}
-        .cp-trending{padding:100px 20px;background:#faf8f3}
-        .cp-section-heading{text-align:center;margin-bottom:50px}
-        .cp-section-heading span{color:#c7a44c;font-weight:700;letter-spacing:1px;font-size:.9rem}
-        .cp-section-heading h2{margin-top:10px;font-size:clamp(2rem,4vw,3rem);color:#111}
-        .cp-cards-row{max-width:1300px;margin:auto;display:flex;gap:22px;overflow-x:auto;scroll-behavior:smooth;padding-bottom:10px;scrollbar-width:none}
+        .cp-cat-section{padding:40px 20px 20px;max-width:1300px;margin:auto}
+        .cp-cat-section-header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+        .cp-cat-section-header h2{margin:0;font-size:clamp(1.4rem,3vw,2rem);color:#111;font-weight:800}
+        .cp-cat-section-header .cp-cat-count{background:#f0f0f0;color:#777;padding:4px 12px;border-radius:999px;font-size:.8rem;font-weight:600}
+        .cp-cat-divider{border:none;border-top:2px solid #f0f0f0;margin:0 20px}
+        .cp-cards-row{display:flex;gap:22px;overflow-x:auto;scroll-behavior:smooth;padding-bottom:10px;scrollbar-width:none}
         .cp-cards-row::-webkit-scrollbar{display:none}
         .cp-trend-card{min-width:250px;max-width:250px;background:#fff;border-radius:26px;overflow:hidden;position:relative;flex-shrink:0;box-shadow:0 12px 30px rgba(0,0,0,.05);transition:.35s}
         .cp-trend-card:hover{transform:translateY(-8px)}
         .cp-trend-card img{width:100%;height:180px;object-fit:cover}
         .cp-premium-tag{position:absolute;top:14px;right:14px;background:#111;color:#fff;padding:6px 12px;border-radius:999px;font-size:.75rem;font-weight:700}
         .cp-free-tag{position:absolute;top:14px;right:14px;background:#059669;color:#fff;padding:6px 12px;border-radius:999px;font-size:.75rem;font-weight:700}
+        .cp-card-img-wrap{position:relative;overflow:hidden}
+        .cp-card-img-wrap img{transition:transform .5s}
+        .cp-trend-card:hover .cp-card-img-wrap img{transform:scale(1.05)}
         .cp-trend-info{padding:18px}
         .cp-trend-info h3{color:#111;margin:0 0 10px;font-size:1rem;font-weight:700}
         .cp-trend-info p{color:#777;font-size:.9rem;line-height:1.6;height:45px;margin:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
@@ -90,10 +141,8 @@ export default function CoursesPage() {
         .cp-premium-card>p{color:#cfcfcf;margin-bottom:30px}
         .cp-start-btn{width:100%;height:58px;display:flex;align-items:center;justify-content:center;border-radius:18px;background:#d4af37;color:#111;text-decoration:none;font-weight:800;transition:.3s;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:1rem}
         .cp-start-btn:hover{transform:translateY(-3px)}
-        .cp-emp{text-align:center;padding:80px 20px;color:#999}
-        .cp-emp i{font-size:48px;color:#ddd;margin-bottom:16px}
+        .cp-emp{text-align:center;padding:40px 20px;color:#999}
         .cp-emp h3{color:#666;margin:0 0 8px}
-        .cp-grid{max-width:1300px;margin:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:22px;padding:0 20px}
         .cp-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(10px);z-index:3000;display:flex;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:.3s;padding:15px}
         .cp-modal-overlay.open{opacity:1;pointer-events:auto}
         .cp-modal-box{width:min(900px,92%);max-height:85vh;overflow:auto;background:#fff;border-radius:32px;transform:translateY(20px);transition:.3s}
@@ -115,26 +164,16 @@ export default function CoursesPage() {
           .cp-hero h1{font-size:2.4rem}
           .cp-search-box{flex-direction:column;border-radius:28px}
           .cp-search-box button{height:52px}
-          .cp-categories{padding:30px 10px}
-          .cp-cats-wrap{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-          .cp-cats-wrap::-webkit-scrollbar{display:none}
-          .cp-cat-btn{white-space:nowrap;flex-shrink:0}
-          .cp-trending{padding:60px 16px}
           .cp-cards-row{gap:16px;padding:0 0 10px}
           .cp-trend-card{min-width:240px;max-width:240px}
           .cp-premium-section{flex-direction:column;padding:40px 24px;text-align:center;margin:40px 16px}
           .cp-premium-features{grid-template-columns:1fr}
           .cp-premium-card{width:100%;min-width:auto}
-          .cp-grid{grid-template-columns:1fr;padding:0 16px}
           .cp-modal-overlay{align-items:flex-end;padding:0}
           .cp-modal-box{width:100%;max-height:90vh;border-radius:20px 20px 0 0}
         }
         @media(min-width:769px) and (max-width:1024px){
-          .cp-grid{grid-template-columns:repeat(2,1fr)}
         }
-        .cp-card-img-wrap{position:relative;overflow:hidden}
-        .cp-card-img-wrap img{transition:transform .5s}
-        .cp-trend-card:hover .cp-card-img-wrap img{transform:scale(1.05)}
         [data-theme="dark"] .cp-hero{background:radial-gradient(circle at top right,rgba(212,175,55,.12),transparent 35%),radial-gradient(circle at bottom left,rgba(212,175,55,.08),transparent 35%),#1a1a2e}
         [data-theme="dark"] .cp-hero-badge{background:#2a2a3e;color:#d4af37;border-color:rgba(212,175,55,.3)}
         [data-theme="dark"] .cp-hero h1{color:#f0f0f0}
@@ -142,17 +181,15 @@ export default function CoursesPage() {
         [data-theme="dark"] .cp-search-box{background:#2a2a3e;box-shadow:0 15px 40px rgba(0,0,0,.3)}
         [data-theme="dark"] .cp-search-box input{color:#f0f0f0}
         [data-theme="dark"] .cp-search-box button{background:#d4af37;color:#111}
-        [data-theme="dark"] .cp-categories{background:#1a1a2e}
-        [data-theme="dark"] .cp-cat-btn{background:#2a2a3e;color:#ccc}
-        [data-theme="dark"] .cp-cat-btn:hover{background:#d4af37;color:#111}
-        [data-theme="dark"] .cp-trending{background:#16213e}
-        [data-theme="dark"] .cp-section-heading h2{color:#f0f0f0}
+        [data-theme="dark"] .cp-cat-section-header h2{color:#f0f0f0}
+        [data-theme="dark"] .cp-cat-section-header .cp-cat-count{background:#2a2a3e;color:#aaa}
+        [data-theme="dark"] .cp-cat-divider{border-top-color:#333}
         [data-theme="dark"] .cp-trend-card{background:#1e1e2f;box-shadow:0 12px 30px rgba(0,0,0,.3)}
         [data-theme="dark"] .cp-trend-info h3{color:#f0f0f0}
         [data-theme="dark"] .cp-trend-info p{color:#aaa}
         [data-theme="dark"] .cp-course-meta{color:#aaa}
         [data-theme="dark"] .cp-emp h3{color:#aaa}
-        [data-theme="dark"] .cp-emp i{color:#555}
+        [data-theme="dark"] .cp-premium-section{background:linear-gradient(135deg,#0a0a1a,#151528)}
         [data-theme="dark"] .cp-modal-overlay{background:rgba(0,0,0,.7)}
         [data-theme="dark"] .cp-modal-box{background:#1e1e2f}
         [data-theme="dark"] .cp-modal-header{border-bottom-color:#333}
@@ -169,7 +206,6 @@ export default function CoursesPage() {
       <section className="cp-hero">
         <div className="cp-hero-inner">
           <span className="cp-hero-badge">{t("مكتبة إيفرست المحتوى", "EVEREST CONTENT LIBRARY")}</span>
-        
           <p>{t("استكشف دروساً تعليمية فاخرة، واكتشف مهارات جديدة، وابدأ دروسك الأولى مجاناً.", "Explore premium learning sessions, discover new skills, and start your first lessons for free.")}</p>
           <div className="cp-search-box">
             <input
@@ -183,118 +219,35 @@ export default function CoursesPage() {
         </div>
       </section>
 
-      {/* ===== CATEGORIES ===== */}
-      <section className="cp-categories">
-        <div className="cp-cats-wrap">
-          {cats.map((cat) => (
-            <button
-              key={cat.id}
-              className={`cp-cat-btn ${filter === cat.id ? "active" : ""}`}
-              onClick={() => setFilter(filter === cat.id ? "all" : cat.id)}
-            >
-              {cat.emoji} {cat.label}
-            </button>
-          ))}
+      {/* ===== COURSE SECTIONS BY CATEGORY ===== */}
+      {orderedGroups.length > 0 ? (
+        orderedGroups.map((groupKey, idx) => {
+          const g = grouped[groupKey];
+          return (
+            <React.Fragment key={groupKey.id}>
+              <section className="cp-cat-section">
+                <div className="cp-cat-section-header">
+                  <span style={{ fontSize: "2rem" }}>{g.info.emoji}</span>
+                  <h2>{t(g.info.labelAr, g.info.labelEn)}</h2>
+                  <span className="cp-cat-count">{g.courses.length} {t("كورس", "courses")}</span>
+                </div>
+                <div className="cp-cards-row">
+                  {g.courses.map(c => (
+                    <CourseCard key={c.id} c={c} popupCourse={popupCourse} setPopupCourse={setPopupCourse} user={user} />
+                  ))}
+                </div>
+              </section>
+              {idx < orderedGroups.length - 1 && <hr className="cp-cat-divider" />}
+            </React.Fragment>
+          );
+        })
+      ) : (
+        <div className="cp-emp">
+          <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
+          <h3>{t("لا توجد نتائج", "No Results Found")}</h3>
+          <p>{t("جرب كلمات بحث مختلفة", "Try different search terms")}</p>
         </div>
-      </section>
-
-      {/* ===== TRENDING / ALL COURSES ===== */}
-      <section className="cp-trending" id="content-section">
-        <div className="cp-section-heading">
-          <span>{t("الأكثر رواجاً", "Trending Now")}</span>
-          <h2>{filter === "all" ? t("المحتوى الأكثر شعبية", "Most Popular Content") : cats.find(c => c.id === filter)?.label || t("النتائج", "Results")}</h2>
-        </div>
-
-        {filter === "all" ? (
-          <>
-            {filteredCourses.length > 0 ? (
-              <div className="cp-cards-row">
-                {filteredCourses.map((c) => (
-                  <div key={c.id} className="cp-trend-card">
-                    {c.free_lessons > 0 || c.price === 0 || c.price === "0" ? (
-                      <div className="cp-free-tag">🔓 {c.free_lessons || 2} {t("مجانية", "Free")}</div>
-                    ) : (
-                      <div className="cp-premium-tag">{t("بريميوم", "Premium")}</div>
-                    )}
-                    <div className="cp-card-img-wrap">
-                      {c.featured_image ? (
-                        <img src={c.featured_image} alt={c.title_ar || c.title} />
-                      ) : (
-                        <div style={{width:"100%",height:180,background:"#f0f0f0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,color:"#ddd"}}>📚</div>
-                      )}
-                    </div>
-                    <div className="cp-trend-info">
-                      <h3 style={{cursor:"pointer"}} onClick={() => setPopupCourse(c)}>{c.title_ar || c.title}</h3>
-                      <p>{c.description_ar || c.description || ""}</p>
-                      <div className="cp-course-meta">
-                        <span>🔓 {c.free_lessons || 2} {t("مجانية", "Free")}</span>
-                        <span>{c.lesson_count || 0} {t("درس", "Sessions")}</span>
-                      </div>
-                      <div className="cp-card-bottom">
-                        <span className="cp-price-text">{Number(c.price).toLocaleString()} E-Money</span>
-
-                      </div>
-                      <div className="cp-card-actions">
-                        <Link to={`/courses/${c.id}`} className="cp-buy-btn">{user?.account_type === "student" ? t("مشاهدة", "Watch") : t("اشتري الآن", "Buy Now")}</Link>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="cp-emp">
-                <div style={{fontSize:48,marginBottom:16}}>🔍</div>
-                <h3>{t("لا توجد نتائج", "No Results Found")}</h3>
-                <p>{t("جرب كلمات بحث مختلفة", "Try different search terms")}</p>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            {catCourses.length > 0 ? (
-              <div className="cp-cards-row">
-                {catCourses.map((c) => (
-                  <div key={c.id} className="cp-trend-card">
-                    {c.free_lessons > 0 || c.price === 0 || c.price === "0" ? (
-                      <div className="cp-free-tag">🔓 {c.free_lessons || 2} {t("مجانية", "Free")}</div>
-                    ) : (
-                      <div className="cp-premium-tag">{t("بريميوم", "Premium")}</div>
-                    )}
-                    <div className="cp-card-img-wrap">
-                      {c.featured_image ? (
-                        <img src={c.featured_image} alt={c.title_ar || c.title} />
-                      ) : (
-                        <div style={{width:"100%",height:180,background:"#f0f0f0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,color:"#ddd"}}>📚</div>
-                      )}
-                    </div>
-                    <div className="cp-trend-info">
-                      <h3 style={{cursor:"pointer"}} onClick={() => setPopupCourse(c)}>{c.title_ar || c.title}</h3>
-                      <p>{c.description_ar || c.description || ""}</p>
-                      <div className="cp-course-meta">
-                        <span>🔓 {c.free_lessons || 2} {t("مجانية", "Free")}</span>
-                        <span>{c.lesson_count || 0} {t("درس", "Sessions")}</span>
-                      </div>
-                      <div className="cp-card-bottom">
-                        <span className="cp-price-text">{Number(c.price).toLocaleString()} E-Money</span>
-
-                      </div>
-                      <div className="cp-card-actions">
-                        <Link to={`/courses/${c.id}`} className="cp-buy-btn">{user?.account_type === "student" ? t("مشاهدة", "Watch") : t("اشتري الآن", "Buy Now")}</Link>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="cp-emp">
-                <div style={{fontSize:48,marginBottom:16}}>📚</div>
-                <h3>{t("لا توجد كورسات في هذا التخصص", "No courses in this specialization")}</h3>
-                <p>{t("جرّب تخصص آخر", "Try another specialization")}</p>
-              </div>
-            )}
-          </>
-        )}
-      </section>
+      )}
 
       {/* ===== PREMIUM MEMBERSHIP / WHY EVEREST ===== */}
       <section className="cp-premium-section">
@@ -315,7 +268,7 @@ export default function CoursesPage() {
           <span>{t("مجتمعنا", "OUR COMMUNITY")}</span>
           <h3>{courses.length * 30}+</h3>
           <p>{t("جلسة تعليمية فاخرة", "Premium Learning Sessions")}</p>
-          <button className="cp-start-btn" onClick={() => window.scrollTo({top:0,behavior:'smooth'})}>{t("ابدأ التعلم", "Start Learning")}</button>
+          <button className="cp-start-btn" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>{t("ابدأ التعلم", "Start Learning")}</button>
         </div>
       </section>
 
@@ -331,7 +284,7 @@ export default function CoursesPage() {
               {popupCourse.featured_image ? (
                 <img src={popupCourse.featured_image} alt="" className="cp-modal-img" />
               ) : (
-                <div style={{width:"100%",height:220,background:"#f0f0f0",borderRadius:20,display:"flex",alignItems:"center",justifyContent:"center",fontSize:50}}>📚</div>
+                <div style={{ width: "100%", height: 220, background: "#f0f0f0", borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 50 }}>📚</div>
               )}
               <h3 className="cp-modal-title">{popupCourse.title_ar || popupCourse.title}</h3>
               <p className="cp-modal-desc">{popupCourse.description_ar || popupCourse.description}</p>
@@ -345,11 +298,11 @@ export default function CoursesPage() {
                   {t("شهادة مهنية معتمدة فور إتمام المسار", "Professional certificate upon path completion")}
                 </div>
               </div>
-              <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <Link to={`/courses/${popupCourse.id}`} className="cp-modal-start" onClick={() => setPopupCourse(null)}>
                   {t("ابدأ المسار الآن", "Start the Path Now")}
                 </Link>
-                <button style={{width:"auto",padding:"0 24px",height:48,border:"none",borderRadius:18,background:"#f0f0f0",color:"#111",cursor:"pointer",fontWeight:700,fontFamily:"'Cairo',sans-serif",transition:".3s",fontSize:".9rem"}} onClick={() => setPopupCourse(null)}>
+                <button style={{ width: "auto", padding: "0 24px", height: 48, border: "none", borderRadius: 18, background: "#f0f0f0", color: "#111", cursor: "pointer", fontWeight: 700, fontFamily: "'Cairo',sans-serif", transition: ".3s", fontSize: ".9rem" }} onClick={() => setPopupCourse(null)}>
                   {t("إغلاق", "Close")}
                 </button>
               </div>
