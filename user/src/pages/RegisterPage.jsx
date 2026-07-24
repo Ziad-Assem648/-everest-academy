@@ -114,17 +114,8 @@ export default function RegisterPage() {
     if (form.password !== form.confirm) { setErr(t("كلمات المرور غير متطابقة!", "Passwords do not match!")); setLoading(false); return; }
     try {
       const body = { full_name: form.full_name, email: form.email, phone: form.phone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, id_card_front: idCardFront, id_card_back: idCardBack };
-      const res = await api("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
-      if (res.otp_sent === false) {
-        setRegisteredEmail(form.email);
-        setOtpStep(true);
-        setOtpWarning(t("تم التسجيل لكن فشل إرسال كود التحقق. اضغط 'إعادة الإرسال' للمحاولة مرة أخرى.", "Registered but OTP failed to send. Tap Resend to try again."));
-        setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no", governorate: "" });
-        setLoading(false); return;
-      }
-      setRegisteredEmail(form.email);
-      setOtpStep(true);
-      setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no", governorate: "" });
+      await api("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
+      nav("/pending-activation", { replace: true });
     } catch (e) { setErr(e.message); }
     setLoading(false);
   };
