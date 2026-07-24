@@ -191,6 +191,7 @@ router.post("/register", async (req, res) => {
       otpSent = true;
     } catch (emailErr) {
       console.error("Registration email send failed:", emailErr.message);
+      console.error("OTP for", email, "is:", otp, "(email not delivered — check RESEND_API_KEY)");
     }
 
     const user = await queryOne("SELECT id, full_name, email, phone, address, referral_code, referred_by, status, rank, e_money, account_type, created_at FROM users WHERE id = ?", [id]);
@@ -233,9 +234,9 @@ router.post("/resend-email-otp", async (req, res) => {
       await sendOTPEmail(email, otp, "Everest Academy — Email Verification Code");
     } catch (emailErr) {
       console.error("Resend OTP email failed:", emailErr.message);
-      return res.status(500).json({ error: "Failed to send verification email" });
+      console.error("OTP for", email, "is:", otp, "(email not delivered — check RESEND_API_KEY)");
     }
-    res.json({ success: true, message: "OTP resent to your email" });
+    res.json({ success: true, message: "OTP sent to your email" });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

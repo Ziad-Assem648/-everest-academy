@@ -54,6 +54,7 @@ export default function RegisterPage() {
   const [otpStep, setOtpStep] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [registeredEmail, setRegisteredEmail] = useState("");
+  const [otpWarning, setOtpWarning] = useState("");
 
   // Redirect browser back to landing page instead of previous history
   useEffect(() => {
@@ -115,7 +116,10 @@ export default function RegisterPage() {
       const body = { full_name: form.full_name, email: form.email, phone: form.phone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, id_card_front: idCardFront, id_card_back: idCardBack };
       const res = await api("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
       if (res.otp_sent === false) {
-        setErr(t("تم التسجيل لكن فشل إرسال كود التحقق. حاول مرة أخرى.", "Registered but OTP send failed. Please try again."));
+        setRegisteredEmail(form.email);
+        setOtpStep(true);
+        setOtpWarning(t("تم التسجيل لكن فشل إرسال كود التحقق. اضغط 'إعادة الإرسال' للمحاولة مرة أخرى.", "Registered but OTP failed to send. Tap Resend to try again."));
+        setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no", governorate: "" });
         setLoading(false); return;
       }
       setRegisteredEmail(form.email);
@@ -164,7 +168,7 @@ export default function RegisterPage() {
   const resendOtp = async () => {
     try {
       await api("/api/auth/resend-email-otp", { method: "POST", body: JSON.stringify({ email: registeredEmail }) });
-      setErr(""); alert(t("تم إرسال كود جديد على إيميلك", "New code sent to your email"));
+      setOtpWarning(""); setErr(""); alert(t("تم إرسال كود جديد على إيميلك", "New code sent to your email"));
     } catch (e) { setErr(e.message); }
   };
 
@@ -178,6 +182,7 @@ export default function RegisterPage() {
             <h2 style={{ fontSize: 20, fontWeight: 900, color: c.text, marginBottom: 6 }}>{t("تحقق من بريدك", "Verify Your Email")}</h2>
             <p style={{ fontSize: 13, color: c.textMuted, marginBottom: 20 }}>{t("أرسلنا كود تحقق إلى", "We sent a code to")} <strong style={{ color: gold }}>{registeredEmail}</strong></p>
             {err && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 14, color: "#ef4444", fontSize: 12 }}>{err}</div>}
+            {otpWarning && <div style={{ background: "rgba(234,179,8,.08)", border: "1px solid rgba(234,179,8,.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 14, color: "#ca8a04", fontSize: 12 }}>{otpWarning}</div>}
             <input type="text" inputMode="numeric" maxLength={6} value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, ""))} placeholder="000000" style={otpInputStyle} />
             <button onClick={verifyOtp} disabled={loading} style={{ width: "100%", height: 50, borderRadius: 14, border: "none", marginTop: 16, background: loading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`, color: "#fff", fontSize: 15, fontWeight: 800, cursor: loading ? "default" : "pointer" }}>
               {loading ? <div style={{ width: 20, height: 20, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite", margin: "0 auto" }} /> : t("تحقق", "Verify")}
@@ -194,6 +199,7 @@ export default function RegisterPage() {
           <h2 style={{ fontSize: 22, fontWeight: 900, color: c.text, marginBottom: 6 }}>{t("تحقق من بريدك", "Verify Your Email")}</h2>
           <p style={{ fontSize: 14, color: c.textMuted, marginBottom: 24 }}>{t("أرسلنا كود تحقق إلى", "We sent a code to")} <strong style={{ color: gold }}>{registeredEmail}</strong></p>
           {err && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 16, color: "#ef4444", fontSize: 13 }}>{err}</div>}
+          {otpWarning && <div style={{ background: "rgba(234,179,8,.08)", border: "1px solid rgba(234,179,8,.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 16, color: "#ca8a04", fontSize: 13 }}>{otpWarning}</div>}
           <input type="text" inputMode="numeric" maxLength={6} value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, ""))} placeholder="000000" style={otpInputStyle} />
           <button onClick={verifyOtp} disabled={loading} style={{ width: "100%", height: 52, borderRadius: 14, border: "none", marginTop: 18, background: loading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`, color: "#fff", fontSize: 15, fontWeight: 800, cursor: loading ? "default" : "pointer" }}>
             {loading ? <div style={{ width: 22, height: 22, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite", margin: "0 auto" }} /> : t("تحقق", "Verify")}
