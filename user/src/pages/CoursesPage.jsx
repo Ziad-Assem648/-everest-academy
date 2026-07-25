@@ -251,7 +251,6 @@ export default function CoursesPage() {
       {orderedGroups.length > 0 ? (
         orderedGroups.map((groupKey, idx) => {
           const g = grouped[groupKey.id];
-          const pkgPrice = pricing[groupKey.priceKey] || "0";
           return (
             <React.Fragment key={groupKey.id}>
               <section className="cp-cat-section">
@@ -260,33 +259,11 @@ export default function CoursesPage() {
                   <h2>{t(g.info.labelAr, g.info.labelEn)}</h2>
                   <span className="cp-cat-count">{g.courses.length} {t("كورس", "courses")}</span>
                 </div>
-                {!isStudent && (
-                  <div className="cp-pkg-price">
-                    {t("سعر الباكدج:", "Package price:")}
-                    <span>{Number(pkgPrice).toLocaleString()} E-Money</span>
-                  </div>
-                )}
-                {isStudent && (
-                  <div className="cp-pkg-price" style={{color:"#059669"}}>
-                    <i className="fa-solid fa-graduation-cap" style={{marginLeft:6}}></i>
-                    <span style={{background:"linear-gradient(135deg,#059669,#10b981)",color:"#fff"}}>{t("🎓 كل الكورسات مفتوحالك!", "All courses unlocked for you!")}</span>
-                  </div>
-                )}
                 <div className="cp-cards-row">
                   {g.courses.map(c => (
                     <CourseCard key={c.id} c={c} popupCourse={popupCourse} setPopupCourse={setPopupCourse} user={user} isStudent={isStudent} />
                   ))}
                 </div>
-                {!isStudent && (
-                  <div style={{ marginTop: 20 }}>
-                    <button className="cp-buy-btn" onClick={() => {
-                      if (!user) { setLoginModalPrice(Number(pkgPrice).toLocaleString()); setLoginModalCategory(t(groupKey.labelAr, groupKey.labelEn)); setShowLoginModal(true); }
-                      else if (g.courses.length > 0) { nav(`/courses/${g.courses[0].id}`); }
-                    }}>
-                      {t("شراء الباكدج كامل", "Buy Full Package")} — {Number(pkgPrice).toLocaleString()} E-Money
-                    </button>
-                  </div>
-                )}
               </section>
               {idx < orderedGroups.length - 1 && <hr className="cp-cat-divider" />}
             </React.Fragment>
@@ -297,6 +274,27 @@ export default function CoursesPage() {
           <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
           <h3>{t("لا توجد نتائج", "No Results Found")}</h3>
           <p>{t("جرب كلمات بحث مختلفة", "Try different search terms")}</p>
+        </div>
+      )}
+
+      {/* ===== BUY ALL CONTENT BUTTON ===== */}
+      {!isStudent && orderedGroups.length > 0 && (
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 20px 0" }}>
+          <button className="cp-buy-btn" style={{ maxWidth: 600, margin: "0 auto", display: "flex", fontSize: "1.05rem", height: 54 }} onClick={() => {
+            if (!user) { setLoginModalPrice(Number(pricing.content_price || 0).toLocaleString()); setLoginModalCategory(null); setShowLoginModal(true); }
+            else { nav(`/courses/`); }
+          }}>
+            {t("شراء كل المحتوى", "Buy All Content")} — {Number(pricing.content_price || 0).toLocaleString()} E-Money
+          </button>
+        </div>
+      )}
+
+      {isStudent && orderedGroups.length > 0 && (
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 20px 0" }}>
+          <div className="cp-pkg-price" style={{ color: "#059669", justifyContent: "center" }}>
+            <i className="fa-solid fa-graduation-cap" style={{ marginLeft: 6 }}></i>
+            <span style={{ background: "linear-gradient(135deg,#059669,#10b981)", color: "#fff" }}>{t("🎓 كل الكورسات مفتوحالك!", "All courses unlocked for you!")}</span>
+          </div>
         </div>
       )}
 
@@ -381,7 +379,7 @@ export default function CoursesPage() {
           </div>
           <div className="cp-login-modal-body">
             <div className="cp-login-modal-price">
-              <small>{t("باكدج", "Package")} {loginModalCategory}:</small>
+              <small>{t("كل المحتوى التعليمي", "All Educational Content")}:</small>
               <span>{loginModalPrice} E-Money</span>
             </div>
             <div className="cp-login-modal-btns">

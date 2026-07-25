@@ -145,9 +145,10 @@ app.get("/api/customer-service", async (req, res) => {
 // Public pricing settings (no auth needed — used by landing page & registration)
 app.get("/api/pricing", async (req, res) => {
   try {
-    const rows = await query("SELECT * FROM settings WHERE key IN ('pkg_price_trading', 'pkg_price_media_buying', 'pkg_price_marketing', 'pkg_price_social_media', 'pkg_price_other', 'create_account_cost')");
+    const rows = await query("SELECT * FROM settings WHERE key IN ('content_price', 'create_account_cost')");
     const obj = {};
     for (const r of rows) obj[r.key] = r.value;
+    if (!obj.content_price) obj.content_price = "0";
     if (!obj.create_account_cost) obj.create_account_cost = "5500";
     res.json(obj);
   } catch (e) { res.status(500).json({ error: e.message }); }

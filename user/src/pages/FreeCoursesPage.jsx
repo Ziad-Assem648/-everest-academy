@@ -229,7 +229,6 @@ export default function FreeCoursesPage() {
       {orderedGroups.length > 0 ? (
         orderedGroups.map((groupKey, idx) => {
           const g = grouped[groupKey.id];
-          const pkgPrice = pricing[groupKey.priceKey] || "0";
           return (
             <React.Fragment key={groupKey.id}>
               <section className="fcp-cat-section">
@@ -237,10 +236,6 @@ export default function FreeCoursesPage() {
                   <span style={{ fontSize: "2rem" }}>{groupKey.emoji}</span>
                   <h2>{t(groupKey.labelAr, groupKey.labelEn)}</h2>
                   <span className="fcp-cat-count">{g.courses.length} {t("كورس", "courses")}</span>
-                </div>
-                <div className="fcp-pkg-price">
-                  {t("سعر الباكدج:", "Package price:")}
-                  <span>{Number(pkgPrice).toLocaleString()} E-Money</span>
                 </div>
                 <div className="fcp-cards-row">
                   {g.courses.map(c => (
@@ -262,11 +257,6 @@ export default function FreeCoursesPage() {
                     </div>
                   ))}
                 </div>
-                <div style={{ marginTop: 20 }}>
-                  <button className="fcp-view-btn" onClick={() => { setLoginModalPrice(Number(pkgPrice).toLocaleString()); setLoginModalCategory(t(groupKey.labelAr, groupKey.labelEn)); setShowLoginModal(true); }}>
-                    {t("شراء الباكدج كامل", "Buy Full Package")} — {Number(pkgPrice).toLocaleString()} E-Money
-                  </button>
-                </div>
               </section>
               {idx < orderedGroups.length - 1 && <hr className="fcp-cat-divider" />}
             </React.Fragment>
@@ -277,6 +267,18 @@ export default function FreeCoursesPage() {
           <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
           <h3>{t("لا توجد نتائج", "No Results Found")}</h3>
           <p>{t("جرب كلمات بحث مختلفة", "Try different search terms")}</p>
+        </div>
+      )}
+
+      {/* ===== BUY ALL CONTENT BUTTON ===== */}
+      {orderedGroups.length > 0 && (
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 20px 0" }}>
+          <button className="fcp-view-btn" style={{ maxWidth: 600, margin: "0 auto", display: "flex", fontSize: "1.05rem", height: 54 }} onClick={() => {
+            setLoginModalPrice(Number(pricing.content_price || 0).toLocaleString());
+            setShowLoginModal(true);
+          }}>
+            {t("شراء كل المحتوى", "Buy All Content")} — {Number(pricing.content_price || 0).toLocaleString()} E-Money
+          </button>
         </div>
       )}
 
@@ -330,8 +332,8 @@ export default function FreeCoursesPage() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <button className="fcp-modal-start" onClick={() => { const catInfo = getCatInfo(popupCourse.category_ar); const pkg = pricing[catInfo.priceKey] || "0"; setLoginModalPrice(Number(pkg).toLocaleString()); setLoginModalCategory(t(catInfo.labelAr, catInfo.labelEn)); setPopupCourse(null); setShowLoginModal(true); }}>
-                  {t("اشتري الباكدج كامل", "Buy Full Package")}
+                <button className="fcp-modal-start" onClick={() => { setLoginModalPrice(Number(pricing.content_price || 0).toLocaleString()); setLoginModalCategory(null); setPopupCourse(null); setShowLoginModal(true); }}>
+                  {t("شراء كل المحتوى", "Buy All Content")}
                 </button>
                 <button style={{ width: "auto", padding: "0 24px", height: 48, border: "none", borderRadius: 18, background: "#f0f0f0", color: "#111", cursor: "pointer", fontWeight: 700, fontFamily: "'Cairo',sans-serif", transition: ".3s", fontSize: ".9rem" }} onClick={() => setPopupCourse(null)}>
                   {t("إغلاق", "Close")}
@@ -354,7 +356,7 @@ export default function FreeCoursesPage() {
           </div>
           <div className="fcp-login-modal-body">
             <div className="fcp-login-modal-price">
-              <small>{t("باكدج", "Package")} {loginModalCategory}:</small>
+              <small>{t("كل المحتوى التعليمي", "All Educational Content")}:</small>
               <span>{loginModalPrice} E-Money</span>
             </div>
             <div className="fcp-login-modal-btns">
