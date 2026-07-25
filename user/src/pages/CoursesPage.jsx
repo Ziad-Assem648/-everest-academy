@@ -22,11 +22,13 @@ function getCatInfo(catAr) {
   return CATEGORY_MAP[catAr] || CATEGORY_ORDER.find(c => c.id === "other");
 }
 
-function CourseCard({ c, popupCourse, setPopupCourse, user }) {
+function CourseCard({ c, popupCourse, setPopupCourse, user, isStudent }) {
   const { t } = useLang();
+  const isStudentRole = isStudent;
   return (
     <div className="cp-trend-card" onClick={() => setPopupCourse(c)} style={{ cursor: "pointer" }}>
-      <div className="cp-free-tag">🔓 {c.free_lessons || 2} {t("مجانية", "Free")}</div>
+      {!isStudentRole && <div className="cp-free-tag">🔓 {c.free_lessons || 2} {t("مجانية", "Free")}</div>}
+      {isStudentRole && <div className="cp-free-tag" style={{background:"#d4af37",color:"#111"}}>🎓 {t("طالب", "Student")}</div>}
       <div className="cp-card-img-wrap">
         {c.featured_image ? (
           <img src={c.featured_image} alt={c.title_ar || c.title} />
@@ -38,7 +40,8 @@ function CourseCard({ c, popupCourse, setPopupCourse, user }) {
         <h3>{c.title_ar || c.title}</h3>
         <p>{c.description_ar || c.description || ""}</p>
         <div className="cp-course-meta">
-          <span>🔓 {c.free_lessons || 2} {t("مجانية", "Free")}</span>
+          {!isStudentRole && <span>🔓 {c.free_lessons || 2} {t("مجانية", "Free")}</span>}
+          {isStudentRole && <span style={{color:"#059669",fontWeight:700}}>🎓 {t("مفتوح", "Unlocked")}</span>}
           <span>{c.lesson_count || 0} {t("درس", "Sessions")}</span>
         </div>
       </div>
@@ -51,6 +54,7 @@ export default function CoursesPage() {
   const { theme } = useTheme();
   const { user } = useAuth();
   const nav = useNavigate();
+  const isStudent = user && user.account_type === "student";
   const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState("");
   const [popupCourse, setPopupCourse] = useState(null);
@@ -227,13 +231,21 @@ export default function CoursesPage() {
                   <h2>{t(g.info.labelAr, g.info.labelEn)}</h2>
                   <span className="cp-cat-count">{g.courses.length} {t("كورس", "courses")}</span>
                 </div>
-                <div className="cp-pkg-price">
-                  {t("سعر الباكدج:", "Package price:")}
-                  <span>{Number(pkgPrice).toLocaleString()} E-Money</span>
-                </div>
+                {!isStudent && (
+                  <div className="cp-pkg-price">
+                    {t("سعر الباكدج:", "Package price:")}
+                    <span>{Number(pkgPrice).toLocaleString()} E-Money</span>
+                  </div>
+                )}
+                {isStudent && (
+                  <div className="cp-pkg-price" style={{color:"#059669"}}>
+                    <i className="fa-solid fa-graduation-cap" style={{marginLeft:6}}></i>
+                    <span style={{background:"linear-gradient(135deg,#059669,#10b981)",color:"#fff"}}>{t("🎓 كل الكورسات مفتوحالك!", "All courses unlocked for you!")}</span>
+                  </div>
+                )}
                 <div className="cp-cards-row">
                   {g.courses.map(c => (
-                    <CourseCard key={c.id} c={c} popupCourse={popupCourse} setPopupCourse={setPopupCourse} user={user} />
+                    <CourseCard key={c.id} c={c} popupCourse={popupCourse} setPopupCourse={setPopupCourse} user={user} isStudent={isStudent} />
                   ))}
                 </div>
               </section>
@@ -299,9 +311,16 @@ export default function CoursesPage() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <Link to={`/courses/${popupCourse.id}`} className="cp-modal-start" onClick={() => setPopupCourse(null)}>
-                  {t("اشتري الباكدج كامل", "Buy Full Package")}
-                </Link>
+                {isStudent ? (
+                  <Link to={`/courses/${popupCourse.id}`} className="cp-modal-start" style={{background:"linear-gradient(135deg,#059669,#10b981)",color:"#fff"}} onClick={() => setPopupCourse(null)}>
+                    <i className="fa-solid fa-play"></i>
+                    {t("مشاهدة الكورس", "Watch Course")}
+                  </Link>
+                ) : (
+                  <Link to={`/courses/${popupCourse.id}`} className="cp-modal-start" onClick={() => setPopupCourse(null)}>
+                    {t("اشتري الباكدج كامل", "Buy Full Package")}
+                  </Link>
+                )}
                 <button style={{ width: "auto", padding: "0 24px", height: 48, border: "none", borderRadius: 18, background: "#f0f0f0", color: "#111", cursor: "pointer", fontWeight: 700, fontFamily: "'Cairo',sans-serif", transition: ".3s", fontSize: ".9rem" }} onClick={() => setPopupCourse(null)}>
                   {t("إغلاق", "Close")}
                 </button>
