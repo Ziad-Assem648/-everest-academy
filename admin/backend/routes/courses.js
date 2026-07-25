@@ -5,7 +5,9 @@ import { advanceUserRank } from "./ranks.js";
 
 const BACKEND = "https://steadfast-energy-production-a9d1.up.railway.app";
 function fixImg(url) {
-  if (url && url.startsWith("/uploads/")) return BACKEND + url;
+  if (!url) return url;
+  if (url.startsWith("data:")) return null;
+  if (url.startsWith("/uploads/")) return BACKEND + url;
   return url;
 }
 function fixCourseImages(course) {
