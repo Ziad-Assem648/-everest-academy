@@ -274,10 +274,9 @@ export default function FreeCoursesPage() {
       {orderedGroups.length > 0 && (
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 20px 0" }}>
           <button className="fcp-view-btn" style={{ maxWidth: 600, margin: "0 auto", display: "flex", fontSize: "1.05rem", height: 54 }} onClick={() => {
-            setLoginModalPrice(Number(pricing.content_price || 0).toLocaleString());
-            setShowLoginModal(true);
+            window.location.href = "/purchase-all";
           }}>
-            {t("شراء كل المحتوى", "Buy All Content")} — {Number(pricing.content_price || 0).toLocaleString()} E-Money
+            {t(" سعر الباكدج ", "Buy All Content")} — {Number(pricing.content_price || 0).toLocaleString()} E-Money
           </button>
         </div>
       )}
@@ -333,7 +332,7 @@ export default function FreeCoursesPage() {
               </div>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <button className="fcp-modal-start" onClick={() => { setLoginModalPrice(Number(pricing.content_price || 0).toLocaleString()); setLoginModalCategory(null); setPopupCourse(null); setShowLoginModal(true); }}>
-                  {t("شراء كل المحتوى", "Buy All Content")}
+                  {t(" سعر الباكدج ", "Buy All Content")}
                 </button>
                 <button style={{ width: "auto", padding: "0 24px", height: 48, border: "none", borderRadius: 18, background: "#f0f0f0", color: "#111", cursor: "pointer", fontWeight: 700, fontFamily: "'Cairo',sans-serif", transition: ".3s", fontSize: ".9rem" }} onClick={() => setPopupCourse(null)}>
                   {t("إغلاق", "Close")}

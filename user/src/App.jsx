@@ -34,6 +34,7 @@ import TopSallerPage from "./pages/TopSallerPage";
 import PendingActivationPage from "./pages/PendingActivationPage";
 import AssistantPage from "./pages/AssistantPage";
 import CreateAccountPage from "./pages/CreateAccountPage";
+import PurchaseAllPage from "./pages/PurchaseAllPage";
 
 const BACKEND_URL = window.location.origin.includes("localhost") ? "http://localhost:5000" : "https://steadfast-energy-production-a9d1.up.railway.app";
 
@@ -109,6 +110,7 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/dashboard" element={<Guard><DashboardPage /></Guard>} />
         <Route path="/courses" element={<Guard><CoursesPage /></Guard>} />
+        <Route path="/purchase-all" element={<Guard><PurchaseAllPage /></Guard>} />
         <Route path="/my-courses" element={<Guard><MyCoursesRedirect /></Guard>} />
         <Route path="/courses/:id" element={<CourseViewPage />} />
         <Route path="/profile" element={<Guard><ProfilePage /></Guard>} />
