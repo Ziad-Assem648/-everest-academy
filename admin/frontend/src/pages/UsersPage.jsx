@@ -411,13 +411,13 @@ export default function UsersPage() {
                             {userCards.id_card_front && (
                               <div>
                                 <p className="text-xs text-gray-400 mb-1">{t("أمامي", "Front")}</p>
-                                <img src={userCards.id_card_front.startsWith("data:") ? userCards.id_card_front : `${BACKEND_URL}${userCards.id_card_front}`} alt="ID Front" className="w-full rounded-lg border object-contain max-h-48" />
+                                <img src={userCards.id_card_front.startsWith("data:") || userCards.id_card_front.startsWith("http") ? userCards.id_card_front : `${BACKEND_URL}${userCards.id_card_front}`} alt="ID Front" className="w-full rounded-lg border object-contain max-h-48" />
                               </div>
                             )}
                             {userCards.id_card_back && (
                               <div>
                                 <p className="text-xs text-gray-400 mb-1">{t("خلفي", "Back")}</p>
-                                <img src={userCards.id_card_back.startsWith("data:") ? userCards.id_card_back : `${BACKEND_URL}${userCards.id_card_back}`} alt="ID Back" className="w-full rounded-lg border object-contain max-h-48" />
+                                <img src={userCards.id_card_back.startsWith("data:") || userCards.id_card_back.startsWith("http") ? userCards.id_card_back : `${BACKEND_URL}${userCards.id_card_back}`} alt="ID Back" className="w-full rounded-lg border object-contain max-h-48" />
                               </div>
                             )}
                           </div>

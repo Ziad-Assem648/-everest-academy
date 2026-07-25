@@ -216,7 +216,6 @@ export default function FreeCoursesPage() {
                 <div className="fcp-cards-row">
                   {g.courses.map(c => (
                     <div key={c.id} className="fcp-trend-card" onClick={() => setPopupCourse(c)} style={{ cursor: "pointer" }}>
-                      <div className="fcp-free-tag">🔓 {t("مجاني", "Free")}</div>
                       <div className="fcp-card-img-wrap">
                         {c.featured_image ? (
                           <img src={c.featured_image} alt={c.title_ar || c.title} />
@@ -233,6 +232,11 @@ export default function FreeCoursesPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+                <div style={{ marginTop: 20 }}>
+                  <Link to="/login" className="fcp-view-btn">
+                    {t("شراء الباكدج كامل", "Buy Full Package")} — {Number(pkgPrice).toLocaleString()} E-Money
+                  </Link>
                 </div>
               </section>
               {idx < orderedGroups.length - 1 && <hr className="fcp-cat-divider" />}
@@ -297,7 +301,7 @@ export default function FreeCoursesPage() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <Link to={`/courses/${popupCourse.id}`} className="fcp-modal-start" onClick={() => setPopupCourse(null)}>
+                <Link to="/login" className="fcp-modal-start" onClick={() => setPopupCourse(null)}>
                   {t("اشتري الباكدج كامل", "Buy Full Package")}
                 </Link>
                 <button style={{ width: "auto", padding: "0 24px", height: 48, border: "none", borderRadius: 18, background: "#f0f0f0", color: "#111", cursor: "pointer", fontWeight: 700, fontFamily: "'Cairo',sans-serif", transition: ".3s", fontSize: ".9rem" }} onClick={() => setPopupCourse(null)}>

@@ -148,13 +148,13 @@ export default function RegistrationApprovalsPage() {
                 {viewCards?.id_card_front ? (
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8 }}>📷 {t("أمامي", "Front")}</p>
-                    <img src={viewCards.id_card_front.startsWith("data:") ? viewCards.id_card_front : `${BACKEND_URL}${viewCards.id_card_front}`} alt="ID Front" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
+                    <img src={viewCards.id_card_front.startsWith("data:") || viewCards.id_card_front.startsWith("http") ? viewCards.id_card_front : `${BACKEND_URL}${viewCards.id_card_front}`} alt="ID Front" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
                   </div>
                 ) : null}
                 {viewCards?.id_card_back ? (
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8 }}>📷 {t("خلفي", "Back")}</p>
-                    <img src={viewCards.id_card_back.startsWith("data:") ? viewCards.id_card_back : `${BACKEND_URL}${viewCards.id_card_back}`} alt="ID Back" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
+                    <img src={viewCards.id_card_back.startsWith("data:") || viewCards.id_card_back.startsWith("http") ? viewCards.id_card_back : `${BACKEND_URL}${viewCards.id_card_back}`} alt="ID Back" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
                   </div>
                 ) : null}
                 {!loadingCards && (!viewCards?.id_card_front && !viewCards?.id_card_back) && (

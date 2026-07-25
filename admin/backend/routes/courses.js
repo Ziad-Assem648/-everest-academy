@@ -3,6 +3,16 @@ import { query, queryOne, execute } from "../db.js";
 import { v4 as uuidv4 } from "uuid";
 import { advanceUserRank } from "./ranks.js";
 
+const BACKEND = "https://steadfast-energy-production-a9d1.up.railway.app";
+function fixImg(url) {
+  if (url && url.startsWith("/uploads/")) return BACKEND + url;
+  return url;
+}
+function fixCourseImages(course) {
+  if (course && course.featured_image) course.featured_image = fixImg(course.featured_image);
+  return course;
+}
+
 const router = express.Router();
 
 router.get("/", async (req, res) => {
@@ -24,7 +34,7 @@ router.get("/", async (req, res) => {
   if (status) { conditions.push("c.status = ?"); params.push(status); }
   if (conditions.length) sql += " WHERE " + conditions.join(" AND ");
   sql += " ORDER BY c.created_at DESC";
-  const courses = await query(sql, params);
+  const courses = (await query(sql, params)).map(fixCourseImages);
   res.json(courses);
 });
 
@@ -286,7 +296,7 @@ router.put("/:courseId/show-courses", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-  const course = await queryOne("SELECT * FROM courses WHERE id = ?", [req.params.id]);
+  const course = fixCourseImages(await queryOne("SELECT * FROM courses WHERE id = ?", [req.params.id]));
   if (!course) return res.status(404).json({ error: "Course not found" });
   const topics = await query("SELECT * FROM topics WHERE course_id = ? ORDER BY sort_order", [req.params.id]);
   for (const topic of topics) {

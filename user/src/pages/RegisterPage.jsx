@@ -158,7 +158,7 @@ export default function RegisterPage() {
       const res = await fetch(`${BACKEND_URL}/api/public-upload`, { method: "POST", body: fd });
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
-      setter(`${BACKEND_URL}${data.url}`);
+      setter(data.url.startsWith("http") ? data.url : `${BACKEND_URL}${data.url}`);
     } catch (e) { console.error("Upload failed:", e); }
   };
 
