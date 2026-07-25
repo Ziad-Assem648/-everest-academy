@@ -279,7 +279,10 @@ export default function CoursesPage() {
                 </div>
                 {!isStudent && (
                   <div style={{ marginTop: 20 }}>
-                    <button className="cp-buy-btn" onClick={() => { setLoginModalPrice(Number(pkgPrice).toLocaleString()); setLoginModalCategory(t(groupKey.labelAr, groupKey.labelEn)); setShowLoginModal(true); }}>
+                    <button className="cp-buy-btn" onClick={() => {
+                      if (!user) { setLoginModalPrice(Number(pkgPrice).toLocaleString()); setLoginModalCategory(t(groupKey.labelAr, groupKey.labelEn)); setShowLoginModal(true); }
+                      else if (g.courses.length > 0) { nav(`/courses/${g.courses[0].id}`); }
+                    }}>
                       {t("شراء الباكدج كامل", "Buy Full Package")} — {Number(pkgPrice).toLocaleString()} E-Money
                     </button>
                   </div>
