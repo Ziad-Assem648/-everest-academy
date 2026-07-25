@@ -462,7 +462,7 @@ export default function CourseViewPage() {
         </div>
 
         {/* 2. Course Content */}
-        {isEnrolled && (<div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:m?12:16,padding:m?14:20,marginBottom:m?12:20}}>
+        {(isEnrolled || isStudentAccount) && (<div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:m?12:16,padding:m?14:20,marginBottom:m?12:20}}>
           <h3 style={{fontSize:m?14:15,fontWeight:700,color:"#e2c275",marginBottom:m?12:16,letterSpacing:1}}>{t("محتوى الكورس", "COURSE CONTENT")}</h3>
           {(course.topics || []).map((topic) => {
             const topicQuiz = getTopicQuiz(topic);
@@ -553,7 +553,7 @@ export default function CourseViewPage() {
         </div>
 
         {/* 4. Course Reviews */}
-        {isEnrolled && (
+        {(isEnrolled || isStudentAccount) && (
           <div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:m?12:16,padding:m?16:24,marginBottom:m?12:20}}>
             <h3 style={{fontSize:m?14:16,fontWeight:700,color:"#e2c275",marginBottom:m?12:16}}>⭐ {t("قيّم هذا الكورس", "Rate This Course")}</h3>
             <div style={{display:"flex",gap:m?4:6,marginBottom:12}}>

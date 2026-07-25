@@ -59,6 +59,9 @@ export default function CoursesPage() {
   const [search, setSearch] = useState("");
   const [popupCourse, setPopupCourse] = useState(null);
   const [pricing, setPricing] = useState({});
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginModalPrice, setLoginModalPrice] = useState(null);
+  const [loginModalCategory, setLoginModalCategory] = useState(null);
 
   useEffect(() => {
     api("/api/courses?status=published").then(setCourses);
@@ -197,6 +200,32 @@ export default function CoursesPage() {
         [data-theme="dark"] .cp-modal-title{color:#f0f0f0}
         [data-theme="dark"] .cp-modal-desc{color:#aaa}
         [data-theme="dark"] .cp-modal-perk{background:#2a2a3e;color:#ccc}
+        .cp-login-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(12px);z-index:4000;display:flex;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:.35s;padding:15px}
+        .cp-login-modal-overlay.open{opacity:1;pointer-events:auto}
+        .cp-login-modal{width:min(460px,92%);background:#fff;border-radius:32px;overflow:hidden;transform:scale(.9) translateY(30px);transition:.35s;position:relative}
+        .cp-login-modal-overlay.open .cp-login-modal{transform:scale(1) translateY(0)}
+        .cp-login-modal-top{background:linear-gradient(135deg,#111,#222);padding:40px 32px 30px;text-align:center;position:relative;overflow:hidden}
+        .cp-login-modal-top::before{content:'';position:absolute;width:200px;height:200px;background:radial-gradient(circle,#d4af37 0%,transparent 70%);opacity:.12;top:-80px;right:-60px;border-radius:50%}
+        .cp-login-modal-top::after{content:'';position:absolute;width:150px;height:150px;background:radial-gradient(circle,#d4af37 0%,transparent 70%);opacity:.08;bottom:-50px;left:-30px;border-radius:50%}
+        .cp-login-modal-icon{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#d4af37,#f5d76e);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 8px 30px rgba(212,175,55,.4);position:relative;z-index:1}
+        .cp-login-modal-icon i{font-size:32px;color:#111}
+        .cp-login-modal-top h2{color:#fff;font-size:1.5rem;font-weight:800;margin:0 0 8px;position:relative;z-index:1}
+        .cp-login-modal-top p{color:rgba(255,255,255,.7);font-size:.95rem;margin:0;position:relative;z-index:1;line-height:1.6}
+        .cp-login-modal-body{padding:32px;text-align:center}
+        .cp-login-modal-price{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#f9f5e6,#fef9e7);border:1px solid rgba(212,175,55,.25);padding:14px 24px;border-radius:18px;margin-bottom:24px}
+        .cp-login-modal-price span{color:#c7a44c;font-size:1.3rem;font-weight:900}
+        .cp-login-modal-price small{color:#999;font-size:.85rem}
+        .cp-login-modal-btns{display:flex;gap:12px;justify-content:center}
+        .cp-login-modal-btns a,.cp-login-modal-btns button{flex:1;height:52px;border-radius:16px;font-weight:800;font-family:'Cairo',sans-serif;font-size:1rem;cursor:pointer;transition:.3s;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;border:none}
+        .cp-login-go{background:linear-gradient(135deg,#d4af37,#f5d76e);color:#111}
+        .cp-login-go:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(212,175,55,.4)}
+        .cp-login-cancel{background:#f4f4f4;color:#666;border:1px solid #eee!important}
+        .cp-login-cancel:hover{background:#eee}
+        @media(max-width:768px){.cp-login-modal-overlay{align-items:flex-end;padding:0}.cp-login-modal{width:100%;border-radius:24px 24px 0 0;transform:translateY(100%);max-height:85vh}.cp-login-modal-overlay.open .cp-login-modal{transform:translateY(0)}.cp-login-modal-top{padding:28px 20px 24px}}
+        [data-theme="dark"] .cp-login-modal{background:#1e1e2f}
+        [data-theme="dark"] .cp-login-modal-body{background:#1e1e2f}
+        [data-theme="dark"] .cp-login-modal-price{background:rgba(212,175,55,.08);border-color:rgba(212,175,55,.2)}
+        [data-theme="dark"] .cp-login-cancel{background:#2a2a3e;color:#aaa;border-color:#444!important}
       `}</style>
 
       <AppNavbar />
@@ -248,6 +277,13 @@ export default function CoursesPage() {
                     <CourseCard key={c.id} c={c} popupCourse={popupCourse} setPopupCourse={setPopupCourse} user={user} isStudent={isStudent} />
                   ))}
                 </div>
+                {!isStudent && (
+                  <div style={{ marginTop: 20 }}>
+                    <button className="cp-buy-btn" onClick={() => { setLoginModalPrice(Number(pkgPrice).toLocaleString()); setLoginModalCategory(t(groupKey.labelAr, groupKey.labelEn)); setShowLoginModal(true); }}>
+                      {t("شراء الباكدج كامل", "Buy Full Package")} — {Number(pkgPrice).toLocaleString()} E-Money
+                    </button>
+                  </div>
+                )}
               </section>
               {idx < orderedGroups.length - 1 && <hr className="cp-cat-divider" />}
             </React.Fragment>
@@ -328,6 +364,34 @@ export default function CoursesPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* ===== LOGIN PROMPT MODAL ===== */}
+      <div className={`cp-login-modal-overlay ${showLoginModal ? "open" : ""}`} onClick={(e) => { if (e.target.classList.contains("cp-login-modal-overlay")) setShowLoginModal(false); }}>
+        <div className="cp-login-modal">
+          <div className="cp-login-modal-top">
+            <div className="cp-login-modal-icon">
+              <i className="fa-solid fa-right-to-bracket"></i>
+            </div>
+            <h2>{t("سجّل دخولك أولاً", "Sign In First")}</h2>
+            <p>{t("عشان تقدر تشترى الباكدج، لازم تعمل لوج ان أول", "You need to sign in to purchase this package")}</p>
+          </div>
+          <div className="cp-login-modal-body">
+            <div className="cp-login-modal-price">
+              <small>{t("باكدج", "Package")} {loginModalCategory}:</small>
+              <span>{loginModalPrice} E-Money</span>
+            </div>
+            <div className="cp-login-modal-btns">
+              <Link to="/login" className="cp-login-go">
+                <i className="fa-solid fa-right-to-bracket"></i>
+                {t("تسجيل الدخول", "Sign In")}
+              </Link>
+              <button className="cp-login-cancel" onClick={() => setShowLoginModal(false)}>
+                {t("إلغاء", "Cancel")}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <FooterSection />
