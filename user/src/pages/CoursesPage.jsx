@@ -282,7 +282,7 @@ export default function CoursesPage() {
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 20px 0" }}>
           <button className="cp-buy-btn" style={{ maxWidth: 600, margin: "0 auto", display: "flex", fontSize: "1.05rem", height: 54 }} onClick={() => {
             if (!user) { setLoginModalPrice(Number(pricing.content_price || 0).toLocaleString()); setLoginModalCategory(null); setShowLoginModal(true); }
-            else { nav(`/courses/`); }
+            else { const firstCourse = searched[0]; if (firstCourse) nav(`/courses/${firstCourse.id}`); }
           }}>
             {t("شراء كل المحتوى", "Buy All Content")} — {Number(pricing.content_price || 0).toLocaleString()} E-Money
           </button>
