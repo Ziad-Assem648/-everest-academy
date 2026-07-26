@@ -17,3 +17,70 @@ body {
 .table-data th, .table-data td {
   @apply px-4 py-3 text-right text-sm;
 }
+
+.table-responsive-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive-wrapper::-webkit-scrollbar {
+  height: 4px;
+}
+
+.table-responsive-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-responsive-wrapper::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.table-responsive-wrapper .table-data {
+  min-width: 800px;
+}
+
+@media (max-width: 768px) {
+  .mobile-card-table thead {
+    display: none !important;
+  }
+
+  .mobile-card-table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: #fff;
+    gap: 8px;
+  }
+
+  .mobile-card-table tbody tr:hover {
+    background: #fff;
+  }
+
+  .mobile-card-table tbody tr td {
+    border: none !important;
+    padding: 4px 8px !important;
+    font-size: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .mobile-card-table tbody tr td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #666;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    min-width: 80px;
+  }
+
+  .mobile-card-table tbody tr td:last-child {
+    justify-content: flex-end;
+  }
+}

@@ -760,7 +760,7 @@ export default function CoursesListPage() {
     <div>
       <h2 className="text-2xl font-bold mb-6">{t("قائمة الكورسات", "Courses List")}</h2>
 
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border table-responsive-wrapper">
         <div className="p-4 border-b bg-gray-50 flex items-center gap-3 flex-wrap">
           <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)} className="px-4 py-2 border rounded-lg text-sm bg-white">
             <option value="">{t("كل التصنيفات", "All Categories")}</option>
@@ -770,7 +770,7 @@ export default function CoursesListPage() {
           <span className="text-xs text-gray-400">{t(`${filtered.length} كورس`, `${filtered.length} courses`)}</span>
         </div>
 
-        <table className="w-full">
+        <table className="w-full mobile-card-table">
           <thead>
             <tr className="bg-gray-50 text-gray-600 text-xs uppercase">
               <th className="p-3 text-right">{t("صورة", "Image")}</th>
@@ -786,22 +786,22 @@ export default function CoursesListPage() {
             {filtered.map((c) => (
               <React.Fragment key={c.id}>
               <tr className="border-t hover:bg-gray-50">
-                <td className="p-3">
+                <td data-label={t("صورة", "Image")} className="p-3">
                   {c.featured_image
                     ? <img src={c.featured_image} alt="" className="w-14 h-10 object-cover rounded" />
                     : <div className="w-14 h-10 bg-gray-200 rounded" />}
                 </td>
-                <td className="p-3">
+                <td data-label={t("العنوان", "Title")} className="p-3">
                   <p className="font-medium text-sm">{c.title || c.title_ar}</p>
                   <p className="text-xs text-gray-400">
                     {c.topic_count || 0} {t("مواضيع", "topics")} · {c.lesson_count || 0} {t("دروس", "lessons")} · {c.quiz_count || 0} {t("اختبارات", "quizzes")}
                   </p>
                   {c.title && c.title_ar && <p className="text-xs text-gray-400 mt-0.5">{c.title_ar}</p>}
                 </td>
-                <td className="p-3 text-xs text-gray-500">{c.category_ar || c.category || "—"}</td>
-                <td className="p-3 text-sm font-medium">{c.is_free ? (t("مجاني", "Free")) : `${c.price} E-Money`}</td>
-                <td className="p-3 text-xs">{c.author_name || "—"}</td>
-                <td className="p-3">
+                <td data-label={t("التصنيف", "Category")} className="p-3 text-xs text-gray-500">{c.category_ar || c.category || "—"}</td>
+                <td data-label={t("السعر", "Price")} className="p-3 text-sm font-medium">{c.is_free ? (t("مجاني", "Free")) : `${c.price} E-Money`}</td>
+                <td data-label={t("المؤلف", "Author")} className="p-3 text-xs">{c.author_name || "—"}</td>
+                <td data-label={t("الحالة", "Status")} className="p-3">
                   <select value={c.status || "draft"} onChange={async (e) => {
                     await api(`/api/courses/${c.id}`, { method: "PUT", body: JSON.stringify({ status: e.target.value }) });
                     load();
@@ -809,8 +809,8 @@ export default function CoursesListPage() {
                     {statusOpts.map((o) => <option key={o.val} value={o.val}>{lang === "ar" ? o.ar : o.en}</option>)}
                   </select>
                 </td>
-                <td className="p-3">
-                  <div className="flex gap-1">
+                <td data-label={t("إجراءات", "Actions")} className="p-3">
+                  <div className="flex gap-1 flex-wrap">
                     <button onClick={() => { setViewCourse(c); }} className="px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700">
                       {t("عرض", "View")}
                     </button>

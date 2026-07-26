@@ -170,8 +170,8 @@ export default function QuizAttemptsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <table className="w-full table-data">
+      <div className="bg-white rounded-xl shadow-sm border table-responsive-wrapper">
+        <table className="w-full table-data mobile-card-table">
           <thead>
             <tr className="bg-gray-50 text-gray-600 text-xs uppercase">
               <th className="p-3 text-right">{t("الاختبار والتاريخ", "Quiz & Date")}</th>
@@ -190,28 +190,28 @@ export default function QuizAttemptsPage() {
               const pct = a.earned_marks || 0;
               return (
                 <tr key={a.id} className="border-t hover:bg-gray-50">
-                  <td className="p-3">
+                  <td data-label={t("الاختبار والتاريخ", "Quiz & Date")} className="p-3">
                     <p className="font-medium text-sm">{a.quiz_title}</p>
                     <p className="text-xs text-gray-400">{new Date(a.created_at).toLocaleDateString("ar-EG")}</p>
                   </td>
-                  <td className="p-3">
+                  <td data-label={t("الطالب", "Student")} className="p-3">
                     <p className="text-sm font-medium">{a.student_name}</p>
                     <p className="text-xs text-gray-400">{a.student_email}</p>
                     <p className="text-xs text-gray-300 font-mono">ID: {a.student_id}</p>
                   </td>
-                  <td className="p-3 text-sm">{a.course_name}</td>
-                  <td className="p-3 text-sm">{a.total_marks}</td>
-                  <td className="p-3 text-sm text-green-600 font-medium">{a.correct_answers}</td>
-                  <td className="p-3 text-sm text-red-600 font-medium">{a.incorrect_answers}</td>
-                  <td className="p-3 text-sm font-medium">{a.correct_answers} / {a.total_marks} ({pct}%)</td>
-                  <td className="p-3">
+                  <td data-label={t("الكورس", "Course")} className="p-3 text-sm">{a.course_name}</td>
+                  <td data-label={t("عدد الأسئلة", "Questions")} className="p-3 text-sm">{a.total_marks}</td>
+                  <td data-label={t("إجابات صحيحة", "Correct")} className="p-3 text-sm text-green-600 font-medium">{a.correct_answers}</td>
+                  <td data-label={t("إجابات خاطئة", "Wrong")} className="p-3 text-sm text-red-600 font-medium">{a.incorrect_answers}</td>
+                  <td data-label={t("الدرجة", "Score")} className="p-3 text-sm font-medium">{a.correct_answers} / {a.total_marks} ({pct}%)</td>
+                  <td data-label={t("النتيجة", "Result")} className="p-3">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       a.result === "pass" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                     }`}>
                       {a.result === "pass" ? t("ناجح", "Pass") : t("راسب", "Fail")}
                     </span>
                   </td>
-                  <td className="p-3">
+                  <td data-label="">
                     <button onClick={() => openDetail(a)} className="px-3 py-1 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600">
                       {t("تفاصيل", "Details")}
                     </button>

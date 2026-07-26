@@ -172,7 +172,7 @@ export default function UsersPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-6">
+      <div className="bg-white rounded-xl shadow-sm border table-responsive-wrapper mb-6">
         <div className="p-4 border-b bg-gray-50 flex items-center gap-4">
           <input
             type="text" value={search} onChange={(e) => setSearch(e.target.value)}
@@ -180,7 +180,7 @@ export default function UsersPage() {
             className="w-full max-w-md px-4 py-2 border rounded-lg text-sm"
           />
         </div>
-        <table className="w-full table-data">
+        <table className="w-full table-data mobile-card-table">
           <thead>
             <tr className="bg-gray-50 text-gray-600 text-xs uppercase">
               <th className="w-10">
@@ -199,28 +199,28 @@ export default function UsersPage() {
           <tbody>
             {filtered.map((u) => (
               <tr key={u.id} className="border-t hover:bg-gray-50">
-                <td className="w-10">
+                <td data-label="" className="w-10">
                   <input type="checkbox" checked={selectedIds.includes(u.id)} onChange={() => toggleSelect(u.id)} className="rounded cursor-pointer" />
                 </td>
-                <td className="font-medium">{u.full_name}</td>
-                <td className="text-gray-500 text-xs">{u.email}</td>
-                <td>
+                <td data-label={t("الاسم", "Name")} className="font-medium">{u.full_name}</td>
+                <td data-label={t("البريد", "Email")} className="text-gray-500 text-xs">{u.email}</td>
+                <td data-label={t("الدور", "Role")}>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                     u.role === "admin" ? "bg-purple-100 text-purple-700" :
                     u.role === "student" ? "bg-green-100 text-green-700" :
                     "bg-gray-100 text-gray-600"
                   }`}>{u.role}</span>
                 </td>
-                <td>
+                <td data-label={t("نوع الحساب", "Account Type")}>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                     u.account_type === "student" ? "bg-green-100 text-green-700" :
                     u.account_type === "registration" ? "bg-emerald-100 text-emerald-700" :
                     "bg-gray-100 text-gray-600"
                   }`}>{u.account_type || "student"}</span>
                 </td>
-                <td>{u.rank}</td>
-                <td className="text-everest-600 font-bold">{u.e_money}</td>
-                <td>
+                <td data-label={t("الرتبة", "Rank")}>{u.rank}</td>
+                <td data-label={t("الرصيد", "Balance")} className="text-everest-600 font-bold">{u.e_money}</td>
+                <td data-label={t("الحالة", "Status")}>
                   {u.blocked ? (
                     <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">{t("محظور", "Blocked")}</span>
                   ) : u.status === "rejected" ? (
@@ -231,7 +231,7 @@ export default function UsersPage() {
                     <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{t("نشط", "Active")}</span>
                   )}
                 </td>
-                <td>
+                <td data-label={t("إجراء", "Action")}>
                   <div className="flex items-center gap-2 flex-wrap">
                     <button onClick={() => openProfile(u)} className="text-blue-600 hover:underline text-sm">{t("عرض", "View")}</button>
                     {u.role !== "admin" && (

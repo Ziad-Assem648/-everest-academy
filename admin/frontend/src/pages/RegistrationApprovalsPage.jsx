@@ -65,8 +65,8 @@ export default function RegistrationApprovalsPage() {
           <p className="text-gray-500 text-lg">{t("لا يوجد مستخدمين بانتظار التفعيل", "No users pending approval")}</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <table className="w-full table-data">
+        <div className="bg-white rounded-xl shadow-sm border table-responsive-wrapper">
+          <table className="w-full table-data mobile-card-table">
             <thead>
               <tr className="bg-gray-50 text-gray-600 text-xs uppercase">
                 <th>{t("الاسم", "Name")}</th>
@@ -82,11 +82,11 @@ export default function RegistrationApprovalsPage() {
             <tbody>
               {pending.map((u) => (
                 <tr key={u.id} className="border-t hover:bg-gray-50">
-                  <td className="font-medium text-sm">{u.full_name}</td>
-                  <td className="text-gray-500 text-xs">{u.email}</td>
-                  <td className="text-gray-500 text-xs">{u.phone || "—"}</td>
-                  <td className="text-gray-500 text-xs">{u.governorate || "—"}</td>
-                  <td className="text-xs">
+                  <td data-label={t("الاسم", "Name")} className="font-medium text-sm">{u.full_name}</td>
+                  <td data-label={t("البريد", "Email")} className="text-gray-500 text-xs">{u.email}</td>
+                  <td data-label={t("رقم الهاتف", "Phone")} className="text-gray-500 text-xs">{u.phone || "—"}</td>
+                  <td data-label={t("المحافظة", "Governorate")} className="text-gray-500 text-xs">{u.governorate || "—"}</td>
+                  <td data-label={t("أنشأه", "Created By")} className="text-xs">
                     {u.created_by_user ? (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 font-medium" title={u.creator_email}>
                         👤 {u.creator_name || u.creator_email || u.created_by_user}
@@ -95,13 +95,13 @@ export default function RegistrationApprovalsPage() {
                       <span className="text-gray-400">—</span>
                     )}
                   </td>
-                  <td className="text-xs">
+                  <td data-label={t("البطاقة", "ID Card")} className="text-xs">
                     <button onClick={() => openViewUser(u)} className="text-blue-600 hover:text-blue-800 font-medium underline">
                       {t("عرض", "View")}
                     </button>
                   </td>
-                  <td className="text-gray-500 text-xs">{new Date(u.created_at).toLocaleDateString("ar-EG")}</td>
-                  <td className="text-left">
+                  <td data-label={t("تاريخ التسجيل", "Date")} className="text-gray-500 text-xs">{new Date(u.created_at).toLocaleDateString("ar-EG")}</td>
+                  <td data-label={t("إجراء", "Action")} className="text-left">
                     <div className="flex gap-2 justify-end items-start">
                       <div className="flex flex-col gap-1.5">
                         <button onClick={() => handleApprove(u.id, "student")}

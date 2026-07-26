@@ -33,7 +33,7 @@ export default function UpgradeRequestsPage() {
     <div>
       <h2 className="text-2xl font-bold mb-6">{t("⬆️ طلبات الترقية", "⬆️ Upgrade Requests")}</h2>
 
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border table-responsive-wrapper">
         <div className="p-4 border-b bg-gray-50 flex items-center gap-3 flex-wrap">
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder={t("بحث عن طالب...", "Search student...")} className="px-4 py-2 border rounded-lg text-sm flex-1 min-w-[200px]" />
@@ -45,7 +45,7 @@ export default function UpgradeRequestsPage() {
           </select>
         </div>
 
-        <table className="w-full">
+        <table className="w-full mobile-card-table">
           <thead>
             <tr className="bg-gray-50 text-gray-600 text-xs uppercase">
               <th className="p-3 text-right">{t("الطالب", "Student")}</th>
@@ -59,11 +59,11 @@ export default function UpgradeRequestsPage() {
           <tbody>
             {filtered.map((r) => (
               <tr key={r.id} className="border-t hover:bg-gray-50">
-                <td className="p-3 font-medium">{r.full_name}</td>
-                <td className="p-3 text-xs text-gray-500">{r.email}</td>
-                <td className="p-3 text-xs">{r.phone || "—"}</td>
-                <td className="p-3 text-xs text-gray-500">{r.created_at?.slice(0, 10)}</td>
-                <td className="p-3">
+                <td data-label={t("الطالب", "Student")} className="p-3 font-medium">{r.full_name}</td>
+                <td data-label={t("الايميل", "Email")} className="p-3 text-xs text-gray-500">{r.email}</td>
+                <td data-label={t("الهاتف", "Phone")} className="p-3 text-xs">{r.phone || "—"}</td>
+                <td data-label={t("تاريخ الطلب", "Request Date")} className="p-3 text-xs text-gray-500">{r.created_at?.slice(0, 10)}</td>
+                <td data-label={t("الحالة", "Status")} className="p-3">
                   <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                     r.status === "approved" ? "bg-green-100 text-green-700"
                     : r.status === "pending" ? "bg-yellow-100 text-yellow-700"
@@ -72,7 +72,7 @@ export default function UpgradeRequestsPage() {
                     {r.status === "pending" ? t("قيد الانتظار", "Pending") : r.status === "approved" ? t("تم الموافقة", "Approved") : t("مرفوض", "Rejected")}
                   </span>
                 </td>
-                <td className="p-3">
+                <td data-label={t("إجراء", "Action")} className="p-3">
                   {r.status === "pending" && (
                     <div className="flex gap-1">
                       <button onClick={() => approve(r.id)} className="px-3 py-1 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700">
