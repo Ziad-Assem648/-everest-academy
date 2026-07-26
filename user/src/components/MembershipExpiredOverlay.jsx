@@ -11,12 +11,17 @@ export default function MembershipExpiredOverlay() {
   const { t, dir } = useLang();
   const { theme } = useTheme();
   const [csData, setCsData] = useState(null);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     api("/api/customer-service").then(setCsData).catch(() => {});
   }, []);
 
-  if (!user) return null;
+  useEffect(() => {
+    setDismissed(false);
+  }, [user?.membership_expires_at, user?.blocked]);
+
+  if (!user || dismissed) return null;
 
   const isExpired = user.blocked || (user.membership_expires_at && new Date(user.membership_expires_at) < new Date());
   if (!isExpired) return null;
@@ -38,14 +43,25 @@ export default function MembershipExpiredOverlay() {
         .mem-btn { transition: all .3s ease; }
         .mem-btn:hover { transform: translateY(-3px) !important; }
         .mem-btn:active { transform: translateY(0) !important; }
+        .mem-close { transition: all .2s ease; }
+        .mem-close:hover { background: rgba(239,68,68,.15); transform: scale(1.1); }
       `}</style>
 
       <div className="mem-card" style={{
         background: theme === "dark" ? "#1a1a2e" : "#ffffff",
         borderRadius: 28, padding: "44px 36px", maxWidth: 420, width: "90%",
         textAlign: "center", border: "1px solid rgba(239,68,68,.2)",
-        boxShadow: "0 25px 80px rgba(0,0,0,.5), 0 0 40px rgba(239,68,68,.1)"
+        boxShadow: "0 25px 80px rgba(0,0,0,.5), 0 0 40px rgba(239,68,68,.1)",
+        position: "relative"
       }}>
+        <button className="mem-close" onClick={() => setDismissed(true)} style={{
+          position: "absolute", top: 14, left: 14, width: 32, height: 32,
+          borderRadius: "50%", border: "none", cursor: "pointer",
+          background: theme === "dark" ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.06)",
+          color: theme === "dark" ? "#999" : "#666", fontSize: 16,
+          display: "flex", alignItems: "center", justifyContent: "center"
+        }}>✕</button>
+
         <div className="mem-icon" style={{
           width: 80, height: 80, borderRadius: "50%",
           background: "linear-gradient(135deg, #ef4444, #dc2626)",
@@ -73,7 +89,7 @@ export default function MembershipExpiredOverlay() {
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <Link to="/profile" className="mem-btn" style={{
+          <Link to="/profile" onClick={() => setDismissed(true)} className="mem-btn" style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
             padding: "14px 20px", borderRadius: 16, textDecoration: "none",
             background: "linear-gradient(135deg, #d4af37, #f5d76e)",
