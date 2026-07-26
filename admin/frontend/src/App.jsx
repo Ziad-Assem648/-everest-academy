@@ -82,20 +82,20 @@ function AppInner() {
   return (
     <div className="flex h-screen bg-gray-50" dir={lang === "ar" ? "rtl" : "ltr"}>
       <Sidebar navItems={navItems} current={page} onChange={setPage} />
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-3 sm:p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-500">
               <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${isManager ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
                 {isManager ? '👑 Manager' : '🔧 Admin'}
               </span>
-              <span>{currentUser.full_name}</span>
+              <span className="hidden sm:inline">{currentUser.full_name}</span>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={toggle} className="px-4 py-2 text-sm font-medium bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+              <button onClick={toggle} className="px-3 py-1.5 text-xs sm:text-sm font-medium bg-white border rounded-lg shadow-sm hover:bg-gray-50">
                 {lang === "ar" ? "English" : "العربية"}
               </button>
-              <button onClick={handleLogout} className="px-4 py-2 text-sm font-medium bg-red-50 text-red-600 border border-red-200 rounded-lg shadow-sm hover:bg-red-100 transition">
+              <button onClick={handleLogout} className="px-3 py-1.5 text-xs sm:text-sm font-medium bg-red-50 text-red-600 border border-red-200 rounded-lg shadow-sm hover:bg-red-100 transition">
                 🚪 {t("خروج", "Logout")}
               </button>
             </div>
@@ -136,8 +136,9 @@ function Sidebar({ navItems, current, onChange }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button onClick={() => setOpen(true)} className="lg:hidden fixed top-4 right-4 z-50 bg-everest-950 text-white p-2 rounded-lg">☰</button>
-      <aside className={`${open ? "block" : "hidden"} lg:block w-64 bg-everest-950 text-white flex flex-col fixed lg:static inset-y-0 right-0 z-40`}>
+      <button onClick={() => setOpen(true)} className="lg:hidden fixed top-3 right-3 z-50 bg-everest-950 text-white p-3 rounded-xl shadow-lg text-xl">☰</button>
+      {open && <div className="lg:hidden fixed inset-0 bg-black/50 z-30" onClick={() => setOpen(false)} />}
+      <aside className={`${open ? "translate-x-0" : "translate-x-full"} lg:translate-x-0 transition-transform duration-300 w-64 bg-everest-950 text-white flex flex-col fixed lg:static inset-y-0 right-0 z-40`}>
         <div className="p-5 border-b border-white/10 flex items-center justify-between">
           <h1 className="text-lg font-bold"><span className="text-everest-400">Everest</span> Admin</h1>
           <button onClick={() => setOpen(false)} className="lg:hidden text-white/60">✕</button>

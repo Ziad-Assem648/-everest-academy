@@ -341,7 +341,7 @@ export default function FooterSection({ showCTA }) {
           <div>
             <h4 className="fs-col-title">{t("لماذا إيفرست", "Why Everest")}</h4>
             <div className="fs-col-links">
-              <a href="#" className="fs-col-link">{t("ضمان استرداد 48 ساعة", "48-Hour Refund Your Money")}</a>
+              <a href="#" className="fs-col-link">{t("ضمان استرداد الأموال بعد 48 ساعة", "48-Hour Money Refund Guarantee")}</a>
               <a href="#" className="fs-col-link">{t("مدفوعات آمنة", "Secure Payments")}</a>
               <a href="#" className="fs-col-link">{t("دعم على مدار الساعة", "24/7 Support")}</a>
               <a href="#" className="fs-col-link">{t("تعليم عملي", "Practical Learning")}</a>

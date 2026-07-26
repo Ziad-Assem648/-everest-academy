@@ -309,7 +309,7 @@ export default function CoursesPage() {
             <div className="fcp-feature">{t("📚 محتوى محدث", "Updated Content")}</div>
             <div className="fcp-feature">{t("💎 نظام E-Money مرن", "Flexible E-Money System")}</div>
             <div className="fcp-feature">{t("🤝 دعم الطلاب", "Student Support")}</div>
-            <div className="fcp-feature">{t("🌟 مكافآت الإحالة المالية خلال 48 ساعة", "Money refund in 48 hours")}</div>
+            <div className="fcp-feature">{t("🌟 استرداد الأموال خلال 48 ساعة", "Money refund in 48 hours")}</div>
           </div>
         </div>
         <div className="cp-premium-card">
@@ -374,11 +374,10 @@ export default function CoursesPage() {
               <i className="fa-solid fa-right-to-bracket"></i>
             </div>
             <h2>{t("سجّل دخولك أولاً", "Sign In First")}</h2>
-            <p>{t("عشان تقدر تشترى الباكدج، لازم تعمل لوج ان أول", "You need to sign in to purchase this package")}</p>
           </div>
           <div className="cp-login-modal-body">
             <div className="cp-login-modal-price">
-              <small>{t("كل المحتوى التعليمي", "All Educational Content")}:</small>
+              <small>{t("سعر الباكدج", "Package Price")}:</small>
               <span>{loginModalPrice} E-Money</span>
             </div>
             <div className="cp-login-modal-btns">
