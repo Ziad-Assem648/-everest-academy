@@ -236,6 +236,7 @@ export default function CourseViewPage() {
   const isStudentAccount = user?.account_type === "student";
   const canWatchAll = isEnrolled || isFree || isStudentAccount;
   const isRegistration = user?.account_type === "registration";
+  const isExpiredMembership = user && (user.blocked || (user.membership_expires_at && new Date(user.membership_expires_at) < new Date()));
 
   const allLessons = (course.topics || []).flatMap((t) => (t.lessons || []).map((l) => ({ ...l, topicTitle: t.title_ar || t.title, topicId: t.id })));
   const current = playing || allLessons[0] || null;
@@ -344,7 +345,22 @@ export default function CourseViewPage() {
         {/* 1. Video Player */}
         <div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:m?12:16,overflow:"hidden",position:"relative",marginBottom:m?12:20}}>
           <div onContextMenu={blockCtx} style={{aspectRatio:"16/9",background:"#000",display:"flex",alignItems:"center",justifyContent:"center",position:"relative",userSelect:"none",WebkitUserSelect:"none"}}>
-            {!user && current && current.is_free ? (
+            {isExpiredMembership ? (
+              <div style={{textAlign:"center",padding:m?24:40}}>
+                <div style={{width:m?60:80,height:m?60:80,borderRadius:"50%",background:"linear-gradient(135deg,rgba(239,68,68,.2),rgba(220,38,38,.3))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:m?28:36}}>🚫</div>
+                <p style={{fontWeight:800,color:"#ef4444",marginBottom:6,fontSize:m?15:18}}>{t("تم انتهاء العضوية", "Membership Expired")}</p>
+                <p style={{fontSize:m?12:14,color:"#888",marginBottom:m?16:24,lineHeight:1.5,maxWidth:350,marginLeft:"auto",marginRight:"auto"}}>
+                  {t("تواصل مع خدمة العملاء لتجديد العضوية.", "Contact customer service to renew your membership.")}
+                </p>
+                <a href={formatWhatsAppLink(csData?.customer_service_whatsapp)} target="_blank" rel="noopener noreferrer" style={{
+                  padding:m?"12px 28px":"14px 32px",background:"linear-gradient(135deg,#25d366,#128c7e)",
+                  borderRadius:12,color:"#fff",fontWeight:800,fontSize:m?13:15,textDecoration:"none",
+                  display:"inline-flex",alignItems:"center",gap:8,transition:"all 0.3s"
+                }}>
+                  💬 {t("تواصل مع خدمة العملاء", "Contact Customer Service")}
+                </a>
+              </div>
+            ) : !user && current && current.is_free ? (
               videoSrc ? (
                 isYoutube(current?.video_url) ? (
                   <iframe src={videoSrc} style={{width:"100%",height:"100%",aspectRatio:"16/9",border:"none"}} allowFullScreen allow="autoplay; encrypted-media" title="video" />

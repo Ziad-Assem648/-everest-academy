@@ -122,7 +122,13 @@ export default function FreeCourseViewPage() {
         <div className="fcv-layout" style={{display:"flex",gap:24,paddingBottom:60}}>
           {/* Player */}
           <div className="fcv-player">
-            {current && videoSrc ? (
+            {user && (user.blocked || (user.membership_expires_at && new Date(user.membership_expires_at) < new Date())) ? (
+              <div className="fcv-player-box" style={{display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
+                <div style={{width:80,height:80,borderRadius:"50%",background:"linear-gradient(135deg,rgba(239,68,68,.2),rgba(220,38,38,.3))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:36}}>🚫</div>
+                <p style={{fontWeight:800,color:"#ef4444",fontSize:18,margin:0}}>{t("تم انتهاء العضوية", "Membership Expired")}</p>
+                <p style={{fontSize:14,color:"#888",textAlign:"center",maxWidth:300}}>{t("تواصل مع خدمة العملاء لتجديد العضوية", "Contact customer service to renew your membership")}</p>
+              </div>
+            ) : current && videoSrc ? (
               <div className="fcv-player-box">
                 {isYoutube(current.video_url) || isBunny(current.video_url) ? (
                   <iframe src={videoSrc} allow="autoplay; encrypted-media" allowFullScreen title={current.title_ar || current.title} />

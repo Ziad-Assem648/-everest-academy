@@ -121,11 +121,23 @@ export default function CreateAccountPage() {
 
   const inputS = { width: "100%", padding: m ? "13px 14px" : "13px 16px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 14, outline: "none", transition: "0.3s", boxSizing: "border-box" };
 
+  const isExpiredMembership = user && (user.blocked || (user.membership_expires_at && new Date(user.membership_expires_at) < new Date()));
+
   return (
     <div style={{ minHeight: "100vh", background: c.bg }}>
       <AppNavbar />
       <div style={{ maxWidth: 600, margin: "0 auto", padding: m ? "16px 14px 80px" : "24px 24px 80px" }}>
 
+        {isExpiredMembership && (
+          <div style={{textAlign:"center",padding:m?"60px 20px":"80px 40px",background:c.bgCard,borderRadius:20,border:`1px solid ${c.borderLight}`,marginBottom:24}}>
+            <div style={{width:80,height:80,borderRadius:"50%",background:"linear-gradient(135deg,rgba(239,68,68,.2),rgba(220,38,38,.3))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",fontSize:36}}>🚫</div>
+            <h2 style={{fontWeight:800,color:"#ef4444",fontSize:m?18:22,margin:"0 0 8px"}}>{t("تم انتهاء العضوية", "Membership Expired")}</h2>
+            <p style={{fontSize:14,color:c.textMuted,margin:"0 0 24px",lineHeight:1.7}}>{t("تواصل مع خدمة العملاء لتجديد العضوية", "Contact customer service to renew your membership")}</p>
+            <p style={{fontSize:13,color:c.textMuted}}>📞 201120730109</p>
+          </div>
+        )}
+
+        {!isExpiredMembership && (<>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           <h1 style={{ fontSize: m ? 20 : 24, fontWeight: 900, color: c.text, marginBottom: 4 }}>
@@ -280,6 +292,7 @@ export default function CreateAccountPage() {
             </div>
           </div>
         )}
+        </>)}
       </div>
     </div>
   );
