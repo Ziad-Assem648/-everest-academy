@@ -110,7 +110,7 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/dashboard" element={<Guard><DashboardPage /></Guard>} />
         <Route path="/courses" element={<Guard><CoursesPage /></Guard>} />
-        <Route path="/purchase-all" element={<Guard><PurchaseAllPage /></Guard>} />
+        <Route path="/purchase-all" element={<PurchaseAllPage />} />
         <Route path="/my-courses" element={<Guard><MyCoursesRedirect /></Guard>} />
         <Route path="/courses/:id" element={<CourseViewPage />} />
         <Route path="/profile" element={<Guard><ProfilePage /></Guard>} />
