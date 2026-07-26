@@ -35,6 +35,7 @@ import PendingActivationPage from "./pages/PendingActivationPage";
 import AssistantPage from "./pages/AssistantPage";
 import CreateAccountPage from "./pages/CreateAccountPage";
 import PurchaseAllPage from "./pages/PurchaseAllPage";
+import MembershipExpiredOverlay from "./components/MembershipExpiredOverlay";
 
 const BACKEND_URL = window.location.origin.includes("localhost") ? "http://localhost:5000" : "https://steadfast-energy-production-a9d1.up.railway.app";
 
@@ -103,6 +104,7 @@ export default function App() {
       <LangProvider>
       <ThemeProvider>
       <ScreenProtection />
+      <MembershipExpiredOverlay />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/home" element={<Guard><HomePage /></Guard>} />
