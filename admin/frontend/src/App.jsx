@@ -58,11 +58,8 @@ function AppInner() {
     { id: "dashboard", label: lang === "ar" ? "الإحصائيات" : "Dashboard", icon: "📊" },
     { id: "approvals", label: lang === "ar" ? "تفعيل الحسابات" : "Account Approvals", icon: "🔐" },
     { id: "users", label: lang === "ar" ? "إدارة المستخدمين" : "User Management", icon: "👤" },
-    { id: "payment-gateway", label: lang === "ar" ? "بوابات الدفع" : "Payment Gateway", icon: "💳" },
     { id: "role-mgmt", label: lang === "ar" ? "إدارة الصلاحيات" : "Role Management", icon: "🔐" },
     { id: "purchases", label: lang === "ar" ? "طلبات الشراء" : "Purchases", icon: "🛒" },
-    { id: "upgrades", label: lang === "ar" ? "طلبات الترقية" : "Upgrades", icon: "⬆️" },
-    { id: "topups", label: lang === "ar" ? "طلبات الشحن" : "Top-ups", icon: "💰" },
     { id: "course-builder", label: lang === "ar" ? "بناء الكورس" : "Course Builder", icon: "📝" },
     { id: "courses", label: lang === "ar" ? "قائمة الكورسات" : "Courses", icon: "📚" },
     { id: "free-courses", label: lang === "ar" ? " ظهور الكورسات" : "Course Visibility", icon: "👁️" },
@@ -105,15 +102,12 @@ function AppInner() {
           {page === "users" && <UsersPage />}
           {page === "role-mgmt" && <RoleManagementPage />}
           {page === "purchases" && <PurchaseRequestsPage />}
-          {page === "upgrades" && <UpgradeRequestsPage />}
-          {page === "topups" && <TopUpsPage />}
           {page === "course-builder" && <CourseBuilderPage />}
           {page === "courses" && <CoursesListPage />}
           {page === "free-courses" && <FreeCoursesSettingsPage />}
           {page === "quiz-attempts" && <QuizAttemptsPage />}
           {page === "ranks-mgmt" && <RanksManagementPage />}
           {page === "leaders" && <LeadersPage />}
-          {page === "payment-gateway" && <PaymentGatewayPage />}
           {page === "feedbacks" && <FeedbacksPage />}
           {page === "cs" && <CustomerServicePage />}
           {page === "pricing" && <PricingSettingsPage />}
