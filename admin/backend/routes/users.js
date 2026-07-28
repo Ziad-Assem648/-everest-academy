@@ -64,6 +64,20 @@ router.get("/:id/id-cards", async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+router.put("/:id/id-cards", async (req, res) => {
+  try {
+    const { id_card_front, id_card_back } = req.body;
+    if (id_card_front !== undefined) {
+      await execute("UPDATE users SET id_card_front = ? WHERE id = ?", [id_card_front, req.params.id]);
+    }
+    if (id_card_back !== undefined) {
+      await execute("UPDATE users SET id_card_back = ? WHERE id = ?", [id_card_back, req.params.id]);
+    }
+    const updated = await queryOne("SELECT id_card_front, id_card_back FROM users WHERE id = ?", [req.params.id]);
+    res.json(updated);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 router.get("/:id", async (req, res) => {
   const user = await queryOne("SELECT id, full_name, email, phone, address, role, account_type, referral_code, rank, e_money, academic_points, total_team_sales, direct_count, qualified_direct_count, negative_allowed, blocked, status, bio, avatar, country, created_at, membership_expires_at FROM users WHERE id = ?", [req.params.id]);
   if (!user) return res.status(404).json({ error: "User not found" });

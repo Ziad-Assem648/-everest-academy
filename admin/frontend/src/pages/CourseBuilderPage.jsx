@@ -120,8 +120,10 @@ export default function CourseBuilderPage() {
               <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                 const file = e.target.files?.[0]; if (!file) return;
                 const fd = new FormData(); fd.append("file", file);
-                const d = await uploadApi(fd);
-                if (d.url) { handleChange("featured_image", d.url); setErrors(prev => ({...prev, image: false})); }
+                try {
+                  const d = await uploadApi(fd);
+                  if (d.url) { handleChange("featured_image", d.url); setErrors(prev => ({...prev, image: false})); }
+                } catch (err) { alert(t("خطأ في رفع الصورة", "Image upload error")); }
               }} />
               {course.featured_image ? t("غيّر الصورة", "Change Image") : t("اضغط لرفع الصورة", "Click to upload image")}
             </label>
