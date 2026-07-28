@@ -204,8 +204,8 @@ router.put("/:id/approve-registration", async (req, res) => {
     await execute("UPDATE users SET status = 'active', role = ?, account_type = ?, membership_expires_at = ?, updated_at = datetime('now','localtime') WHERE id = ?", [role, accountType, expiresStr, req.params.id]);
     console.log("[approve-registration] Updated:", req.params.id, "role:", role, "account_type:", accountType);
 
-    // If approved (any type) AND has a sponsor → pay commission to direct referrer ONLY (Level 1)
-    if (user.referred_by) {
+    // If approved as student AND has a sponsor → pay commission to direct referrer ONLY (Level 1)
+    if (accountType === "student" && user.referred_by) {
       const directReferrer = await queryOne("SELECT id, account_type FROM users WHERE id = ?", [user.referred_by]);
       if (directReferrer && directReferrer.account_type === "student") {
         // Prevent double commission
@@ -231,8 +231,8 @@ router.put("/:id/approve-registration", async (req, res) => {
       }
     }
 
-    // Commission to the creator (created_by_user) when account is approved
-    if (user.created_by_user) {
+    // Commission to the creator (created_by_user) when account is approved as Student
+    if (accountType === "student" && user.created_by_user) {
       const creatorUser = await queryOne("SELECT id, account_type FROM users WHERE id = ?", [user.created_by_user]);
       if (creatorUser) {
         const existingCreatorComm = await queryOne("SELECT id FROM commissions WHERE from_user_id = ? AND description LIKE 'create-account%'", [req.params.id]);
