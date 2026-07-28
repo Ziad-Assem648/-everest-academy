@@ -68,7 +68,7 @@ export default function AppNavbar() {
   };
 
   const getNavLabel = (item) => {
-    if (item.to === "/courses" && user?.account_type === "student" || user?.account_type === "registration_free") {
+    if (item.to === "/courses" && (user?.account_type === "student" || user?.account_type === "registration_free")) {
       return t("ماي كورسيس", "My Courses");
     }
     return t(item.label_ar, item.label_en);
