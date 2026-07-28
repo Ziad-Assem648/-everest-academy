@@ -184,7 +184,7 @@ router.delete("/:id", async (req, res) => {
 
 router.put("/:id/approve-registration", async (req, res) => {
   try {
-    const user = await queryOne("SELECT id, full_name, email, status, referred_by FROM users WHERE id = ?", [req.params.id]);
+    const user = await queryOne("SELECT id, full_name, email, status, referred_by, created_by_user FROM users WHERE id = ?", [req.params.id]);
     if (!user) return res.status(404).json({ error: "User not found" });
     if (user.status !== 'pending') return res.status(400).json({ error: "User is not pending" });
     const accountType = req.body.account_type || "student";
