@@ -339,12 +339,14 @@ export default function UsersPage() {
                       <select value={editForm.role} onChange={e => setEditForm({...editForm, role: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm">
                         <option value="registration">registration</option>
                         <option value="student">student</option>
+                        <option value="registration_free">registration_free</option>
                       </select>
                     </div>
                     <div>
                       <label className="text-xs text-gray-500 mb-1 block">{t("نوع الحساب", "Account Type")}</label>
                       <select value={editForm.account_type} onChange={e => setEditForm({...editForm, account_type: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm">
                         <option value="student">🎓 Student</option>
+                        <option value="registration_free">🆓 Registration Free</option>
                         <option value="registration">👤 Registration</option>
                       </select>
                     </div>
@@ -368,6 +370,7 @@ export default function UsersPage() {
                           { label: t("البريد الإلكتروني", "Email"), value: selectedUser.email },
                           { label: t("رقم الهاتف", "Phone"), value: selectedUser.phone || "—" },
                           { label: t("العنوان", "Address"), value: selectedUser.address || "—" },
+                          { label: t("الدولة", "Country"), value: selectedUser.country || "—" },
                         ].map((item, i) => (
                           <div key={i} className="bg-gray-50 rounded-lg p-3">
                             <p className="text-xs text-gray-400">{item.label}</p>
@@ -431,9 +434,10 @@ export default function UsersPage() {
                           <div className="flex items-center gap-3">
                             <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                               selectedUser.account_type === "student" ? "bg-green-100 text-green-700" :
+                              selectedUser.account_type === "registration_free" ? "bg-purple-100 text-purple-700" :
                               "bg-emerald-100 text-emerald-700"
-                            }`}>{selectedUser.account_type || "student"}</span>
-                            {["student", "registration"].filter(t => t !== (selectedUser.account_type || "student")).map(newType => (
+                            }`}>{selectedUser.account_type === "registration_free" ? "🆓 Reg Free" : (selectedUser.account_type || "student")}</span>
+                            {["student", "registration", "registration_free"].filter(t => t !== (selectedUser.account_type || "student")).map(newType => (
                               <button key={newType} onClick={async () => {
                                 try {
                                   await api(`/api/users/${selectedUser.id}/account-type`, { method: "PUT", body: JSON.stringify({ account_type: newType }) });
@@ -442,7 +446,7 @@ export default function UsersPage() {
                                   loadUsers();
                                 } catch (e) { alert(e.message); }
                               }} className="px-3 py-1 text-xs font-medium bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-                                → {newType === "student" ? "🎓 Student" : "👤 Registration"}
+                                → {newType === "student" ? "🎓 Student" : newType === "registration_free" ? "🆓 Reg Free" : "👤 Registration"}
                               </button>
                             ))}
                           </div>

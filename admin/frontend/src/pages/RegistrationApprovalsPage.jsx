@@ -108,6 +108,10 @@ export default function RegistrationApprovalsPage() {
                           className="px-4 py-1.5 text-xs font-medium bg-green-500 text-white rounded-lg hover:bg-green-600 transition whitespace-nowrap">
                           🎓 Student
                         </button>
+                        <button onClick={() => handleApprove(u.id, "registration_free")}
+                          className="px-4 py-1.5 text-xs font-medium bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition whitespace-nowrap">
+                          🆓 Reg Free
+                        </button>
                         <button onClick={() => handleApprove(u.id, "registration")}
                           className="px-4 py-1.5 text-xs font-medium bg-emerald-400 text-white rounded-lg hover:bg-emerald-500 transition whitespace-nowrap">
                           👤 {t("تسجيل", "Registration")}
@@ -139,6 +143,9 @@ export default function RegistrationApprovalsPage() {
 
             {viewUser.governorate && (
               <p style={{ fontSize: 14, color: "#555", marginBottom: 16 }}>📍 {t("المحافظة", "Governorate")}: <strong>{viewUser.governorate}</strong></p>
+            )}
+            {viewUser.country && (
+              <p style={{ fontSize: 14, color: "#555", marginBottom: 16 }}>🌍 {t("الدولة", "Country")}: <strong>{viewUser.country}</strong></p>
             )}
 
             {loadingCards ? (

@@ -16,6 +16,8 @@ export default function AdminsListPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ id: "", full_name: "", email: "", password: "", role: "admin" });
   const [msg, setMsg] = useState("");
+  const adminSession = JSON.parse(localStorage.getItem("admin_session") || "{}");
+  const isManager = adminSession?.user?.role === "manager";
 
   const load = () => {
     setLoading(true);
@@ -63,9 +65,9 @@ export default function AdminsListPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">{t("👥 إدارة الأدمنز", "👥 Admin Management")}</h2>
-        <button onClick={() => { setForm({ id: "", full_name: "", email: "", password: "", role: "admin" }); setShowAdd(true); }} className="px-4 py-2 bg-everest-600 text-white rounded-lg font-medium hover:bg-everest-700 transition">
+        {isManager && <button onClick={() => { setForm({ id: "", full_name: "", email: "", password: "", role: "admin" }); setShowAdd(true); }} className="px-4 py-2 bg-everest-600 text-white rounded-lg font-medium hover:bg-everest-700 transition">
           ➕ {t("إضافة أدمن", "Add Admin")}
-        </button>
+        </button>}
       </div>
 
       {msg && <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl p-3 mb-4 text-center text-sm font-medium">{msg}</div>}
@@ -93,12 +95,12 @@ export default function AdminsListPage() {
                 <p><span className="text-gray-400">{t("تاريخ الإنشاء", "Created")}:</span> {a.created_at ? a.created_at.slice(0, 10) : "–"}</p>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => openEdit(a)} className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100 transition">
+                {isManager && <button onClick={() => openEdit(a)} className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100 transition">
                   ✏️ {t("تعديل", "Edit")}
-                </button>
-                <button onClick={() => handleDelete(a.id, a.full_name)} className="flex-1 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition">
+                </button>}
+                {isManager && <button onClick={() => handleDelete(a.id, a.full_name)} className="flex-1 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition">
                   🗑️ {t("حذف", "Delete")}
-                </button>
+                </button>}
               </div>
             </div>
           ))}

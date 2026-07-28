@@ -54,7 +54,7 @@ export default function CoursesPage() {
   const { theme } = useTheme();
   const { user } = useAuth();
   const nav = useNavigate();
-  const isStudent = user && user.account_type === "student";
+  const isStudent = user && (user.account_type === "student" || user.account_type === "registration_free");
   const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState("");
   const [popupCourse, setPopupCourse] = useState(null);

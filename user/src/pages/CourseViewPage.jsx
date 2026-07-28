@@ -233,7 +233,7 @@ export default function CourseViewPage() {
   const isApproved = enrollment?.status === "approved";
   const isPending = enrollment?.status === "pending";
   const isEnrolled = isApproved || (isFree && enrollment);
-  const isStudentAccount = user?.account_type === "student";
+  const isStudentAccount = user?.account_type === "student" || user?.account_type === "registration_free";
   const canWatchAll = isEnrolled || isFree || isStudentAccount;
   const isRegistration = user?.account_type === "registration";
   const isExpiredMembership = user && (user.blocked || (user.membership_expires_at && new Date(user.membership_expires_at) < new Date()));

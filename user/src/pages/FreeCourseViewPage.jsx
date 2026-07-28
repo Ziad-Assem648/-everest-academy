@@ -27,7 +27,7 @@ export default function FreeCourseViewPage() {
       const lessonId = params.get("lesson");
       if (lessonId && data?.topics) {
         for (const topic of data.topics) {
-          const found = (topic.lessons || []).find(l => l.id === lessonId && (l.is_free || user?.account_type === "student"));
+          const found = (topic.lessons || []).find(l => l.id === lessonId && (l.is_free || user?.account_type === "student" || user?.account_type === "registration_free"));
           if (found) { setPlaying({ ...found, topicTitle: topic.title_ar || topic.title, topicId: topic.id }); break; }
         }
       }
@@ -37,7 +37,7 @@ export default function FreeCourseViewPage() {
   if (err) return <div style={{background:theme==="dark"?"#1a1a2e":"#fafafa",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><p style={{color:"#ff5b5b"}}>{err}</p></div>;
   if (!course) return <div style={{background:theme==="dark"?"#1a1a2e":"#fafafa",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><p style={{color:"#9a95b0"}}>{t("جاري التحميل...", "Loading...")}</p></div>;
 
-  const freeLessons = (course.topics || []).flatMap(t => (t.lessons || []).filter(l => l.is_free || user?.account_type === "student").map(l => ({ ...l, topicTitle: t.title_ar || t.title, topicId: t.id })));
+  const freeLessons = (course.topics || []).flatMap(t => (t.lessons || []).filter(l => l.is_free || user?.account_type === "student" || user?.account_type === "registration_free").map(l => ({ ...l, topicTitle: t.title_ar || t.title, topicId: t.id })));
   const current = playing || freeLessons[0] || null;
   const isYoutube = (url) => url && (url.includes("youtube.com") || url.includes("youtu.be") || url.includes("youtube.com/embed"));
   const isBunny = (url) => url && (url.includes("player.mediadelivery.net") || url.includes("bunnycdn.com") || url.includes(".b-cdn.net"));
@@ -170,13 +170,13 @@ export default function FreeCourseViewPage() {
 
           {/* Sidebar - Free Lessons */}
           <div className="fcv-topics">
-            {course.topics?.filter(topic => (topic.lessons || []).some(l => l.is_free || user?.account_type === "student")).map((topic) => (
+            {course.topics?.filter(topic => (topic.lessons || []).some(l => l.is_free || user?.account_type === "student" || user?.account_type === "registration_free")).map((topic) => (
               <div key={topic.id}>
                 <div className="fcv-topic-title" style={{color:text}}>
                   <i className="fa-solid fa-folder-open"></i>
                   {topic.title_ar || topic.title}
                 </div>
-                {(topic.lessons || []).filter(l => l.is_free || user?.account_type === "student").map((lesson, i) => {
+                {(topic.lessons || []).filter(l => l.is_free || user?.account_type === "student" || user?.account_type === "registration_free").map((lesson, i) => {
                   const isActive = current?.id === lesson.id;
                   return (
                     <div

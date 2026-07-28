@@ -312,10 +312,10 @@ export default function RankingsPage() {
                               {d.full_name}
                               <span style={{
                                 fontSize: 10, marginLeft: 6, padding: "1px 6px", borderRadius: 8, fontWeight: 600,
-                                background: d.account_type === 'student' ? "rgba(34,197,94,.1)" : "rgba(245,158,11,.1)",
-                                color: d.account_type === 'student' ? "#22c55e" : "#f59e0b"
+                                background: d.account_type === 'student' || d.account_type === 'registration_free' ? "rgba(34,197,94,.1)" : "rgba(245,158,11,.1)",
+                                color: d.account_type === 'student' || d.account_type === 'registration_free' ? "#22c55e" : "#f59e0b"
                               }}>
-                                {d.account_type === 'student' ? 'Student' : 'REG'}
+                                {d.account_type === 'student' ? 'Student' : d.account_type === 'registration_free' ? 'Reg Free' : 'REG'}
                               </span>
                             </p>
                             <p style={{ fontSize: 11, color: c.textMuted, margin: "2px 0 0" }}>{d.email}</p>
@@ -412,10 +412,10 @@ export default function RankingsPage() {
                                   {d.full_name}
                                   <span style={{
                                     fontSize: 10, marginLeft: 6, padding: "1px 6px", borderRadius: 8, fontWeight: 600,
-                                    background: d.account_type === 'student' ? "rgba(34,197,94,.1)" : "rgba(245,158,11,.1)",
-                                    color: d.account_type === 'student' ? "#22c55e" : "#f59e0b"
+                                    background: d.account_type === 'student' || d.account_type === 'registration_free' ? "rgba(34,197,94,.1)" : "rgba(245,158,11,.1)",
+                                    color: d.account_type === 'student' || d.account_type === 'registration_free' ? "#22c55e" : "#f59e0b"
                                   }}>
-                                    {d.account_type === 'student' ? 'Student' : 'REG'}
+                                    {d.account_type === 'student' ? 'Student' : d.account_type === 'registration_free' ? 'Reg Free' : 'REG'}
                                   </span>
                                 </p>
                                 <p style={{ fontSize: 11, color: c.textMuted, margin: "2px 0 0" }}>{d.email}</p>

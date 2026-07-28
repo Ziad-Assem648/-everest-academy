@@ -37,13 +37,18 @@ const GOVERNORATES = [
   "سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح"
 ];
 
+const ARAB_COUNTRIES = [
+  "مصر","السعودية","الإمارات","قطر","الكويت","عمان","البحرين","العراق","الأردن",
+  "لبنان","سوريا","فلسطين","اليمن","ليبيا","تونس","الجزائر","المغرب","السودان","موريتانيا","الصومال","جيبوتي","جزر القمر"
+];
+
 export default function RegisterPage() {
   const { t, lang } = useLang();
   const { user: authUser, login } = useAuth();
   const { colors: c } = useTheme();
   const nav = useNavigate();
   const m = useIsMobile();
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no", governorate: "" });
+  const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no", governorate: "", country: "", custom_country: "" });
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
@@ -116,7 +121,8 @@ export default function RegisterPage() {
     if (form.password !== form.confirm) { setErr(t("كلمات المرور غير متطابقة!", "Passwords do not match!")); setLoading(false); return; }
     if (!idCardFront || !idCardBack) { setErr(t("يجب رفع صورة البطاقة الأمامية والخلفية", "Please upload both front and back ID card images")); setLoading(false); return; }
     try {
-      const body = { full_name: form.full_name, email: form.email, phone: form.phone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, id_card_front: idCardFront, id_card_back: idCardBack };
+      const country = form.country === "other" ? form.custom_country : form.country;
+      const body = { full_name: form.full_name, email: form.email, phone: form.phone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, country, id_card_front: idCardFront, id_card_back: idCardBack };
       await api("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
       nav("/pending-activation", { replace: true });
     } catch (e) { setErr(e.message); }
@@ -155,7 +161,8 @@ export default function RegisterPage() {
       const blob = await compressImage(file);
       const fd = new FormData();
       fd.append("file", blob, "photo.jpg");
-      const res = await fetch(`${BACKEND_URL}/api/public-upload`, { method: "POST", body: fd });
+      const uploadUrl = window.location.origin.includes("localhost") ? `${BACKEND_URL}/api/public-upload` : '/upload.php';
+      const res = await fetch(uploadUrl, { method: "POST", body: fd });
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
       setter(data.url.startsWith("http") ? data.url : `${BACKEND_URL}${data.url}`);
@@ -379,6 +386,26 @@ export default function RegisterPage() {
                 <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
                 {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
               </select>
+            </div>
+
+            {/* Country */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
+                {t("الدولة", "Country")}
+              </label>
+              <select value={form.country} onChange={(e) => setField("country", e.target.value)}
+                style={{ width: "100%", padding: "13px 14px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 14, outline: "none", transition: "0.3s", boxSizing: "border-box" }}
+                onFocus={onFocus} onBlur={onBlur}>
+                <option value="">{t("اختر الدولة", "Select Country")}</option>
+                {ARAB_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                <option value="other">{t("أخرى", "Other")}</option>
+              </select>
+              {form.country === "other" && (
+                <input type="text" placeholder={t("أدخل اسم الدولة", "Enter country name")}
+                  value={form.custom_country} onChange={(e) => setField("custom_country", e.target.value)}
+                  style={{ width: "100%", padding: "13px 14px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 14, outline: "none", transition: "0.3s", boxSizing: "border-box", marginTop: 8 }}
+                  onFocus={onFocus} onBlur={onBlur} />
+              )}
             </div>
 
             {/* ID Card Front */}
@@ -666,6 +693,23 @@ export default function RegisterPage() {
                   <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
                   {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
                 </select>
+              </div>
+
+              {/* Country */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
+                  {t("الدولة", "Country")}
+                </label>
+                <select value={form.country} onChange={(e) => setField("country", e.target.value)} style={{ ...inputStyle(c), cursor: "pointer" }} onFocus={onFocus} onBlur={onBlur}>
+                  <option value="">{t("اختر الدولة", "Select Country")}</option>
+                  {ARAB_COUNTRIES.map(co => <option key={co} value={co}>{co}</option>)}
+                  <option value="other">{t("أخرى", "Other")}</option>
+                </select>
+                {form.country === "other" && (
+                  <input type="text" placeholder={t("أدخل اسم الدولة", "Enter country name")}
+                    value={form.custom_country} onChange={(e) => setField("custom_country", e.target.value)}
+                    style={{ ...inputStyle(c), marginTop: 8 }} onFocus={onFocus} onBlur={onBlur} />
+                )}
               </div>
 
               {/* ID Card Front */}

@@ -296,11 +296,11 @@ export default function HomePage() {
               <div style={s.courseFooter}>
                 <div>
                   <div style={{color:"#ffb800",fontSize:"0.85rem"}}>{course.avg_rating > 0 ? `⭐ ${course.avg_rating} (${course.review_count})` : "⭐⭐⭐⭐⭐"}</div>
-                  {user?.account_type !== "student" && <div style={{fontSize:"0.9rem",color:c.text,marginTop:3,fontWeight:700}}>{course.price} E-Money</div>}
+                  {user?.account_type !== "student" && user?.account_type !== "registration_free" && <div style={{fontSize:"0.9rem",color:c.text,marginTop:3,fontWeight:700}}>{course.price} E-Money</div>}
                 </div>
               </div>
               <div style={{display:"flex",gap:8,marginTop:10}}>
-                {user?.account_type === "student" ? (
+                {user?.account_type === "student" || user?.account_type === "registration_free" ? (
                   <Link to={`/courses/${course.id}`} style={{...s.courseBtn,flex:1,justifyContent:"center"}}>{t("مشاهدة","Watch")}</Link>
                 ) : (
                   <>

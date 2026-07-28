@@ -29,11 +29,14 @@ export async function api(path, opts = {}) {
 }
 
 export async function uploadApi(formData) {
+  const uploadUrl = window.location.origin.includes("localhost")
+    ? `${BACKEND_URL}/api/upload`
+    : '/upload.php';
   const s = getAdminSession();
   const headers = {};
   if (s.userId) headers["x-user-id"] = s.userId;
   if (s.token) headers["x-session-token"] = s.token;
-  const r = await fetch(`${BACKEND_URL}/api/upload`, { method: "POST", headers, body: formData });
+  const r = await fetch(uploadUrl, { method: "POST", headers, body: formData });
   if (!r.ok) throw new Error("Upload failed");
   return r.json();
 }

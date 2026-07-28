@@ -63,11 +63,14 @@ const api = async (path, opts = {}) => {
 };
 
 const uploadApi = async (formData) => {
+  const uploadUrl = window.location.origin.includes("localhost")
+    ? `${BACKEND_URL}/api/upload`
+    : '/upload.php';
   const uid = localStorage.getItem("everest_user");
   const stoken = localStorage.getItem("everest_session_token");
   const headers = {};
   if (uid && stoken) { try { headers["x-user-id"] = JSON.parse(uid).id; headers["x-session-token"] = stoken; } catch {} }
-  const res = await fetch(`${BACKEND_URL}/api/upload`, { method: "POST", headers, body: formData });
+  const res = await fetch(uploadUrl, { method: "POST", headers, body: formData });
   if (!res.ok) throw new Error("Upload failed");
   return res.json();
 };

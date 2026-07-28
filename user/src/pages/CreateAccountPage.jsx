@@ -6,6 +6,11 @@ import { useTheme } from "../ThemeContext";
 import { api, uploadApi, BACKEND_URL } from "../App";
 import AppNavbar from "../components/AppNavbar";
 
+const ARAB_COUNTRIES = [
+  "مصر","السعودية","الإمارات","قطر","الكويت","عمان","البحرين","العراق","الأردن",
+  "لبنان","سوريا","فلسطين","اليمن","ليبيا","تونس","الجزائر","المغرب","السودان","موريتانيا","الصومال","جيبوتي","جزر القمر"
+];
+
 const GOVERNORATES = [
   "القاهرة","الجيزة","الإسكندرية","القليوبية","الدقهلية","الشرقية","الغربية","المنوفية","البحيرة","كفر الشيخ",
   "دمياط","بورسعيد","السويس","الإسماعيلية","شمال سيناء","جنوب سيناء","بني سويف","الفيوم","المنيا","أسيوط",
@@ -22,7 +27,7 @@ export default function CreateAccountPage() {
   const m = window.innerWidth <= 768;
   const [cost, setCost] = useState(5500);
 
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "", confirm: "", governorate: "" });
+  const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "", confirm: "", governorate: "", country: "", custom_country: "" });
   const [err, setErr] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -72,7 +77,8 @@ export default function CreateAccountPage() {
       const blob = await compressImage(file);
       const fd = new FormData();
       fd.append("file", blob, "photo.jpg");
-      const res = await fetch(`${BACKEND_URL}/api/public-upload`, { method: "POST", body: fd });
+      const uploadUrl = window.location.origin.includes("localhost") ? `${BACKEND_URL}/api/public-upload` : '/upload.php';
+      const res = await fetch(uploadUrl, { method: "POST", body: fd });
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
       setter(data.url.startsWith("http") ? data.url : `${BACKEND_URL}${data.url}`);
@@ -107,11 +113,12 @@ export default function CreateAccountPage() {
         body: JSON.stringify({
           full_name: form.full_name, email: form.email, phone: form.phone,
           password: form.password, governorate: form.governorate,
+          country: form.country === "other" ? form.custom_country : form.country,
           id_card_front: idCardFront, id_card_back: idCardBack,
         }),
       });
       setSuccess(t(`تم إنشاء الحساب بنجاح! تم خصم ${cost} E-Money`, `Account created! ${cost} E-Money deducted`));
-      setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", governorate: "" });
+      setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", governorate: "", country: "", custom_country: "" });
       setIdCardFront(null); setIdCardBack(null);
       setProfile(p => ({ ...p, e_money: res.creator_balance }));
       setCreatedUsers(prev => [res.user, ...prev]);
@@ -221,6 +228,21 @@ export default function CreateAccountPage() {
                 <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
                 {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
               </select>
+            </div>
+
+            {/* Country */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("الدولة", "Country")}</label>
+              <select value={form.country} onChange={e => setField("country", e.target.value)} style={{ ...inputS, cursor: "pointer" }} onFocus={onFocus} onBlur={onBlur}>
+                <option value="">{t("اختر الدولة", "Select Country")}</option>
+                {ARAB_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                <option value="other">{t("أخرى", "Other")}</option>
+              </select>
+              {form.country === "other" && (
+                <input type="text" placeholder={t("أدخل اسم الدولة", "Enter country name")}
+                  value={form.custom_country} onChange={e => setField("custom_country", e.target.value)}
+                  style={{ ...inputS, marginTop: 8 }} onFocus={onFocus} onBlur={onBlur} />
+              )}
             </div>
 
             {/* ID Card Front */}
