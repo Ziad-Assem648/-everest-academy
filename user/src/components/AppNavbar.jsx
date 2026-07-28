@@ -50,7 +50,7 @@ const mobileTabItems = [
   { to: "/profile", label_ar: "حسابي", label_en: "Profile", icon: "fa-solid fa-user" },
 ];
 
-const isStudentAccount = (user) => !user || user.account_type === "student";
+const isStudentAccount = (user) => !user || user.account_type === "student" || user.account_type === "registration_free";
 
 export default function AppNavbar() {
   const { user, logout } = useAuth();
@@ -68,7 +68,7 @@ export default function AppNavbar() {
   };
 
   const getNavLabel = (item) => {
-    if (item.to === "/courses" && user?.account_type === "student") {
+    if (item.to === "/courses" && user?.account_type === "student" || user?.account_type === "registration_free") {
       return t("ماي كورسيس", "My Courses");
     }
     return t(item.label_ar, item.label_en);
@@ -121,7 +121,7 @@ export default function AppNavbar() {
         </Link>
 
         <nav style={{ display: "flex", alignItems: "center", gap: 0 }}>
-          {navItems.filter(item => !item.studentOnly || isStudentAccount(user)).filter(item => !(item.hideForStudent && user?.account_type === "student")).map((item) => {
+          {navItems.filter(item => !item.studentOnly || isStudentAccount(user)).filter(item => !(item.hideForStudent && (user?.account_type === "student" || user?.account_type === "registration_free"))).map((item) => {
             const active = isActive(item.to);
             return (
               <Link key={item.to + item.label_en} to={item.to}
@@ -175,7 +175,7 @@ export default function AppNavbar() {
           background: theme === "dark" ? "rgba(20,20,30,0.95)" : "rgba(255,255,255,0.95)",
           borderTopColor: c.border,
         }}>
-          {mobileTabItems.filter(item => !item.studentOnly || isStudentAccount(user)).filter(item => !(item.hideForStudent && user?.account_type === "student")).map((item) => {
+          {mobileTabItems.filter(item => !item.studentOnly || isStudentAccount(user)).filter(item => !(item.hideForStudent && (user?.account_type === "student" || user?.account_type === "registration_free"))).map((item) => {
             const active = isActive(item.to);
             return (
               <Link key={item.to} to={item.to} className={active ? "active" : ""} style={{
