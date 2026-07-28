@@ -15,14 +15,14 @@ router.get("/tree", async (req, res) => {
     const descendants = await query(`
       SELECT u.id, u.full_name, u.email, u.role, u.rank, u.e_money, u.account_type,
              u.direct_count, u.qualified_direct_count, u.created_at,
-             u.referred_by, c.depth
+             u.referred_by, u.created_by_user, c.depth
       FROM user_closure c
       JOIN users u ON u.id = c.descendant
       WHERE c.ancestor = ? AND c.descendant != ?
       ORDER BY c.depth, u.created_at DESC
     `, [userId, userId]);
     const buildTree = (parentId) => {
-      const children = descendants.filter(d => d.referred_by === parentId);
+      const children = descendants.filter(d => d.referred_by === parentId || d.created_by_user === parentId);
       return children.map(child => ({ ...child, children: buildTree(child.id) }));
     };
     res.json(buildTree(userId));
@@ -35,8 +35,8 @@ router.get("/tree", async (req, res) => {
 router.get("/directs/:userId", async (req, res) => {
   try {
     const users = await query(
-      "SELECT id, full_name, email, phone, avatar, role, rank, e_money, direct_count, qualified_direct_count, account_type, status, created_at FROM users WHERE referred_by = ? ORDER BY created_at DESC",
-      [req.params.userId]
+      "SELECT id, full_name, email, phone, avatar, role, rank, e_money, direct_count, qualified_direct_count, account_type, status, created_at FROM users WHERE referred_by = ? OR created_by_user = ? ORDER BY created_at DESC",
+      [req.params.userId, req.params.userId]
     );
     res.json(users);
   } catch (err) {
@@ -551,20 +551,21 @@ router.get("/leaderboard/all", async (req, res) => {
 router.post("/backfill-closure", async (req, res) => {
   try {
     await execute("DELETE FROM user_closure");
-    const users = await query("SELECT id, referred_by FROM users ORDER BY created_at ASC");
+    const users = await query("SELECT id, referred_by, created_by_user FROM users ORDER BY created_at ASC");
     let count = 0;
     for (const u of users) {
       await execute("INSERT INTO user_closure (ancestor, descendant, depth) VALUES (?, ?, 0)", [u.id, u.id]);
       count++;
-      if (u.referred_by) {
+      const parentId = u.referred_by || u.created_by_user;
+      if (parentId) {
         const ancestors = await query(
           "SELECT ancestor, depth FROM user_closure WHERE descendant = ? AND ancestor != descendant",
-          [u.referred_by]
+          [parentId]
         );
         for (const a of ancestors) {
           await execute("INSERT INTO user_closure (ancestor, descendant, depth) VALUES (?, ?, ?)", [a.ancestor, u.id, a.depth + 1]);
         }
-        await execute("INSERT INTO user_closure (ancestor, descendant, depth) VALUES (?, ?, 1)", [u.referred_by, u.id]);
+        await execute("INSERT INTO user_closure (ancestor, descendant, depth) VALUES (?, ?, 1)", [parentId, u.id]);
       }
     }
     res.json({ success: true, processed: count });

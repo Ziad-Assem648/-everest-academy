@@ -240,6 +240,7 @@ router.put("/:id/approve-registration", async (req, res) => {
           const comId = uuidv4();
           await execute("INSERT INTO commissions (id, from_user_id, to_user_id, level, amount, description) VALUES (?, ?, ?, 1, 1000, 'create-account')", [comId, req.params.id, creatorUser.id]);
           await execute("UPDATE users SET e_money = e_money + 1000 WHERE id = ?", [creatorUser.id]);
+          await execute("UPDATE users SET direct_count = direct_count + 1 WHERE id = ?", [creatorUser.id]);
           const nid3 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'commission')", [nid3, creatorUser.id, "💰 عمولة إنشاء حساب", `ربحت 1000 E-Money كمكافأة عن تفعيل حساب أنشأته لـ ${user.full_name}`]);
         }
       }
