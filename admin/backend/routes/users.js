@@ -42,7 +42,7 @@ router.get("/pending-registrations", async (req, res) => {
   try {
     const users = await query(`
       SELECT u.id, u.full_name, u.email, u.phone, u.role, u.referral_code, u.referred_by, u.created_by_user, u.created_at,
-             u.governorate,
+             u.governorate, u.country,
              c.full_name as creator_name, c.email as creator_email
       FROM users u
       LEFT JOIN users c ON u.created_by_user = c.id
@@ -65,7 +65,7 @@ router.get("/:id/id-cards", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-  const user = await queryOne("SELECT id, full_name, email, phone, address, role, account_type, referral_code, rank, e_money, academic_points, total_team_sales, direct_count, qualified_direct_count, negative_allowed, blocked, status, bio, avatar, created_at, membership_expires_at FROM users WHERE id = ?", [req.params.id]);
+  const user = await queryOne("SELECT id, full_name, email, phone, address, role, account_type, referral_code, rank, e_money, academic_points, total_team_sales, direct_count, qualified_direct_count, negative_allowed, blocked, status, bio, avatar, country, created_at, membership_expires_at FROM users WHERE id = ?", [req.params.id]);
   if (!user) return res.status(404).json({ error: "User not found" });
   const teamLevels = await query(`
     SELECT u.id, u.full_name, u.email, u.role, u.rank, u.e_money, u.created_at, uc.depth
@@ -189,7 +189,7 @@ router.put("/:id/approve-registration", async (req, res) => {
     if (user.status !== 'pending') return res.status(400).json({ error: "User is not pending" });
     const accountType = req.body.account_type || "student";
     console.log("[approve-registration] userId:", req.params.id, "body:", JSON.stringify(req.body), "accountType:", accountType);
-    if (!["student","registration"].includes(accountType)) return res.status(400).json({ error: "Invalid account_type" });
+    if (!["student","registration","registration_free"].includes(accountType)) return res.status(400).json({ error: "Invalid account_type" });
 
     // Determine role from account_type
     const role = accountType === "student" ? "student" : "registration";
@@ -231,7 +231,21 @@ router.put("/:id/approve-registration", async (req, res) => {
       }
     }
 
-    const typeLabel = accountType === "student" ? "Student" : "Registration";
+    // Commission to the creator (created_by_user) when account is approved
+    if (user.created_by_user) {
+      const creatorUser = await queryOne("SELECT id, account_type FROM users WHERE id = ?", [user.created_by_user]);
+      if (creatorUser) {
+        const existingCreatorComm = await queryOne("SELECT id FROM commissions WHERE from_user_id = ? AND description LIKE 'create-account%'", [req.params.id]);
+        if (!existingCreatorComm) {
+          const comId = uuidv4();
+          await execute("INSERT INTO commissions (id, from_user_id, to_user_id, level, amount, description) VALUES (?, ?, ?, 1, 1000, 'create-account')", [comId, req.params.id, creatorUser.id]);
+          await execute("UPDATE users SET e_money = e_money + 1000 WHERE id = ?", [creatorUser.id]);
+          const nid3 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'commission')", [nid3, creatorUser.id, "💰 عمولة إنشاء حساب", `ربحت 1000 E-Money كمكافأة عن تفعيل حساب أنشأته لـ ${user.full_name}`]);
+        }
+      }
+    }
+
+    const typeLabel = accountType === "student" ? "Student" : accountType === "registration_free" ? "Registration Free" : "Registration";
     const roleMsg = accountType === "student" ? `ترقيتك إلى Student! العضوية مفعلة لمدة ${days} يوم.` : `تم تفعيل حسابك كـ ${typeLabel}! العضوية مفعلة لمدة ${days} يوم.`;
     const nid = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'success')", [nid, req.params.id, "✅ تم تفعيل الحساب والعضوية", roleMsg]);
     await logAdminAction(req, `approve as ${accountType} (membership ${days}d)`, req.params.id, user.full_name, null);
@@ -318,11 +332,11 @@ router.put("/:id/account-type", async (req, res) => {
     const user = await queryOne("SELECT * FROM users WHERE id = ?", [req.params.id]);
     if (!user) return res.status(404).json({ error: "User not found" });
     const { account_type } = req.body;
-    if (!["student","registration"].includes(account_type)) return res.status(400).json({ error: "Invalid account_type" });
+    if (!["student","registration","registration_free"].includes(account_type)) return res.status(400).json({ error: "Invalid account_type" });
     const role = account_type === "student" ? "student" : "registration";
     await execute("UPDATE users SET role = ?, account_type = ?, updated_at = datetime('now','localtime') WHERE id = ?", [role, account_type, req.params.id]);
-    const typeLabel = account_type === "student" ? "Student" : "Registration";
-    const nid = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'info')", [nid, req.params.id, "🔄 تم تغيير نوع الحساب", `تم تغيير نوع حسابك إلى ${typeLabel}`]);
+    const typeLabel = account_type === "student" ? "Student" : account_type === "registration_free" ? "Registration Free" : "Registration";
+    // No notification sent when admin changes account type
     await logAdminAction(req, `change account_type to ${account_type}`, req.params.id, user.full_name, JSON.stringify({ from: user.account_type, to: account_type }));
 
     // Pay commission when converting Registration → Student
@@ -375,7 +389,7 @@ router.post("/create-for-others", async (req, res) => {
       return res.status(400).json({ error: `Insufficient E-Money. Required: ${COST}, Available: ${creator.e_money || 0}`, error_ar: `رصيد E-Money غير كافٍ. المطلوب: ${COST}، المتاح: ${creator.e_money || 0}` });
     }
 
-    const { full_name, email, phone, password, governorate, address, id_card_front, id_card_back } = req.body;
+    const { full_name, email, phone, password, governorate, country, address, id_card_front, id_card_back } = req.body;
     if (!full_name || !email || !phone || !password) {
       return res.status(400).json({ error: "Full name, email, phone and password are required" });
     }
@@ -400,8 +414,8 @@ router.post("/create-for-others", async (req, res) => {
 
     // Create user as pending
     await execute(
-      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, status, role, account_type, rank, governorate, id_card_front, id_card_back, created_by_user, email_otp, email_otp_expires) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?, ?)",
-      [id, full_name, email, phone, address || null, hashedPassword, code, governorate || null, id_card_front || null, id_card_back || null, userId, otp, otpExpires]
+      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, status, role, account_type, rank, governorate, country, id_card_front, id_card_back, created_by_user, email_otp, email_otp_expires) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?, ?, ?)",
+      [id, full_name, email, phone, address || null, hashedPassword, code, governorate || null, country || null, id_card_front || null, id_card_back || null, userId, otp, otpExpires]
     );
 
     // Populate closure table
@@ -444,7 +458,7 @@ router.get("/created-by-me/:userId", async (req, res) => {
     if (!requester || requester.session_token !== sessionToken) return res.status(401).json({ error: "Session invalid" });
 
     const users = await query(
-      "SELECT id, full_name, email, phone, governorate, status, account_type, created_at FROM users WHERE created_by_user = ? ORDER BY created_at DESC",
+      "SELECT id, full_name, email, phone, governorate, country, status, account_type, created_at FROM users WHERE created_by_user = ? ORDER BY created_at DESC",
       [req.params.userId]
     );
     res.json(users);

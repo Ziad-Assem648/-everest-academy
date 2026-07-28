@@ -102,13 +102,20 @@ router.get("/top-quiz-performers", async (req, res) => {
       JOIN users u ON qa.user_id = u.id
       JOIN quizzes q ON qa.quiz_id = q.id
       JOIN courses c ON q.course_id = c.id
-      WHERE q.type = 'final' AND u.account_type = 'student'
+      WHERE q.type = 'final' AND (u.account_type = 'student' OR u.account_type = 'registration_free')
       GROUP BY qa.user_id, c.id
       HAVING avg_score >= 70
       ORDER BY avg_score DESC
       LIMIT 10
     `);
-    res.json(rows);
+    const fixed = rows.map(r => {
+      if (r.avatar && !r.avatar.startsWith("http")) {
+        if (r.avatar.startsWith("/uploads/")) r.avatar = BACKEND + r.avatar;
+        else if (r.avatar.startsWith("data:")) r.avatar = null;
+      }
+      return r;
+    });
+    res.json(fixed);
   } catch (e) {
     console.error("top-quiz-performers error:", e);
     res.status(500).json({ error: "Server error" });
@@ -139,7 +146,7 @@ router.post("/sync-leaderboard", async (req, res) => {
       LEFT JOIN courses c ON q.course_id = c.id
       LEFT JOIN topics t ON q.topic_id = t.id
       LEFT JOIN courses c2 ON t.course_id = c2.id
-      WHERE qa.user_id NOT IN (SELECT user_id FROM quiz_leaderboard) AND u.account_type = 'student'
+      WHERE qa.user_id NOT IN (SELECT user_id FROM quiz_leaderboard) AND (u.account_type = 'student' OR u.account_type = 'registration_free')
       GROUP BY qa.user_id, COALESCE(c.id, c2.id)
       ORDER BY avg_score DESC
       LIMIT 10
@@ -640,7 +647,7 @@ router.post("/quizzes/:quizId/submit", async (req, res) => {
     // Update persistent leaderboard (survives quiz_attempts deletion)
     try {
       const user = await queryOne("SELECT * FROM users WHERE id = ?", [userId]);
-      if (user && user.account_type === "student") {
+      if (user && (user.account_type === "student" || user.account_type === "registration_free")) {
         const courseTitle = await queryOne(`
         SELECT COALESCE(c.title, c2.title, '—') as title
         FROM quizzes q

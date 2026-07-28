@@ -316,6 +316,7 @@ function createSchema(driver, isTursoDb) {
       try { await driver.execute("ALTER TABLE users ADD COLUMN id_card_front TEXT"); } catch(e) {}
       try { await driver.execute("ALTER TABLE users ADD COLUMN id_card_back TEXT"); } catch(e) {}
       try { await driver.execute("ALTER TABLE users ADD COLUMN governorate TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN country TEXT"); } catch(e) {}
       try { await driver.execute("ALTER TABLE users ADD COLUMN created_by_user TEXT"); } catch(e) {}
       try { await driver.execute("ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 0"); } catch(e) {}
       try { await driver.execute("ALTER TABLE users ADD COLUMN email_otp TEXT"); } catch(e) {}
@@ -366,6 +367,7 @@ function createSchema(driver, isTursoDb) {
   try { driver.run("ALTER TABLE users ADD COLUMN id_card_front TEXT"); } catch(e) {}
   try { driver.run("ALTER TABLE users ADD COLUMN id_card_back TEXT"); } catch(e) {}
   try { driver.run("ALTER TABLE users ADD COLUMN governorate TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN country TEXT"); } catch(e) {}
   try { driver.run("ALTER TABLE users ADD COLUMN created_by_user TEXT"); } catch(e) {}
   try { driver.run("ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 0"); } catch(e) {}
   try { driver.run("ALTER TABLE users ADD COLUMN email_otp TEXT"); } catch(e) {}

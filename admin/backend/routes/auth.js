@@ -127,7 +127,7 @@ router.post("/heartbeat", async (req, res) => {
 
 router.post("/register", async (req, res) => {
   try {
-    const { full_name, email, phone, address, password, referral_code, governorate, id_card_front, id_card_back } = req.body;
+    const { full_name, email, phone, address, password, referral_code, governorate, country, id_card_front, id_card_back } = req.body;
     const existing = await queryOne("SELECT id FROM users WHERE email = ? AND status != 'rejected'", [email]);
     if (existing) return res.status(400).json({ error: "Email already exists" });
     if (phone) {
@@ -165,8 +165,8 @@ router.post("/register", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     await execute(
-      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, referred_by, status, role, account_type, rank, governorate, id_card_front, id_card_back, email_otp, email_otp_expires) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?)",
-      [id, full_name, email, phone || null, address || null, hashedPassword, code, referredBy, governorate || null, id_card_front || null, id_card_back || null, otp, expires]
+      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, referred_by, status, role, account_type, rank, governorate, country, id_card_front, id_card_back, email_otp, email_otp_expires) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?, ?)",
+      [id, full_name, email, phone || null, address || null, hashedPassword, code, referredBy, governorate || null, country || null, id_card_front || null, id_card_back || null, otp, expires]
     );
 
     // Populate closure table (for tree visibility — commissions handled on admin approval)
