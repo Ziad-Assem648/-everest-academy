@@ -179,25 +179,12 @@ export default function PendingActivationPage() {
               "Your email has been verified successfully. Your account is now pending review and activation by the admin. We'll notify you once activated."
             )}
           </p>
-          <Link to="/login" style={{
-            display: "inline-flex", alignItems: "center", gap: 10,
-            padding: "14px 36px", borderRadius: 14,
-            background: `linear-gradient(135deg, ${gold}, ${gold}cc)`,
-            color: "#fff", fontWeight: 800, fontSize: 15, textDecoration: "none",
-          }}>
-            🔑 {t("الذهاب لتسجيل الدخول", "Go to Login")}
-          </Link>
         </div>
         )}
 
-        {/* Steps after */}
-        <p style={{ fontSize: 13, color: c.textMuted, textAlign: "center", lineHeight: 1.7, marginBottom: 20 }}>
-          {t(
-            "بعد تأكيد بريدك الإلكتروني، سيقوم فريقنا بمراجعة حسابك وتفعيله. سنخطرك فور التفعيل.",
-            "After verifying your email, our team will review and activate your account. We'll notify you once activated."
-          )}
-        </p>
-
+        {/* After verification: Customer Service + Login Button */}
+        {verified && (
+        <>
         {/* Customer Service Card */}
         {(csWhatsapp || csEmail) && (
           <div style={{
@@ -255,8 +242,7 @@ export default function PendingActivationPage() {
           </div>
         </div>
 
-        {/* Login Button (only show before verify, verified card has its own) */}
-        {!verified && (
+        {/* Login Button */}
         <div style={{ textAlign: "center" }}>
           <Link to="/login" style={{
             display: "inline-flex", alignItems: "center", gap: 10,
@@ -267,6 +253,7 @@ export default function PendingActivationPage() {
             🔑 {t("الذهاب لتسجيل الدخول", "Go to Login")}
           </Link>
         </div>
+        </>
         )}
 
       </div>
