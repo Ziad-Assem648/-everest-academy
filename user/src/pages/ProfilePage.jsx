@@ -92,7 +92,7 @@ export default function ProfilePage() {
   const currentRankName = rp.currentRank || p.rank || null;
   const nextRankName = rp.nextRank || "Star";
   const eMoney = p.e_money || 0;
-  const teamSales = rp.totalTeamSales || p.total_team_sales || p.direct_count || 0;
+  const teamSales = p.total_team_sales || rp.qualifiedTeamCount || 0;
 
   const [now, setNow] = useState(Date.now());
   const gold = "#6E3BF2";
