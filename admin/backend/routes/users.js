@@ -81,7 +81,7 @@ router.put("/:id/id-cards", async (req, res) => {
 router.get("/:id", async (req, res) => {
   const user = await queryOne("SELECT id, full_name, email, phone, address, role, account_type, referral_code, rank, e_money, academic_points, total_team_sales, direct_count, qualified_direct_count, negative_allowed, blocked, status, bio, avatar, country, created_at, membership_expires_at FROM users WHERE id = ?", [req.params.id]);
   if (!user) return res.status(404).json({ error: "User not found" });
-  const realDirects = await queryOne("SELECT COUNT(*) as cnt FROM users WHERE referred_by = ?", [req.params.id]);
+  const realDirects = await queryOne("SELECT COUNT(*) as cnt FROM users WHERE referred_by = ? OR (created_by_user = ? AND referred_by IS NULL)", [req.params.id, req.params.id]);
   user.direct_count = realDirects?.cnt || 0;
   const teamLevels = await query(`
     SELECT u.id, u.full_name, u.email, u.role, u.rank, u.e_money, u.created_at, uc.depth
@@ -415,10 +415,10 @@ router.post("/create-for-others", async (req, res) => {
     const otp = String(Math.floor(100000 + Math.random() * 900000));
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
-    // Create user as pending
+    // Create user as pending — creator is the referrer
     await execute(
-      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, status, role, account_type, rank, governorate, country, id_card_front, id_card_back, created_by_user, email_otp, email_otp_expires) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?, ?, ?)",
-      [id, full_name, email, phone, address || null, hashedPassword, code, governorate || null, country || null, id_card_front || null, id_card_back || null, userId, otp, otpExpires]
+      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, referred_by, status, role, account_type, rank, governorate, country, id_card_front, id_card_back, created_by_user, email_otp, email_otp_expires) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?, ?, ?)",
+      [id, full_name, email, phone, address || null, hashedPassword, code, userId, governorate || null, country || null, id_card_front || null, id_card_back || null, userId, otp, otpExpires]
     );
 
     // Populate closure table
