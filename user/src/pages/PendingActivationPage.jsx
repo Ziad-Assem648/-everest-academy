@@ -18,6 +18,7 @@ export default function PendingActivationPage() {
   const [resendMsg, setResendMsg] = useState("");
   const [otp, setOtp] = useState("");
   const [verifying, setVerifying] = useState(false);
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     api("/api/customer-service")
@@ -49,7 +50,7 @@ export default function PendingActivationPage() {
     setResendMsg("");
     try {
       await api("/api/auth/verify-email-otp", { method: "POST", body: JSON.stringify({ email: userEmail, otp }) });
-      nav("/login?verification=success", { replace: true });
+      setVerified(true);
     } catch (e) {
       setResendMsg(e.message || t("رمز التحقق غير صحيح", "Invalid verification code"));
     }
@@ -93,7 +94,8 @@ export default function PendingActivationPage() {
           ))}
         </div>
 
-        {/* Verification OTP Card */}
+        {/* Verification OTP Card (before verify) */}
+        {!verified ? (
         <div style={{ background: c.bgCard, border: `1px solid ${c.borderLight}`, borderRadius: 20, padding: "28px 24px", marginBottom: 20 }}>
           <div style={{ textAlign: "center", marginBottom: 18 }}>
             <p style={{ fontSize: 15, color: c.textSoft, lineHeight: 1.9, margin: 0 }}>
@@ -162,6 +164,31 @@ export default function PendingActivationPage() {
             )}
           </button>
         </div>
+        ) : (
+        /* Verified Success Card */
+        <div style={{ background: c.bgCard, border: `1px solid #22c55e40`, borderRadius: 20, padding: "28px 24px", marginBottom: 20, textAlign: "center" }}>
+          <div style={{ width: 72, height: 72, margin: "0 auto 16px", borderRadius: "50%", background: "rgba(34,197,94,.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: 36 }}>✓</span>
+          </div>
+          <h2 style={{ fontSize: 22, fontWeight: 900, color: "#22c55e", marginBottom: 8 }}>
+            {t("تم تأكيد البريد الإلكتروني!", "Email Verified!")}
+          </h2>
+          <p style={{ fontSize: 14, color: c.textSoft, lineHeight: 1.8, margin: "0 0 20px" }}>
+            {t(
+              "تم تأكيد بريدك الإلكتروني بنجاح. الآن ينتظر حسابك المراجعة والتفعيل من الإدارة. سنخطرك فور التفعيل.",
+              "Your email has been verified successfully. Your account is now pending review and activation by the admin. We'll notify you once activated."
+            )}
+          </p>
+          <Link to="/login" style={{
+            display: "inline-flex", alignItems: "center", gap: 10,
+            padding: "14px 36px", borderRadius: 14,
+            background: `linear-gradient(135deg, ${gold}, ${gold}cc)`,
+            color: "#fff", fontWeight: 800, fontSize: 15, textDecoration: "none",
+          }}>
+            🔑 {t("الذهاب لتسجيل الدخول", "Go to Login")}
+          </Link>
+        </div>
+        )}
 
         {/* Steps after */}
         <p style={{ fontSize: 13, color: c.textMuted, textAlign: "center", lineHeight: 1.7, marginBottom: 20 }}>
@@ -228,7 +255,8 @@ export default function PendingActivationPage() {
           </div>
         </div>
 
-        {/* Login Button */}
+        {/* Login Button (only show before verify, verified card has its own) */}
+        {!verified && (
         <div style={{ textAlign: "center" }}>
           <Link to="/login" style={{
             display: "inline-flex", alignItems: "center", gap: 10,
@@ -239,6 +267,7 @@ export default function PendingActivationPage() {
             🔑 {t("الذهاب لتسجيل الدخول", "Go to Login")}
           </Link>
         </div>
+        )}
 
       </div>
     </div>
