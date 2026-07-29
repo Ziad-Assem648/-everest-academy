@@ -86,7 +86,7 @@ const rankColors = {
 export default function HomePage() {
   const { user, logout } = useAuth();
   const { t, lang, dir } = useLang();
-  const { colors: c } = useTheme();
+  const { colors: c, theme } = useTheme();
   const m = useIsMobile();
   const s = makeStyles(c, m);
   const nav = useNavigate();
@@ -125,15 +125,15 @@ export default function HomePage() {
       </section>
 
       {/* Leaders */}
-      <section style={{ position:"relative",overflow:"hidden",padding:m?"60px 16px 50px":"100px 5% 80px",background: c.sectionBg === "#0d0d14" || c.sectionBg === "#0b0b0f" ? "linear-gradient(180deg,#06060f 0%,#130B1F 40%,#111128 70%,#0a0a18 100%)" : "linear-gradient(180deg,#f8f6f0 0%,#f0ece2 40%,#e8e2d6 70%,#f5f1ea 100%)",color:c.text }}>
+      <section style={{ position:"relative",overflow:"hidden",padding:m?"60px 16px 50px":"100px 5% 80px",background: theme === "dark" ? "linear-gradient(180deg,#06060f 0%,#130B1F 40%,#111128 70%,#0a0a18 100%)" : "linear-gradient(180deg,#f8f6f0 0%,#f0ece2 40%,#e8e2d6 70%,#f5f1ea 100%)",color:c.text }}>
         {/* BG decorations */}
-        <div style={{ position:"absolute",top:"-120px",right:"-80px",width:400,height:400,borderRadius:"50%",background: c.sectionBg === "#0d0d14" || c.sectionBg === "#0b0b0f" ? "radial-gradient(circle,rgba(110,59,242,.08) 0%,transparent 70%)" : "radial-gradient(circle,rgba(110,59,242,.12) 0%,transparent 70%)",filter:"blur(40px)",pointerEvents:"none" }}></div>
+        <div style={{ position:"absolute",top:"-120px",right:"-80px",width:400,height:400,borderRadius:"50%",background: theme === "dark" ? "radial-gradient(circle,rgba(110,59,242,.08) 0%,transparent 70%)" : "radial-gradient(circle,rgba(110,59,242,.12) 0%,transparent 70%)",filter:"blur(40px)",pointerEvents:"none" }}></div>
         <div style={{ position:"absolute",bottom:"-100px",left:"-60px",width:350,height:350,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,.06) 0%,transparent 70%)",filter:"blur(40px)",pointerEvents:"none" }}></div>
         <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(110,59,242,.03) 0%,transparent 60%)",filter:"blur(60px)",pointerEvents:"none" }}></div>
 
         {/* Theme-dependent colors */}
         {(() => {
-          const isDark = c.sectionBg === "#0d0d14" || c.sectionBg === "#0b0b0f";
+          const isDark = theme === "dark";
           const hc = isDark ? "#fff" : "#1a1a2e";
           const hcSoft = isDark ? "#e0e0e0" : "#333";
           const hcMuted = isDark ? "rgba(255,255,255,.45)" : "rgba(0,0,0,.45)";
@@ -211,7 +211,7 @@ export default function HomePage() {
                               )}
                             </div>
                           </div>
-                          <div style={{ position:"absolute",bottom:-6,left:"50%",transform:"translateX(-50%)",width:32,height:32,borderRadius:"50%",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:"#0a0a18",border:"3px solid #130B1F",boxShadow:"0 0 16px rgba(110,59,242,.4)" }}>1</div>
+                          <div style={{ position:"absolute",bottom:-6,left:"50%",transform:"translateX(-50%)",width:32,height:32,borderRadius:"50%",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:"#0a0a18",border:`3px solid ${podiumBg}`,boxShadow:"0 0 16px rgba(110,59,242,.4)" }}>1</div>
                         </div>
                         <h4 style={{ fontSize:m?14:17,fontWeight:800,color:hc,margin:"14px 0 4px",maxWidth:150,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{leaders[0].name}</h4>
                         <span style={{ fontSize:m?11:13,color:"#6E3BF2",fontWeight:700,letterSpacing:1 }}>{leaders[0].icon || "🏆"} {leaders[0].rank}</span>
