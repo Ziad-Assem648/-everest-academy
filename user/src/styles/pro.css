@@ -1758,7 +1758,7 @@ video { object-fit:contain; }
 [data-theme="dark"] .navbar .mobile-menu .mobile-header h2 { color: #e8e8ec !important; }
 [data-theme="dark"] .navbar .mobile-menu .mobile-header button { color: #e8e8ec !important; }
 [data-theme="dark"] .navbar .auth-buttons button { background: #252538 !important; color: #e8e8ec !important; border-color: rgba(255,255,255,0.08) !important; }
-[data-theme="dark"] .navbar .logo img { mix-blend-mode: normal !important; filter: invert(1) !important; }
+[data-theme="dark"] .navbar .logo img { mix-blend-mode: normal !important; }
 [data-theme="dark"] .navbar .mobile-menu .mobile-header button { background: #252538 !important; color: #e8e8ec !important; }
 
 /* LANDING PAGE */
