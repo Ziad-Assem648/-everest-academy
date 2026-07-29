@@ -243,7 +243,7 @@ export default function RegisterPage() {
             {/* Full Name */}
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
-                {t("الاسم بالكامل", "Full Name")}
+                {t(" الاسم كما هو مُدوَّن في البطاقة", "Name as shown on your ID")}
               </label>
               <input type="text" required placeholder={t("أدخل اسمك", "Enter name")}
                 ref={el => inputRefs.current[0] = el} readOnly autoComplete="off"
@@ -575,7 +575,7 @@ export default function RegisterPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
                 <div>
                   <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
-                    {t("الاسم بالكامل", "Full Name")}
+                    {t(" الاسم كما هو مُدوَّن في البطاقة", "Name as shown on your ID")}
                   </label>
                   <input type="text" required placeholder={t("أدخل اسمك", "Enter name")} ref={el => inputRefs.current[0] = el} readOnly autoComplete="off" value={form.full_name} onChange={(e) => setField("full_name", e.target.value)} style={inputStyle(c)} onFocus={onFocus} onBlur={onBlur} />
                 </div>
