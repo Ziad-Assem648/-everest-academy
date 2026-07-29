@@ -203,7 +203,7 @@ export default function AssistantPage() {
                 alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
                 maxWidth: m ? "85%" : "70%", padding: "12px 16px", borderRadius: 16,
                 background: msg.role === "user"
-                  ? `linear-gradient(135deg, ${c.primary || "#d4af37"}, ${c.primaryEnd || "#b38728"})`
+                  ? `linear-gradient(135deg, ${c.primary || "#6E3BF2"}, ${c.primaryEnd || "#6E3BF2"})`
                   : c.bgCard,
                 color: msg.role === "user" ? "#fff" : c.text,
                 border: msg.role === "user" ? "none" : `1px solid ${c.borderLight}`,
@@ -243,7 +243,7 @@ export default function AssistantPage() {
                 style={{
                   width: m ? 44 : 48, height: m ? 44 : 48, borderRadius: 14,
                   background: chatInput.trim() && !chatLoading
-                    ? `linear-gradient(135deg, ${c.primary || "#d4af37"}, ${c.primaryEnd || "#b38728"})`
+                    ? `linear-gradient(135deg, ${c.primary || "#6E3BF2"}, ${c.primaryEnd || "#6E3BF2"})`
                     : c.bgInput,
                   border: "none", cursor: chatInput.trim() && !chatLoading ? "pointer" : "not-allowed",
                   display: "flex", alignItems: "center", justifyContent: "center",

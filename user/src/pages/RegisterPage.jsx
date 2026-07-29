@@ -19,11 +19,11 @@ const keyframes = `
 @keyframes regFadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
 @keyframes regSlideLeft { from { opacity:0; transform:translateX(-40px); } to { opacity:1; transform:translateX(0); } }
 @keyframes regSlideRight { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
-@keyframes regPulse { 0%,100%{box-shadow:0 0 0 0 rgba(212,175,55,0.3)} 50%{box-shadow:0 0 30px 10px rgba(212,175,55,0.15)} }
+@keyframes regPulse { 0%,100%{box-shadow:0 0 0 0 rgba(110,59,242,0.3)} 50%{box-shadow:0 0 30px 10px rgba(110,59,242,0.15)} }
 @keyframes regFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
 `;
 
-const gold = "#d4af37";
+const gold = "#6E3BF2";
 
 const inputStyle = (c) => ({
   width: "100%", padding: "13px 16px", borderRadius: 12,
@@ -119,6 +119,7 @@ export default function RegisterPage() {
     }
 
     if (form.password !== form.confirm) { setErr(t("كلمات المرور غير متطابقة!", "Passwords do not match!")); setLoading(false); return; }
+    if (form.country === "مصر" && !form.governorate) { setErr(t("اختر المحافظة", "Select a governorate")); setLoading(false); return; }
     if (!idCardFront || !idCardBack) { setErr(t("يجب رفع صورة البطاقة الأمامية والخلفية", "Please upload both front and back ID card images")); setLoading(false); return; }
     try {
       const country = form.country === "other" ? form.custom_country : form.country;
@@ -192,7 +193,7 @@ export default function RegisterPage() {
       return (
         <div style={{ minHeight: "100vh", background: c.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div style={{ width: "100%", maxWidth: 400, background: c.bgCard, borderRadius: 20, border: `1px solid ${c.borderLight}`, padding: "32px 24px", textAlign: "center" }}>
-            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, rgba(212,175,55,.2), rgba(212,175,55,.05))", border: "2px solid rgba(212,175,55,.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 28 }}>📧</div>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, rgba(110,59,242,.2), rgba(110,59,242,.05))", border: "2px solid rgba(110,59,242,.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 28 }}>📧</div>
             <h2 style={{ fontSize: 20, fontWeight: 900, color: c.text, marginBottom: 6 }}>{t("تحقق من بريدك", "Verify Your Email")}</h2>
             <p style={{ fontSize: 13, color: c.textMuted, marginBottom: 20 }}>{t("أرسلنا كود تحقق إلى", "We sent a code to")} <strong style={{ color: gold }}>{registeredEmail}</strong></p>
             {err && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 14, color: "#ef4444", fontSize: 12 }}>{err}</div>}
@@ -209,7 +210,7 @@ export default function RegisterPage() {
     return (
       <div style={{ minHeight: "100vh", background: c.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ width: "100%", maxWidth: 440, background: c.bgCard, borderRadius: 20, border: `1px solid ${c.borderLight}`, padding: "40px 36px", textAlign: "center" }}>
-          <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, rgba(212,175,55,.2), rgba(212,175,55,.05))", border: "2px solid rgba(212,175,55,.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px", fontSize: 32 }}>📧</div>
+          <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, rgba(110,59,242,.2), rgba(110,59,242,.05))", border: "2px solid rgba(110,59,242,.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px", fontSize: 32 }}>📧</div>
           <h2 style={{ fontSize: 22, fontWeight: 900, color: c.text, marginBottom: 6 }}>{t("تحقق من بريدك", "Verify Your Email")}</h2>
           <p style={{ fontSize: 14, color: c.textMuted, marginBottom: 24 }}>{t("أرسلنا كود تحقق إلى", "We sent a code to")} <strong style={{ color: gold }}>{registeredEmail}</strong></p>
           {err && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 16, color: "#ef4444", fontSize: 13 }}>{err}</div>}
@@ -248,14 +249,14 @@ export default function RegisterPage() {
           </Link>
 
           {/* Orbs */}
-          <div style={{ position: "absolute", top: "20%", left: "10%", width: 120, height: 120, borderRadius: "50%", background: "radial-gradient(circle, rgba(212,175,55,.15) 0%, transparent 70%)", filter: "blur(30px)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: "20%", left: "10%", width: 120, height: 120, borderRadius: "50%", background: "radial-gradient(circle, rgba(110,59,242,.15) 0%, transparent 70%)", filter: "blur(30px)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", bottom: "10%", right: "15%", width: 100, height: 100, borderRadius: "50%", background: "radial-gradient(circle, rgba(34,197,94,.1) 0%, transparent 70%)", filter: "blur(30px)", pointerEvents: "none" }} />
 
           {/* Logo */}
           <div style={{
             width: 72, height: 72, margin: "0 auto 14px", borderRadius: "50%",
-            background: "linear-gradient(135deg, rgba(212,175,55,.2), rgba(212,175,55,.05))",
-            border: "2px solid rgba(212,175,55,.2)",
+            background: "linear-gradient(135deg, rgba(110,59,242,.2), rgba(110,59,242,.05))",
+            border: "2px solid rgba(110,59,242,.2)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <img src="/image/logo3.png" alt="Logo" style={{ height: 40, objectFit: "contain" }} />
@@ -263,7 +264,7 @@ export default function RegisterPage() {
 
           <h1 style={{
             fontSize: 20, fontWeight: 900, marginBottom: 4,
-            background: "linear-gradient(135deg, #d4af37, #f0d060, #d4af37)",
+            background: "linear-gradient(135deg, #6E3BF2, #B88BFF, #6E3BF2)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
           }}>{t("إنشاء حساب جديد", "Create Account")}</h1>
           <p style={{ color: "rgba(255,255,255,.5)", fontSize: 12, fontWeight: 500 }}>
@@ -375,19 +376,6 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Governorate */}
-            <div style={{ marginBottom: 14 }}>
-              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
-                {t("المحافظة", "Governorate")}
-              </label>
-              <select required value={form.governorate} onChange={(e) => setField("governorate", e.target.value)}
-                style={{ width: "100%", padding: "13px 14px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 14, outline: "none", transition: "0.3s", boxSizing: "border-box" }}
-                onFocus={onFocus} onBlur={onBlur}>
-                <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
-                {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
-            </div>
-
             {/* Country */}
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
@@ -407,6 +395,21 @@ export default function RegisterPage() {
                   onFocus={onFocus} onBlur={onBlur} />
               )}
             </div>
+
+            {/* Governorate (Egypt only) */}
+            {form.country === "مصر" && (
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
+                {t("المحافظة", "Governorate")}
+              </label>
+              <select required value={form.governorate} onChange={(e) => setField("governorate", e.target.value)}
+                style={{ width: "100%", padding: "13px 14px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 14, outline: "none", transition: "0.3s", boxSizing: "border-box" }}
+                onFocus={onFocus} onBlur={onBlur}>
+                <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
+                {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </div>
+            )}
 
             {/* ID Card Front */}
             <div style={{ marginBottom: 14 }}>
@@ -480,7 +483,7 @@ export default function RegisterPage() {
                 cursor: loading ? "default" : "pointer",
                 background: loading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`,
                 color: "#fff", fontSize: 15, fontWeight: 800,
-                boxShadow: loading ? "none" : `0 8px 30px rgba(212,175,55,.3)`,
+                boxShadow: loading ? "none" : `0 8px 30px rgba(110,59,242,.3)`,
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
               }}>
               {loading ? (
@@ -519,31 +522,31 @@ export default function RegisterPage() {
           background: `linear-gradient(135deg, #0a0a12 0%, #12101e 40%, #1a1428 70%, #0d0b16 100%)`,
         }}>
           {/* Background orbs */}
-          <div style={{ position: "absolute", top: "10%", left: "15%", width: 220, height: 220, borderRadius: "50%", background: "radial-gradient(circle, rgba(212,175,55,.12) 0%, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: "10%", left: "15%", width: 220, height: 220, borderRadius: "50%", background: "radial-gradient(circle, rgba(110,59,242,.12) 0%, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", bottom: "25%", right: "10%", width: 180, height: 180, borderRadius: "50%", background: "radial-gradient(circle, rgba(34,197,94,.08) 0%, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", top: "55%", left: "55%", width: 150, height: 150, borderRadius: "50%", background: "radial-gradient(circle, rgba(168,85,247,.08) 0%, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
 
           {/* Spinning rings */}
-          <div style={{ position: "absolute", width: 380, height: 380, borderRadius: "50%", border: "1px dashed rgba(212,175,55,.08)", animation: "spin 30s linear infinite" }} />
+          <div style={{ position: "absolute", width: 380, height: 380, borderRadius: "50%", border: "1px dashed rgba(110,59,242,.08)", animation: "spin 30s linear infinite" }} />
           <div style={{ position: "absolute", width: 480, height: 480, borderRadius: "50%", border: "1px dashed rgba(34,197,94,.06)", animation: "spin 40s linear infinite reverse" }} />
 
           {/* Main image */}
           <div style={{ position: "relative", zIndex: 2, animation: "regSlideLeft 0.8s ease-out" }}>
             <div style={{
               width: 350, height: 350, borderRadius: "50%",
-              background: "linear-gradient(135deg, rgba(212,175,55,.15), rgba(212,175,55,.03))",
-              border: "2px solid rgba(212,175,55,.15)",
+              background: "linear-gradient(135deg, rgba(110,59,242,.15), rgba(110,59,242,.03))",
+              border: "2px solid rgba(110,59,242,.15)",
               display: "flex", alignItems: "center", justifyContent: "center",
               animation: "regPulse 4s ease-in-out infinite",
               position: "relative",
             }}>
-              <div style={{ position: "absolute", inset: -15, borderRadius: "50%", border: "1px dashed rgba(212,175,55,.1)", animation: "spin 20s linear infinite" }} />
+              <div style={{ position: "absolute", inset: -15, borderRadius: "50%", border: "1px dashed rgba(110,59,242,.1)", animation: "spin 20s linear infinite" }} />
               <img
                 src="/image/ChatGPT_Image_Jun_15__2026__04_00_05_AM-removebg-preview.png"
                 alt="Everest Academy"
                 style={{
                   width: 290, height: 290, objectFit: "contain",
-                  filter: "drop-shadow(0 20px 50px rgba(212,175,55,.2))",
+                  filter: "drop-shadow(0 20px 50px rgba(110,59,242,.2))",
                   animation: "regFloat 5s ease-in-out infinite",
                 }}
               />
@@ -684,17 +687,6 @@ export default function RegisterPage() {
                 <span style={{ fontSize: 12, color: c.textSoft }}>{t("إظهار كلمة المرور", "Show Password")}</span>
               </label>
 
-              {/* Governorate */}
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
-                  {t("المحافظة", "Governorate")}
-                </label>
-                <select required value={form.governorate} onChange={(e) => setField("governorate", e.target.value)} style={{ ...inputStyle(c), cursor: "pointer" }} onFocus={onFocus} onBlur={onBlur}>
-                  <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
-                  {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
-              </div>
-
               {/* Country */}
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
@@ -711,6 +703,19 @@ export default function RegisterPage() {
                     style={{ ...inputStyle(c), marginTop: 8 }} onFocus={onFocus} onBlur={onBlur} />
                 )}
               </div>
+
+              {/* Governorate (Egypt only) */}
+              {form.country === "مصر" && (
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
+                  {t("المحافظة", "Governorate")}
+                </label>
+                <select required value={form.governorate} onChange={(e) => setField("governorate", e.target.value)} style={{ ...inputStyle(c), cursor: "pointer" }} onFocus={onFocus} onBlur={onBlur}>
+                  <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
+                  {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              )}
 
               {/* ID Card Front */}
               <div style={{ marginBottom: 14 }}>
@@ -782,12 +787,12 @@ export default function RegisterPage() {
                   cursor: loading ? "default" : "pointer",
                   background: loading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`,
                   color: "#fff", fontSize: 15, fontWeight: 800,
-                  boxShadow: loading ? "none" : `0 8px 30px rgba(212,175,55,.3)`,
+                  boxShadow: loading ? "none" : `0 8px 30px rgba(110,59,242,.3)`,
                   transition: "all .3s",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                 }}
-                onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(212,175,55,.45)"; } }}
-                onMouseLeave={e => { if (!loading) { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = `0 8px 30px rgba(212,175,55,.3)`; } }}
+                onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(110,59,242,.45)"; } }}
+                onMouseLeave={e => { if (!loading) { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = `0 8px 30px rgba(110,59,242,.3)`; } }}
               >
                 {loading ? (
                   <div style={{ width: 22, height: 22, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} />

@@ -92,11 +92,11 @@ export default function AppNavbar() {
             {user && <NotificationBell userId={user.id} />}
             {user && (
               <div style={{ cursor: "pointer" }} onClick={() => nav("/profile")}>
-                <div style={{ width: 34, height: 34, borderRadius: "50%", border: "2px solid #d4af37", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                <div style={{ width: 34, height: 34, borderRadius: "50%", border: "2px solid #6E3BF2", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                   {user?.avatar && user.avatar.trim() ? (
                     <img src={user.avatar} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover" }} />
                   ) : (
-                    <div style={{ width: 30, height: 30, borderRadius: "50%", background: "linear-gradient(135deg,#d4af37,#b38728)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: "50%", background: "linear-gradient(135deg,#6E3BF2,#B88BFF)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>
                       {(user?.full_name || "U")[0].toUpperCase()}
                     </div>
                   )}
@@ -143,11 +143,11 @@ export default function AppNavbar() {
           <ThemeToggle c={c} />
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => nav("/profile")}>
-              <div style={{ width: 38, height: 38, borderRadius: "50%", border: "2px solid #d4af37", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 38, height: 38, borderRadius: "50%", border: "2px solid #6E3BF2", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {user?.avatar && user.avatar.trim() ? (
                   <img src={user.avatar} alt="" style={{width:34,height:34,borderRadius:"50%",objectFit:"cover"}} />
                 ) : (
-                  <div style={{width:34,height:34,borderRadius:"50%",background:"linear-gradient(135deg,#d4af37,#b38728)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:16}}>
+                  <div style={{width:34,height:34,borderRadius:"50%",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:16}}>
                     {(user?.full_name||"U")[0].toUpperCase()}
                   </div>
                 )}
@@ -155,7 +155,7 @@ export default function AppNavbar() {
             </div>
           ) : (
             <Link to="/login" style={{
-              background: "linear-gradient(135deg,#d4af37,#b38728)",
+              background: "linear-gradient(135deg,#6E3BF2,#B88BFF)",
               color: "#fff", border: "none", borderRadius: 10,
               padding: "8px 18px", fontSize: 13, fontWeight: 700,
               textDecoration: "none"
@@ -181,17 +181,17 @@ export default function AppNavbar() {
               <Link key={item.to} to={item.to} className={active ? "active" : ""} style={{
                 display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
                 gap:2,textDecoration:"none",flex:1,height:"100%",
-                color: active ? "#d4af37" : c.textMuted,
+                color: active ? "#6E3BF2" : c.textMuted,
                 position:"relative",
               }}>
                 <span className="tab-icon"><i className={item.icon} style={{fontSize:18}}></i></span>
-                <span className="tab-label" style={{color: active ? "#d4af37" : c.textMuted}}>
+                <span className="tab-label" style={{color: active ? "#6E3BF2" : c.textMuted}}>
                   {getNavLabel(item)}
                 </span>
                 {active && (
                   <div style={{
                     position:"absolute",top:4,width:20,height:3,borderRadius:3,
-                    background:"#d4af37",
+                    background:"#6E3BF2",
                   }} />
                 )}
               </Link>

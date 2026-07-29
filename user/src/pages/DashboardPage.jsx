@@ -57,7 +57,7 @@ export default function DashboardPage() {
             </a>
           ) : isExpired && csEmail ? (
             <a href={`mailto:${csEmail}`}
-              style={{display:"inline-flex",alignItems:"center",gap:8,padding:"10px 22px",borderRadius:14,background:"linear-gradient(135deg,#d4af37,#b38728)",color:"#fff",fontWeight:700,fontSize:14,textDecoration:"none"}}>
+              style={{display:"inline-flex",alignItems:"center",gap:8,padding:"10px 22px",borderRadius:14,background:"linear-gradient(135deg,#6E3BF2,#6E3BF2)",color:"#fff",fontWeight:700,fontSize:14,textDecoration:"none"}}>
               📧 {t("تواصل مع خدمة العملاء","Contact Support")}
             </a>
           ) : null}

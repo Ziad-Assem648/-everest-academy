@@ -14,7 +14,7 @@ const useIsMobile = () => {
   return m;
 };
 
-const GOLD = "#d4af37";
+const GOLD = "#6E3BF2";
 const medals = { 1: "🥇", 2: "🥈", 3: "🥉" };
 const podiumOrder = [2, 1, 3];
 const podiumHeights = { 1: 240, 2: 190, 3: 160 };
@@ -61,7 +61,7 @@ function RankRow({ s, i, t, c, m, onClick }) {
   const g = gradeBadge(s.avg_score);
   const posColor = i === 0 ? "#fbbf24" : i === 1 ? "#94a3b8" : i === 2 ? "#d97706" : c.textMuted;
   return (
-    <div onClick={() => onClick?.(s)} style={{ cursor: "pointer", display: "grid", gridTemplateColumns: m ? "40px 1fr auto" : "50px 1fr 140px 140px 90px 80px", alignItems: "center", padding: m ? "10px 12px" : "12px 16px", borderBottom: `1px solid ${c.border}`, background: i < 3 ? "rgba(212,175,55,0.03)" : "transparent", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(212,175,55,0.08)"} onMouseLeave={e => e.currentTarget.style.background = i < 3 ? "rgba(212,175,55,0.03)" : "transparent"}>
+    <div onClick={() => onClick?.(s)} style={{ cursor: "pointer", display: "grid", gridTemplateColumns: m ? "40px 1fr auto" : "50px 1fr 140px 140px 90px 80px", alignItems: "center", padding: m ? "10px 12px" : "12px 16px", borderBottom: `1px solid ${c.border}`, background: i < 3 ? "rgba(110,59,242,0.03)" : "transparent", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(110,59,242,0.08)"} onMouseLeave={e => e.currentTarget.style.background = i < 3 ? "rgba(110,59,242,0.03)" : "transparent"}>
       <span style={{ fontWeight: 800, fontSize: i < 3 ? (m ? 14 : 16) : (m ? 11 : 12), color: posColor, textAlign: "center" }}>{i < 3 ? medals[i + 1] : `#${i + 1}`}</span>
       <div style={{ display: "flex", alignItems: "center", gap: m ? 8 : 10, minWidth: 0 }}>
         <div style={{ width: m ? 30 : 36, height: m ? 30 : 36, borderRadius: "50%", flexShrink: 0, background: sc + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: m ? 10 : 12, fontWeight: 700, color: sc }}>
@@ -115,15 +115,15 @@ export default function TopSallerPage() {
     <div style={{ minHeight: "100vh", background: c.bg, direction: dir, position: "relative", overflow: "hidden", fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}>
       <AppNavbar />
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 800, height: 800, borderRadius: "50%", background: "linear-gradient(180deg, rgba(212,175,55,0.04), transparent)", filter: "blur(60px)" }} />
+        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 800, height: 800, borderRadius: "50%", background: "linear-gradient(180deg, rgba(110,59,242,0.04), transparent)", filter: "blur(60px)" }} />
       </div>
       <div style={{ position: "relative", zIndex: 10, maxWidth: 1100, margin: "0 auto", padding: m ? "80px 14px 40px" : "110px 20px 60px" }}>
         <div style={{ textAlign: "center", marginBottom: m ? 20 : 40, animation: "fadeInUp 0.6s ease" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: m ? "4px 14px" : "6px 18px", borderRadius: 30, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.15)", color: GOLD, fontSize: m ? 10 : 12, fontWeight: 800, marginBottom: m ? 10 : 16 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: m ? "4px 14px" : "6px 18px", borderRadius: 30, background: "rgba(110,59,242,0.08)", border: "1px solid rgba(110,59,242,0.15)", color: GOLD, fontSize: m ? 10 : 12, fontWeight: 800, marginBottom: m ? 10 : 16 }}>
             ⭐ {t("أفضل الدرجات", "TOP SCORERS")}
           </div>
           <h1 style={{ fontSize: m ? 24 : 42, fontWeight: 900, marginBottom: m ? 6 : 10, lineHeight: 1.2 }}>
-            <span style={{ background: "linear-gradient(to left, #d4af37, #f0d060, #d4af37)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            <span style={{ background: "linear-gradient(to left, #6E3BF2, #B88BFF, #6E3BF2)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               {t("لوحة الشرف", "HALL OF FAME")}
             </span>
           </h1>
@@ -135,7 +135,7 @@ export default function TopSallerPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: m ? 16 : 28, flexWrap: "wrap", gap: m ? 8 : 12, animation: "fadeInUp 0.6s ease 0.2s both" }}>
           <div style={{ display: "flex", gap: m ? 6 : 8 }}>
             {[["podium", t("المنصة", "Podium"), "🏆"], ["all", t("القائمة الكاملة", "Full List"), "📋"]].map(([id, label, icon]) => (
-              <button key={id} onClick={() => setActiveTab(id)} style={{ padding: m ? "6px 14px" : "8px 20px", borderRadius: 12, fontSize: m ? 11 : 13, fontWeight: 700, cursor: "pointer", transition: "0.2s", background: activeTab === id ? "rgba(212,175,55,0.12)" : c.bgCard, border: `1px solid ${activeTab === id ? "rgba(212,175,55,0.3)" : c.border}`, color: activeTab === id ? GOLD : c.textMuted }}>
+              <button key={id} onClick={() => setActiveTab(id)} style={{ padding: m ? "6px 14px" : "8px 20px", borderRadius: 12, fontSize: m ? 11 : 13, fontWeight: 700, cursor: "pointer", transition: "0.2s", background: activeTab === id ? "rgba(110,59,242,0.12)" : c.bgCard, border: `1px solid ${activeTab === id ? "rgba(110,59,242,0.3)" : c.border}`, color: activeTab === id ? GOLD : c.textMuted }}>
                 {icon} {label}
               </button>
             ))}

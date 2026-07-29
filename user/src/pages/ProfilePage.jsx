@@ -95,7 +95,7 @@ export default function ProfilePage() {
   const teamSales = rp.totalTeamSales || p.total_team_sales || p.direct_count || 0;
 
   const [now, setNow] = useState(Date.now());
-  const gold = "#d4af37";
+  const gold = "#6E3BF2";
   useEffect(() => { const id = setInterval(() => setNow(Date.now()), 60000); return () => clearInterval(id); }, []);
 
   const membershipExpires = p.membership_expires_at ? new Date(p.membership_expires_at.replace(" ", "T") + "Z") : null;
@@ -138,7 +138,7 @@ export default function ProfilePage() {
               <span className="membership-label"> {isExpired ? t("العضوية منتهية", "Membership Expired") : t("العضوية نشطة", "Membership Active")} </span>
               <h2 id="countdown">{isExpired ? t("منتهية", "Expired") : `${remainingDays} ${t("يوم متبقي", "Days Remaining")}`}</h2>
               {showRenewButton && remainingDays > 0 && (
-                <p style={{fontSize:13,color:"#d4af37",marginTop:8}}>⚠️ {t(`باقي ${remainingDays} أيام على انتهاء العضوية.`, `${remainingDays} days until membership expires.`)}</p>
+                <p style={{fontSize:13,color:"#6E3BF2",marginTop:8}}>⚠️ {t(`باقي ${remainingDays} أيام على انتهاء العضوية.`, `${remainingDays} days until membership expires.`)}</p>
               )}
               {isExpired && (
                 <p style={{fontSize:13,color:"#ef4444",marginTop:8}}>🚫 {t("العضوية منتهية. تواصل مع خدمة العملاء لتجديد العضوية.", "Membership expired. Contact customer service to renew.")}</p>
@@ -154,7 +154,7 @@ export default function ProfilePage() {
             )}
             {isExpired && !csWhatsapp && csEmail && (
               <a href={`mailto:${csEmail}`}
-                style={{display:"inline-flex",alignItems:"center",gap:8,padding:"10px 22px",borderRadius:14,background:"linear-gradient(135deg,#d4af37,#b38728)",color:"#fff",fontWeight:700,fontSize:14,textDecoration:"none",transition:".3s",boxShadow:"0 4px 15px rgba(212,175,55,.3)"}}
+                style={{display:"inline-flex",alignItems:"center",gap:8,padding:"10px 22px",borderRadius:14,background:"linear-gradient(135deg,#6E3BF2,#6E3BF2)",color:"#fff",fontWeight:700,fontSize:14,textDecoration:"none",transition:".3s",boxShadow:"0 4px 15px rgba(110,59,242,.3)"}}
                 onMouseEnter={e => e.currentTarget.style.transform="translateY(-2px)"}
                 onMouseLeave={e => e.currentTarget.style.transform="none"}>
                 📧 {t("تواصل مع خدمة العملاء", "Contact Customer Service")}
@@ -169,8 +169,8 @@ export default function ProfilePage() {
         {/* Profile Card (avatar, info, stats) */}
         <div className="profile-card" style={{marginTop:10}}>
           <div className="profile-avatar" style={{textAlign:"center"}}>
-            <div style={{width:160,height:160,borderRadius:"50%",background:"#eee",border:"4px solid #d4af37",display:"flex",alignItems:"center",justifyContent:"center",fontSize:60,fontWeight:700,color:c.textMuted,overflow:"hidden",margin:"0 auto"}}>
-              {p?.avatar && p.avatar.trim() ? <img src={p.avatar} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} /> : <span style={{fontSize:56,fontWeight:800,color:"#d4af37",lineHeight:1}}>{(p?.full_name || "U")[0].toUpperCase()}</span>}
+            <div style={{width:160,height:160,borderRadius:"50%",background:"#eee",border:"4px solid #6E3BF2",display:"flex",alignItems:"center",justifyContent:"center",fontSize:60,fontWeight:700,color:c.textMuted,overflow:"hidden",margin:"0 auto"}}>
+              {p?.avatar && p.avatar.trim() ? <img src={p.avatar} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} /> : <span style={{fontSize:56,fontWeight:800,color:"#6E3BF2",lineHeight:1}}>{(p?.full_name || "U")[0].toUpperCase()}</span>}
             </div>
             <label style={{display:"inline-flex",alignItems:"center",gap:6,marginTop:12,padding:"8px 18px",background:c.bgInput,border:`1px solid ${c.borderLight}`,borderRadius:20,fontSize:13,fontWeight:600,color:c.text,cursor:"pointer",transition:".25s"}}>
               📸 {uploading ? t("جاري الرفع...", "Uploading...") : t("تغيير الصورة", "Change Photo")}
@@ -193,7 +193,7 @@ export default function ProfilePage() {
                     color: c.text, fontSize:13, fontWeight:600, cursor:"pointer",
                     display:"flex", alignItems:"center", gap:6, transition:"0.25s"
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = "#d4af37"; e.currentTarget.style.background = "rgba(212,175,55,0.1)"; }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "#6E3BF2"; e.currentTarget.style.background = "rgba(110,59,242,0.1)"; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = c.borderLight; e.currentTarget.style.background = c.bgInput; }}>
                   <span style={{fontSize:14}}>{lang === "ar" ? "🇺🇸" : "🇸🇦"}</span>
                   {lang === "ar" ? "English" : "العربية"}
@@ -278,10 +278,10 @@ export default function ProfilePage() {
                 <span style={{fontWeight:700,color:c.text}}>{Math.round(progressPct)}%</span>
               </div>
               <div style={{width:"100%",height:8,borderRadius:99,background:c.bgInput,overflow:"hidden"}}>
-                <div style={{width:Math.min(progressPct,100)+"%",height:"100%",borderRadius:99,background:"linear-gradient(90deg,#d4af37,#f0d78c)",transition:"width .8s ease"}}></div>
+                <div style={{width:Math.min(progressPct,100)+"%",height:"100%",borderRadius:99,background:"linear-gradient(90deg,#6E3BF2,#f0d78c)",transition:"width .8s ease"}}></div>
               </div>
             </div>
-            <button onClick={() => nav("/affiliate")} style={{width:"100%",marginTop:14,padding:"12px 0",borderRadius:12,background:"linear-gradient(135deg,#d4af37,#b8922a)",color:"#0a0a1a",border:"none",fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            <button onClick={() => nav("/affiliate")} style={{width:"100%",marginTop:14,padding:"12px 0",borderRadius:12,background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",color:"#FFFFFF",border:"none",fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
               🔗 {t("شبكة الإحالة", "Referral Network")}
             </button>
           </div>

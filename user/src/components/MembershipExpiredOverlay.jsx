@@ -78,7 +78,7 @@ export default function MembershipExpiredOverlay() {
           <Link to="/profile" className="mem-btn" style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
             padding: "14px 20px", borderRadius: 16, textDecoration: "none",
-            background: "linear-gradient(135deg, #d4af37, #f5d76e)",
+            background: "linear-gradient(135deg, #6E3BF2, #B88BFF)",
             color: "#111", fontWeight: 800, fontSize: "1rem"
           }}>
             👤 {t("اذهب إلى البروفايل", "Go to Profile")}

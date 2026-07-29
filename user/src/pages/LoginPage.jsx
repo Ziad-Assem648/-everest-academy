@@ -19,7 +19,7 @@ const keyframes = `
 @keyframes loginFadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
 @keyframes loginSlideLeft { from { opacity:0; transform:translateX(-40px); } to { opacity:1; transform:translateX(0); } }
 @keyframes loginSlideRight { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
-@keyframes loginPulse { 0%,100%{box-shadow:0 0 0 0 rgba(212,175,55,0.3)} 50%{box-shadow:0 0 30px 10px rgba(212,175,55,0.15)} }
+@keyframes loginPulse { 0%,100%{box-shadow:0 0 0 0 rgba(110,59,242,0.3)} 50%{box-shadow:0 0 30px 10px rgba(110,59,242,0.15)} }
 @keyframes loginFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
 `;
 
@@ -81,7 +81,7 @@ export default function LoginPage() {
     setLoading(false);
   };
 
-  const gold = "#d4af37";
+  const gold = "#6E3BF2";
 
   const handleForgotRequestOTP = async () => {
     if (!forgotEmail.trim()) { setForgotErr(t("أدخل بريدك الإلكتروني", "Enter your email")); return; }
@@ -200,14 +200,14 @@ export default function LoginPage() {
           </Link>
 
           {/* Orb decorations */}
-          <div style={{ position: "absolute", top: "20%", left: "10%", width: 120, height: 120, borderRadius: "50%", background: "radial-gradient(circle, rgba(212,175,55,.15) 0%, transparent 70%)", filter: "blur(30px)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: "20%", left: "10%", width: 120, height: 120, borderRadius: "50%", background: "radial-gradient(circle, rgba(110,59,242,.15) 0%, transparent 70%)", filter: "blur(30px)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", bottom: "10%", right: "15%", width: 100, height: 100, borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,.1) 0%, transparent 70%)", filter: "blur(30px)", pointerEvents: "none" }} />
 
           {/* Logo */}
           <div style={{
             width: 80, height: 80, margin: "0 auto 16px", borderRadius: "50%",
-            background: "linear-gradient(135deg, rgba(212,175,55,.2), rgba(212,175,55,.05))",
-            border: "2px solid rgba(212,175,55,.2)",
+            background: "linear-gradient(135deg, rgba(110,59,242,.2), rgba(110,59,242,.05))",
+            border: "2px solid rgba(110,59,242,.2)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <img src="/image/logo3.png" alt="Logo" style={{ height: 44, objectFit: "contain" }} />
@@ -215,7 +215,7 @@ export default function LoginPage() {
 
           <h1 style={{
             fontSize: 22, fontWeight: 900, marginBottom: 6,
-            background: "linear-gradient(135deg, #d4af37, #f0d060, #d4af37)",
+            background: "linear-gradient(135deg, #6E3BF2, #B88BFF, #6E3BF2)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
           }}>Everest Academy</h1>
           <p style={{ color: "rgba(255,255,255,.5)", fontSize: 13, fontWeight: 500 }}>
@@ -332,7 +332,7 @@ export default function LoginPage() {
                 cursor: loading ? "default" : "pointer",
                 background: loading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`,
                 color: "#fff", fontSize: 16, fontWeight: 800,
-                boxShadow: loading ? "none" : `0 8px 30px rgba(212,175,55,.3)`,
+                boxShadow: loading ? "none" : `0 8px 30px rgba(110,59,242,.3)`,
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
               }}
             >
@@ -373,14 +373,14 @@ export default function LoginPage() {
           background: `linear-gradient(135deg, #0a0a12 0%, #12101e 40%, #1a1428 70%, #0d0b16 100%)`,
         }}>
           {/* Background orbs */}
-          <div style={{ position: "absolute", top: "15%", left: "10%", width: 250, height: 250, borderRadius: "50%", background: "radial-gradient(circle, rgba(212,175,55,.12) 0%, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: "15%", left: "10%", width: 250, height: 250, borderRadius: "50%", background: "radial-gradient(circle, rgba(110,59,242,.12) 0%, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", bottom: "20%", right: "15%", width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(73,94,233,.1) 0%, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", top: "50%", left: "60%", width: 150, height: 150, borderRadius: "50%", background: "radial-gradient(circle, rgba(168,85,247,.08) 0%, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
 
           {/* Spinning decorative ring */}
           <div style={{
             position: "absolute", width: 400, height: 400, borderRadius: "50%",
-            border: "1px dashed rgba(212,175,55,.08)",
+            border: "1px dashed rgba(110,59,242,.08)",
             animation: "spin 30s linear infinite",
           }} />
           <div style={{
@@ -395,15 +395,15 @@ export default function LoginPage() {
           }}>
             <div style={{
               width: 380, height: 380, borderRadius: "50%",
-              background: "linear-gradient(135deg, rgba(212,175,55,.15), rgba(212,175,55,.03))",
-              border: "2px solid rgba(212,175,55,.15)",
+              background: "linear-gradient(135deg, rgba(110,59,242,.15), rgba(110,59,242,.03))",
+              border: "2px solid rgba(110,59,242,.15)",
               display: "flex", alignItems: "center", justifyContent: "center",
               animation: "loginPulse 4s ease-in-out infinite",
               position: "relative",
             }}>
               <div style={{
                 position: "absolute", inset: -15, borderRadius: "50%",
-                border: "1px dashed rgba(212,175,55,.1)",
+                border: "1px dashed rgba(110,59,242,.1)",
                 animation: "spin 20s linear infinite",
               }} />
               <img
@@ -411,7 +411,7 @@ export default function LoginPage() {
                 alt="Everest Academy"
                 style={{
                   width: 320, height: 320, objectFit: "contain",
-                  filter: "drop-shadow(0 20px 50px rgba(212,175,55,.2))",
+                  filter: "drop-shadow(0 20px 50px rgba(110,59,242,.2))",
                   animation: "loginFloat 5s ease-in-out infinite",
                 }}
               />
@@ -589,12 +589,12 @@ export default function LoginPage() {
                   width: "100%", height: 54, borderRadius: 14, border: "none", cursor: loading ? "default" : "pointer",
                   background: loading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`,
                   color: "#fff", fontSize: 16, fontWeight: 800,
-                  boxShadow: loading ? "none" : `0 8px 30px rgba(212,175,55,.3)`,
+                  boxShadow: loading ? "none" : `0 8px 30px rgba(110,59,242,.3)`,
                   transition: "all .3s",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                 }}
-                onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(212,175,55,.45)"; } }}
-                onMouseLeave={e => { if (!loading) { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = `0 8px 30px rgba(212,175,55,.3)`; } }}
+                onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(110,59,242,.45)"; } }}
+                onMouseLeave={e => { if (!loading) { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = `0 8px 30px rgba(110,59,242,.3)`; } }}
               >
                 {loading ? (
                   <div style={{ width: 22, height: 22, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} />

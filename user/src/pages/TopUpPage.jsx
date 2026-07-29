@@ -52,7 +52,7 @@ export default function TopUpPage() {
         <p style={{fontSize:60,marginBottom:16}}>✅</p>
         <h2 style={{marginBottom:8}}>{t("تم إرسال طلب الشحن", "Top-up request sent")}</h2>
         <p style={{color:c.textSoft,marginBottom:20}}>{t("في انتظار موافقة الادمن. سيتم إضافة الرصيد بعد التأكد من الدفع.", "Awaiting admin approval. Balance will be added after payment confirmation.")}</p>
-        <Link to="/dashboard" style={{padding:"12px 24px",background:"#111",borderRadius:12,color:"#d4af37",fontWeight:700,textDecoration:"none",display:"inline-block"}}>{t("العودة للوحة التحكم", "Back to Dashboard")}</Link>
+        <Link to="/dashboard" style={{padding:"12px 24px",background:"#111",borderRadius:12,color:"#6E3BF2",fontWeight:700,textDecoration:"none",display:"inline-block"}}>{t("العودة للوحة التحكم", "Back to Dashboard")}</Link>
       </div>
     </div>
   );
@@ -88,7 +88,7 @@ export default function TopUpPage() {
               {file && <p style={{fontSize:12,color:c.textSoft,marginTop:4}}>{file.name}</p>}
             </div>
             <div style={{textAlign:"center",marginTop:20}}>
-              <button type="submit" disabled={loading} style={{padding:"12px 40px",background:"#111",color:"#d4af37",border:"none",borderRadius:14,fontWeight:700,cursor:"pointer",fontSize:15}}>{loading ? t("جاري الإرسال...", "Sending...") : t("إرسال طلب الشحن", "Send Top-up Request")}</button>
+              <button type="submit" disabled={loading} style={{padding:"12px 40px",background:"#111",color:"#6E3BF2",border:"none",borderRadius:14,fontWeight:700,cursor:"pointer",fontSize:15}}>{loading ? t("جاري الإرسال...", "Sending...") : t("إرسال طلب الشحن", "Send Top-up Request")}</button>
             </div>
           </form>
         </div>

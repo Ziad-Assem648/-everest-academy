@@ -125,11 +125,11 @@ export default function HomePage() {
       </section>
 
       {/* Leaders */}
-      <section style={{ position:"relative",overflow:"hidden",padding:m?"60px 16px 50px":"100px 5% 80px",background: c.sectionBg === "#0d0d14" || c.sectionBg === "#0b0b0f" ? "linear-gradient(180deg,#06060f 0%,#0c0c1d 40%,#111128 70%,#0a0a18 100%)" : "linear-gradient(180deg,#f8f6f0 0%,#f0ece2 40%,#e8e2d6 70%,#f5f1ea 100%)",color:c.text }}>
+      <section style={{ position:"relative",overflow:"hidden",padding:m?"60px 16px 50px":"100px 5% 80px",background: c.sectionBg === "#0d0d14" || c.sectionBg === "#0b0b0f" ? "linear-gradient(180deg,#06060f 0%,#130B1F 40%,#111128 70%,#0a0a18 100%)" : "linear-gradient(180deg,#f8f6f0 0%,#f0ece2 40%,#e8e2d6 70%,#f5f1ea 100%)",color:c.text }}>
         {/* BG decorations */}
-        <div style={{ position:"absolute",top:"-120px",right:"-80px",width:400,height:400,borderRadius:"50%",background: c.sectionBg === "#0d0d14" || c.sectionBg === "#0b0b0f" ? "radial-gradient(circle,rgba(212,175,55,.08) 0%,transparent 70%)" : "radial-gradient(circle,rgba(212,175,55,.12) 0%,transparent 70%)",filter:"blur(40px)",pointerEvents:"none" }}></div>
+        <div style={{ position:"absolute",top:"-120px",right:"-80px",width:400,height:400,borderRadius:"50%",background: c.sectionBg === "#0d0d14" || c.sectionBg === "#0b0b0f" ? "radial-gradient(circle,rgba(110,59,242,.08) 0%,transparent 70%)" : "radial-gradient(circle,rgba(110,59,242,.12) 0%,transparent 70%)",filter:"blur(40px)",pointerEvents:"none" }}></div>
         <div style={{ position:"absolute",bottom:"-100px",left:"-60px",width:350,height:350,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,.06) 0%,transparent 70%)",filter:"blur(40px)",pointerEvents:"none" }}></div>
-        <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(212,175,55,.03) 0%,transparent 60%)",filter:"blur(60px)",pointerEvents:"none" }}></div>
+        <div style={{ position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(110,59,242,.03) 0%,transparent 60%)",filter:"blur(60px)",pointerEvents:"none" }}></div>
 
         {/* Theme-dependent colors */}
         {(() => {
@@ -140,7 +140,7 @@ export default function HomePage() {
           const hcardBg = isDark ? "rgba(255,255,255,.03)" : "rgba(0,0,0,.04)";
           const hcardBorder = isDark ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.08)";
           const hcardHoverBg = isDark ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.07)";
-          const hcardHoverBorder = isDark ? "rgba(212,175,55,.15)" : "rgba(212,175,55,.25)";
+          const hcardHoverBorder = isDark ? "rgba(110,59,242,.15)" : "rgba(110,59,242,.25)";
           const havatarBorder = isDark ? "rgba(255,255,255,.1)" : "rgba(0,0,0,.1)";
           const hnumBg = isDark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.08)";
           const hnumBorder = isDark ? "rgba(255,255,255,.12)" : "rgba(0,0,0,.12)";
@@ -150,8 +150,8 @@ export default function HomePage() {
           const podiumSilverBorder = isDark ? "rgba(192,192,192,.1)" : "rgba(150,150,150,.12)";
           const podiumBronze = isDark ? "rgba(205,127,50,.1)" : "rgba(160,82,45,.08)";
           const podiumBronzeBorder = isDark ? "rgba(205,127,50,.1)" : "rgba(160,82,45,.1)";
-          const podiumGold = isDark ? "rgba(212,175,55,.15)" : "rgba(212,175,55,.1)";
-          const podiumGoldBorder = isDark ? "rgba(212,175,55,.15)" : "rgba(212,175,55,.2)";
+          const podiumGold = isDark ? "rgba(110,59,242,.15)" : "rgba(110,59,242,.1)";
+          const podiumGoldBorder = isDark ? "rgba(110,59,242,.15)" : "rgba(110,59,242,.2)";
           const rankBadgeBg = isDark ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.06)";
           const rankBadgeColor = isDark ? "rgba(255,255,255,.5)" : "rgba(0,0,0,.5)";
           const silverText = isDark ? "#c0c0c0" : "#888";
@@ -160,12 +160,12 @@ export default function HomePage() {
             <div style={{ position:"relative",zIndex:2,maxWidth:1100,margin:"auto" }}>
               {/* Header */}
               <div style={{ textAlign:"center",marginBottom:m?36:56 }}>
-                <div style={{ display:"inline-flex",alignItems:"center",gap:8,padding:"8px 20px",borderRadius:999,background:"rgba(212,175,55,.06)",border:"1px solid rgba(212,175,55,.15)",marginBottom:m?14:20 }}>
-                  <span style={{ fontSize:m?12:14,letterSpacing:3,color:"#d4af37",fontWeight:700 }}>{t("أفضل المنجزين","TOP ACHIEVERS")}</span>
+                <div style={{ display:"inline-flex",alignItems:"center",gap:8,padding:"8px 20px",borderRadius:999,background:"rgba(110,59,242,.06)",border:"1px solid rgba(110,59,242,.15)",marginBottom:m?14:20 }}>
+                  <span style={{ fontSize:m?12:14,letterSpacing:3,color:"#6E3BF2",fontWeight:700 }}>{t("أفضل المنجزين","TOP ACHIEVERS")}</span>
                 </div>
                 <h2 style={{ fontSize:m?"1.7rem":"clamp(2rem,4.5vw,3.5rem)",fontWeight:900,margin:"0 0 12px",lineHeight:1.15 }}>
                   <span style={{ color:hc }}>{t("قادتنا","Our")}</span>{" "}
-                  <span style={{ background:"linear-gradient(135deg,#d4af37,#f5d98a,#d4af37)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text" }}>{t("المتميزون","Leaders")}</span>
+                  <span style={{ background:"linear-gradient(135deg,#6E3BF2,#B88BFF,#6E3BF2)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text" }}>{t("المتميزون","Leaders")}</span>
                 </h2>
                 <p style={{ color:hcMuted,fontSize:m?13:16,maxWidth:480,margin:"auto",lineHeight:1.7 }}>{t("نكرم الأعضاء الذين حققوا إنجازات استثنائية وقادوا فرقهم نحو النجاح.","Recognizing members who achieved exceptional milestones and led their teams to success.")}</p>
               </div>
@@ -200,21 +200,21 @@ export default function HomePage() {
 
                       {/* 1st place (center) */}
                       <div style={{ flex:"0 0 auto",textAlign:"center",order:m?0:-1,animation:"leaderFloat 3s ease-in-out infinite",animationDelay:"0s",marginTop:m?0:-20 }}>
-                        <div style={{ fontSize:m?24:36,marginBottom:-6,filter:"drop-shadow(0 4px 12px rgba(212,175,55,.4))" }}>👑</div>
+                        <div style={{ fontSize:m?24:36,marginBottom:-6,filter:"drop-shadow(0 4px 12px rgba(110,59,242,.4))" }}>👑</div>
                         <div style={{ position:"relative",width:m?110:160,height:m?110:160,margin:"0 auto 12px" }}>
-                          <div style={{ position:"absolute",inset:-6,borderRadius:"50%",background:"linear-gradient(135deg,#d4af37,#f5d98a,#d4af37,#b8922a)",padding:4,animation:"leaderGlow 2s ease-in-out infinite" }}>
+                          <div style={{ position:"absolute",inset:-6,borderRadius:"50%",background:"linear-gradient(135deg,#6E3BF2,#B88BFF,#6E3BF2,#6E3BF2)",padding:4,animation:"leaderGlow 2s ease-in-out infinite" }}>
                             <div style={{ width:"100%",height:"100%",borderRadius:"50%",overflow:"hidden",background:podiumBg,display:"flex",alignItems:"center",justifyContent:"center" }}>
                               {leaders[0].avatar?.trim() ? (
                                 <img src={leaders[0].avatar} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }} />
                               ) : (
-                                <span style={{ fontSize:m?36:52,fontWeight:900,color:"#d4af37" }}>{(leaders[0].name||"U")[0]}</span>
+                                <span style={{ fontSize:m?36:52,fontWeight:900,color:"#6E3BF2" }}>{(leaders[0].name||"U")[0]}</span>
                               )}
                             </div>
                           </div>
-                          <div style={{ position:"absolute",bottom:-6,left:"50%",transform:"translateX(-50%)",width:32,height:32,borderRadius:"50%",background:"linear-gradient(135deg,#d4af37,#f5d98a)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:"#0a0a18",border:"3px solid #0c0c1d",boxShadow:"0 0 16px rgba(212,175,55,.4)" }}>1</div>
+                          <div style={{ position:"absolute",bottom:-6,left:"50%",transform:"translateX(-50%)",width:32,height:32,borderRadius:"50%",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:"#0a0a18",border:"3px solid #130B1F",boxShadow:"0 0 16px rgba(110,59,242,.4)" }}>1</div>
                         </div>
                         <h4 style={{ fontSize:m?14:17,fontWeight:800,color:hc,margin:"14px 0 4px",maxWidth:150,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{leaders[0].name}</h4>
-                        <span style={{ fontSize:m?11:13,color:"#d4af37",fontWeight:700,letterSpacing:1 }}>{leaders[0].icon || "🏆"} {leaders[0].rank}</span>
+                        <span style={{ fontSize:m?11:13,color:"#6E3BF2",fontWeight:700,letterSpacing:1 }}>{leaders[0].icon || "🏆"} {leaders[0].rank}</span>
                         <div style={{ width:m?100:130,height:m?60:85,margin:"10px auto 0",borderRadius:"12px 12px 0 0",background:podiumGold,border:`1px solid ${podiumGoldBorder}`,borderBottom:"none" }}></div>
                       </div>
 
@@ -272,7 +272,7 @@ export default function HomePage() {
 
         <style>{`
           @keyframes leaderFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-          @keyframes leaderGlow{0%,100%{box-shadow:0 0 20px rgba(212,175,55,.3)}50%{box-shadow:0 0 40px rgba(212,175,55,.6),0 0 80px rgba(212,175,55,.2)}}
+          @keyframes leaderGlow{0%,100%{box-shadow:0 0 20px rgba(110,59,242,.3)}50%{box-shadow:0 0 40px rgba(110,59,242,.6),0 0 80px rgba(110,59,242,.2)}}
         `}</style>
       </section>
 
@@ -373,10 +373,10 @@ export default function HomePage() {
                 {modal.review_count > 0 && <span style={{padding:"5px 14px",background:"rgba(245,158,11,.08)",borderRadius:999,fontSize:12,fontWeight:600,color:"#f59e0b"}}>⭐ {modal.avg_rating} ({modal.review_count})</span>}
               </div>
               <div style={{display:"flex",flexWrap:"wrap",gap:10,marginBottom:20}}>
-                {modal.price > 0 && <span style={{fontWeight:800,fontSize:16,color:"#d4af37"}}>{modal.price} E-Money</span>}
+                {modal.price > 0 && <span style={{fontWeight:800,fontSize:16,color:"#6E3BF2"}}>{modal.price} E-Money</span>}
                 
               </div>
-              <Link to={`/courses/${modal.id}`} style={{display:"inline-flex",alignItems:"center",gap:8,padding:"14px 32px",background:"linear-gradient(135deg,#d4af37,#b8922a)",color:"#0a0a1a",fontWeight:800,fontSize:15,borderRadius:14,textDecoration:"none",transition:"0.3s"}}>
+              <Link to={`/courses/${modal.id}`} style={{display:"inline-flex",alignItems:"center",gap:8,padding:"14px 32px",background:"linear-gradient(135deg,#6E3BF2,#6E3BF2)",color:"#FFFFFF",fontWeight:800,fontSize:15,borderRadius:14,textDecoration:"none",transition:"0.3s"}}>
                 {t("اشترك الآن","Enroll Now")}
               </Link>
             </div>

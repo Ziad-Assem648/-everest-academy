@@ -94,7 +94,7 @@ export default function QuizModal({ quiz, onClose, onPassed }) {
               <div style={{ color: c.textMuted, fontSize: 12 }}>{t("خاطئة", "Wrong")}</div>
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 32, fontWeight: 800, color: "#d4af37" }}>{result.marks}%</div>
+              <div style={{ fontSize: 32, fontWeight: 800, color: "#6E3BF2" }}>{result.marks}%</div>
               <div style={{ color: c.textMuted, fontSize: 12 }}>{t("النتيجة", "Score")}</div>
             </div>
           </div>
@@ -104,13 +104,13 @@ export default function QuizModal({ quiz, onClose, onPassed }) {
           <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
             {passed ? (
               <button onClick={() => { onPassed(); onClose(); }}
-                style={{ padding: "14px 40px", background: "linear-gradient(135deg,#b38728,#e2c275)", border: "none", borderRadius: 14, color: "#05030a", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+                style={{ padding: "14px 40px", background: "linear-gradient(135deg,#6E3BF2,#B88BFF)", border: "none", borderRadius: 14, color: "#FFFFFF", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
                 {t("متابعة", "Continue")}
               </button>
             ) : (
               <>
                 <button onClick={() => { setResult(null); setCurrent(0); setAnswers({}); }}
-                  style={{ padding: "14px 32px", background: "linear-gradient(135deg,#b38728,#e2c275)", border: "none", borderRadius: 14, color: "#05030a", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+                  style={{ padding: "14px 32px", background: "linear-gradient(135deg,#6E3BF2,#B88BFF)", border: "none", borderRadius: 14, color: "#FFFFFF", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
                   {t("إعادة المحاولة", "Retry")}
                 </button>
                 <button onClick={onClose}
@@ -144,7 +144,7 @@ export default function QuizModal({ quiz, onClose, onPassed }) {
           </div>
           {/* Progress */}
           <div style={{ height: 4, background: c.borderLight, borderRadius: 4 }}>
-            <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(135deg,#b38728,#e2c275)", borderRadius: 4, transition: "width .3s" }} />
+            <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(135deg,#6E3BF2,#B88BFF)", borderRadius: 4, transition: "width .3s" }} />
           </div>
         </div>
 
@@ -193,15 +193,15 @@ export default function QuizModal({ quiz, onClose, onPassed }) {
                       style={{
                         display: "flex", alignItems: "center", gap: 12,
                         padding: "14px 16px", borderRadius: 14, cursor: "pointer",
-                        border: `2px solid ${selected ? "#d4af37" : c.borderLight}`,
-                        background: selected ? "rgba(212,175,55,.08)" : "transparent",
+                        border: `2px solid ${selected ? "#6E3BF2" : c.borderLight}`,
+                        background: selected ? "rgba(110,59,242,.08)" : "transparent",
                         color: c.text, fontSize: 14, textAlign: "right", transition: "all .2s"
                       }}>
                       <span style={{
                         display: "flex", alignItems: "center", justifyContent: "center",
                         width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
-                        background: selected ? "#d4af37" : c.border,
-                        color: selected ? "#05030a" : c.textMuted,
+                        background: selected ? "#6E3BF2" : c.border,
+                        color: selected ? "#FFFFFF" : c.textMuted,
                         fontWeight: 700, fontSize: 13, transition: "all .2s"
                       }}>{String.fromCharCode(65 + i)}</span>
                       {opt}
@@ -220,8 +220,8 @@ export default function QuizModal({ quiz, onClose, onPassed }) {
             {questions.map((_, i) => (
               <div key={i} onClick={() => setCurrent(i)} style={{
                 width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-                background: i === current ? "#d4af37" : answers[i] !== undefined ? "#22c55e" : c.border,
-                color: i === current ? "#05030a" : answers[i] !== undefined ? "#fff" : c.textMuted,
+                background: i === current ? "#6E3BF2" : answers[i] !== undefined ? "#22c55e" : c.border,
+                color: i === current ? "#FFFFFF" : answers[i] !== undefined ? "#fff" : c.textMuted,
                 fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all .2s"
               }}>{i + 1}</div>
             ))}
@@ -235,15 +235,15 @@ export default function QuizModal({ quiz, onClose, onPassed }) {
             )}
             {current < questions.length - 1 ? (
               <button onClick={() => setCurrent(current + 1)}
-                style={{ padding: "10px 22px", background: "linear-gradient(135deg,#b38728,#e2c275)", border: "none", borderRadius: 12, color: "#05030a", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: "10px 22px", background: "linear-gradient(135deg,#6E3BF2,#B88BFF)", border: "none", borderRadius: 12, color: "#FFFFFF", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
                 {t("التالي", "Next")}
               </button>
             ) : (
               <button onClick={submit} disabled={submitting || answeredCount < questions.length}
                 style={{
                   padding: "10px 22px", borderRadius: 12, border: "none", cursor: answeredCount >= questions.length ? "pointer" : "not-allowed",
-                  background: answeredCount >= questions.length ? "linear-gradient(135deg,#b38728,#e2c275)" : c.border,
-                  color: answeredCount >= questions.length ? "#05030a" : c.textMuted,
+                  background: answeredCount >= questions.length ? "linear-gradient(135deg,#6E3BF2,#B88BFF)" : c.border,
+                  color: answeredCount >= questions.length ? "#FFFFFF" : c.textMuted,
                   fontSize: 13, fontWeight: 700, opacity: submitting ? 0.6 : 1
                 }}>
                 {submitting ? t("جاري...", "...") : t("إنهاء", "Finish")}

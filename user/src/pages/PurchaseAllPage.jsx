@@ -73,45 +73,45 @@ export default function PurchaseAllPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
         .pay-hero{min-height:50vh;display:flex;align-items:center;justify-content:center;padding:120px 20px 60px;background:linear-gradient(135deg,#0a0a1a 0%,#1a1030 50%,#0a0a1a 100%);position:relative;overflow:hidden;text-align:center}
-        .pay-hero::before{content:'';position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(212,175,55,.15),transparent 70%);top:-200px;right:-100px;border-radius:50%}
-        .pay-hero::after{content:'';position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(212,175,55,.08),transparent 70%);bottom:-150px;left:-100px;border-radius:50%}
+        .pay-hero::before{content:'';position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(110,59,242,.15),transparent 70%);top:-200px;right:-100px;border-radius:50%}
+        .pay-hero::after{content:'';position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(110,59,242,.08),transparent 70%);bottom:-150px;left:-100px;border-radius:50%}
         .pay-hero h1{font-size:clamp(2rem,5vw,3.5rem);color:#fff;font-weight:900;margin:0 0 12px;position:relative;z-index:1}
-        .pay-hero h1 span{background:linear-gradient(135deg,#d4af37,#f5d76e);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .pay-hero h1 span{background:linear-gradient(135deg,#6E3BF2,#B88BFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
         .pay-hero p{color:rgba(255,255,255,.6);font-size:1.1rem;max-width:600px;margin:0 auto;position:relative;z-index:1;line-height:1.8}
         .pay-body{max-width:900px;margin:0 auto;padding:0 20px 60px}
         .pay-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:-40px;position:relative;z-index:2;margin-bottom:32px}
         .pay-stat{background:${cardBg};border-radius:20px;padding:24px 16px;text-align:center;border:1px solid ${border};box-shadow:0 8px 30px rgba(0,0,0,.08)}
-        .pay-stat-num{font-size:2rem;font-weight:900;background:linear-gradient(135deg,#d4af37,#f5d76e);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .pay-stat-num{font-size:2rem;font-weight:900;background:linear-gradient(135deg,#6E3BF2,#B88BFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
         .pay-stat-label{font-size:.8rem;color:${muted};margin-top:4px;font-weight:600}
         .pay-courses-list{background:${cardBg};border-radius:24px;border:1px solid ${border};overflow:hidden;margin-bottom:24px}
         .pay-courses-header{padding:20px 24px;border-bottom:1px solid ${border};display:flex;align-items:center;gap:10px}
         .pay-courses-header h3{margin:0;font-size:1rem;font-weight:700;color:${text}}
         .pay-course-row{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid ${border};transition:.2s}
         .pay-course-row:last-child{border-bottom:none}
-        .pay-course-row:hover{background:${theme === "dark" ? "rgba(212,175,55,.05)" : "rgba(212,175,55,.03)"};}
+        .pay-course-row:hover{background:${theme === "dark" ? "rgba(110,59,242,.05)" : "rgba(110,59,242,.03)"};}
         .pay-course-thumb{width:56px;height:56px;border-radius:14px;object-fit:cover;flex-shrink:0;background:#f0f0f0}
         .pay-course-info{flex:1;min-width:0}
         .pay-course-info h4{margin:0;font-size:.9rem;font-weight:700;color:${text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .pay-course-info p{margin:2px 0 0;font-size:.75rem;color:${muted}}
-        .pay-course-badge{padding:4px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(212,175,55,.1);color:#d4af37;white-space:nowrap}
-        .pay-price-card{background:linear-gradient(135deg,#1a1030,#0f0f1a);border:1px solid rgba(212,175,55,.2);border-radius:28px;padding:36px;text-align:center;margin-bottom:24px;position:relative;overflow:hidden}
-        .pay-price-card::before{content:'';position:absolute;width:300px;height:300px;background:radial-gradient(circle,rgba(212,175,55,.1),transparent 70%);top:-150px;right:-100px;border-radius:50%}
+        .pay-course-badge{padding:4px 10px;border-radius:8px;font-size:.7rem;font-weight:700;background:rgba(110,59,242,.1);color:#6E3BF2;white-space:nowrap}
+        .pay-price-card{background:linear-gradient(135deg,#1a1030,#0f0f1a);border:1px solid rgba(110,59,242,.2);border-radius:28px;padding:36px;text-align:center;margin-bottom:24px;position:relative;overflow:hidden}
+        .pay-price-card::before{content:'';position:absolute;width:300px;height:300px;background:radial-gradient(circle,rgba(110,59,242,.1),transparent 70%);top:-150px;right:-100px;border-radius:50%}
         .pay-price-label{color:rgba(255,255,255,.5);font-size:.85rem;font-weight:600;margin-bottom:8px;position:relative;z-index:1}
-        .pay-price-amount{font-size:3rem;font-weight:900;background:linear-gradient(135deg,#d4af37,#f5d76e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;position:relative;z-index:1;line-height:1}
+        .pay-price-amount{font-size:3rem;font-weight:900;background:linear-gradient(135deg,#6E3BF2,#B88BFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;position:relative;z-index:1;line-height:1}
         .pay-price-sub{color:rgba(255,255,255,.4);font-size:.8rem;margin-top:6px;position:relative;z-index:1}
         .pay-balance-bar{display:flex;align-items:center;justify-content:space-between;background:${cardBg};border:1px solid ${border};border-radius:16px;padding:16px 20px;margin-bottom:20px}
         .pay-balance-bar span{font-size:.9rem;font-weight:600;color:${text}}
-        .pay-balance-bar strong{color:#d4af37;font-weight:800}
+        .pay-balance-bar strong{color:#6E3BF2;font-weight:800}
         .pay-buy-btn{width:100%;height:60px;border:none;border-radius:18px;font-size:1.1rem;font-weight:900;cursor:pointer;transition:.3s;font-family:'Cairo',sans-serif;display:flex;align-items:center;justify-content:center;gap:10px}
-        .pay-buy-btn.enabled{background:linear-gradient(135deg,#d4af37,#f5d76e);color:#111}
-        .pay-buy-btn.enabled:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(212,175,55,.4)}
+        .pay-buy-btn.enabled{background:linear-gradient(135deg,#6E3BF2,#B88BFF);color:#111}
+        .pay-buy-btn.enabled:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(110,59,242,.4)}
         .pay-buy-btn.disabled{background:#333;color:#666;cursor:not-allowed}
-        .pay-login-btn{width:100%;height:60px;border:none;border-radius:18px;background:linear-gradient(135deg,#d4af37,#f5d76e);color:#111;font-size:1.1rem;font-weight:900;cursor:pointer;transition:.3s;font-family:'Cairo',sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none}
-        .pay-login-btn:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(212,175,55,.4)}
+        .pay-login-btn{width:100%;height:60px;border:none;border-radius:18px;background:linear-gradient(135deg,#6E3BF2,#B88BFF);color:#111;font-size:1.1rem;font-weight:900;cursor:pointer;transition:.3s;font-family:'Cairo',sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none}
+        .pay-login-btn:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(110,59,242,.4)}
         .pay-error{background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.2);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:.85rem;color:#ff3b30}
         .pay-perks{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
         .pay-perk{background:${cardBg};border:1px solid ${border};border-radius:14px;padding:16px;display:flex;align-items:center;gap:10px;font-size:.85rem;color:${text}}
-        .pay-perk i{color:#d4af37;font-size:1.1rem;width:20px;text-align:center}
+        .pay-perk i{color:#6E3BF2;font-size:1.1rem;width:20px;text-align:center}
         @media(max-width:768px){
           .pay-hero{padding:100px 20px 40px;min-height:auto}
           .pay-hero h1{font-size:1.8rem}

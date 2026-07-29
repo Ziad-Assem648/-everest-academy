@@ -63,9 +63,9 @@ function getStyles(c) { return {
   },
   avatarFallback: {
     width: 52, height: 52, borderRadius: "50%",
-    background: "linear-gradient(135deg,#b38728,#e2c275)",
+    background: "linear-gradient(135deg,#6E3BF2,#B88BFF)",
     display: "flex", alignItems: "center", justifyContent: "center",
-    fontWeight: 700, color: "#05030a", fontSize: 18, flexShrink: 0
+    fontWeight: 700, color: "#FFFFFF", fontSize: 18, flexShrink: 0
   },
   userName: { margin: 0, color: c.text, fontSize: "1rem", fontWeight: 600 },
   userRole: { color: c.textMuted, fontSize: "0.85rem" },

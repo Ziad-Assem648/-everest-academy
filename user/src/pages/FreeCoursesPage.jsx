@@ -79,7 +79,7 @@ export default function FreeCoursesPage() {
     <div style={{ background: theme === "dark" ? "#1a1a2e" : "#fafafa", minHeight: "100vh", fontFamily: "'Cairo', sans-serif", direction: dir }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
-        .fcp-hero{min-height:40vh;display:flex;align-items:center;justify-content:center;padding:140px 20px 80px;background:radial-gradient(circle at top right,rgba(212,175,55,.18),transparent 35%),radial-gradient(circle at bottom left,rgba(212,175,55,.1),transparent 35%),#fafafa}
+        .fcp-hero{min-height:40vh;display:flex;align-items:center;justify-content:center;padding:140px 20px 80px;background:radial-gradient(circle at top right,rgba(110,59,242,.18),transparent 35%),radial-gradient(circle at bottom left,rgba(110,59,242,.1),transparent 35%),#fafafa}
         .fcp-hero-inner{width:min(100%,900px);text-align:center}
         .fcp-hero h1{font-size:clamp(2.5rem,7vw,5.5rem);line-height:1;color:#111;margin:0 0 24px;font-weight:800}
         .fcp-hero p{max-width:650px;margin:auto;color:#666;line-height:1.8;font-size:1.05rem}
@@ -91,8 +91,8 @@ export default function FreeCoursesPage() {
         .fcp-cat-section-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
         .fcp-cat-section-header h2{margin:0;font-size:clamp(1.4rem,3vw,2rem);color:#111;font-weight:800}
         .fcp-cat-section-header .fcp-cat-count{background:#f0f0f0;color:#777;padding:4px 12px;border-radius:999px;font-size:.8rem;font-weight:600}
-        .fcp-pkg-price{display:flex;align-items:center;gap:8px;margin:12px 0 20px;font-size:1.05rem;color:#c7a44c;font-weight:800}
-        .fcp-pkg-price span{background:linear-gradient(135deg,#d4af37,#f5d76e);color:#111;padding:6px 16px;border-radius:12px;font-size:1rem}
+        .fcp-pkg-price{display:flex;align-items:center;gap:8px;margin:12px 0 20px;font-size:1.05rem;color:#B88BFF;font-weight:800}
+        .fcp-pkg-price span{background:linear-gradient(135deg,#6E3BF2,#B88BFF);color:#fff;padding:6px 16px;border-radius:12px;font-size:1rem}
         .fcp-cat-divider{border:none;border-top:2px solid #f0f0f0;margin:0 20px}
         .fcp-cards-row{display:flex;gap:22px;overflow-x:auto;scroll-behavior:smooth;padding-bottom:10px;scrollbar-width:none}
         .fcp-cards-row::-webkit-scrollbar{display:none}
@@ -108,20 +108,20 @@ export default function FreeCoursesPage() {
         .fcp-trend-info p{color:#777;font-size:.9rem;line-height:1.6;height:45px;margin:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
         .fcp-course-meta{display:flex;justify-content:space-between;margin-top:15px;font-size:.85rem;color:#555}
         .fcp-card-actions{margin-top:18px}
-        .fcp-view-btn{width:100%;height:46px;border:none;border-radius:14px;background:linear-gradient(135deg,#d4af37,#f5d76e);color:#111;cursor:pointer;font-weight:800;font-family:'Cairo',sans-serif;transition:.3s;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:.95rem;letter-spacing:.3px}
-        .fcp-view-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(212,175,55,.35)}
+        .fcp-view-btn{width:100%;height:46px;border:none;border-radius:14px;background:linear-gradient(135deg,#6E3BF2,#B88BFF);color:#fff;cursor:pointer;font-weight:800;font-family:'Cairo',sans-serif;transition:.3s;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:.95rem;letter-spacing:.3px}
+        .fcp-view-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(110,59,242,.35)}
         .fcp-premium-section{max-width:1300px;margin:70px auto;padding:70px;border-radius:40px;background:linear-gradient(135deg,#0f0f0f,#1c1c1c);color:#fff;display:flex;justify-content:space-between;align-items:center;gap:60px;overflow:hidden;position:relative}
-        .fcp-premium-section::before{content:'';position:absolute;width:500px;height:500px;background:#d4af37;opacity:.07;border-radius:50%;top:-250px;right:-150px}
-        .fcp-premium-label{color:#d4af37;font-weight:700;letter-spacing:2px;font-size:.85rem}
+        .fcp-premium-section::before{content:'';position:absolute;width:500px;height:500px;background:#6E3BF2;opacity:.07;border-radius:50%;top:-250px;right:-150px}
+        .fcp-premium-label{color:#6E3BF2;font-weight:700;letter-spacing:2px;font-size:.85rem}
         .fcp-premium-content h2{margin:18px 0;font-size:clamp(2rem,5vw,3.5rem);line-height:1.2}
         .fcp-premium-content p{max-width:600px;color:#d0d0d0;line-height:1.8}
         .fcp-premium-features{margin-top:35px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
         .fcp-feature{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);padding:14px 18px;border-radius:16px;font-size:.9rem}
-        .fcp-premium-card{min-width:320px;background:rgba(255,255,255,.05);backdrop-filter:blur(18px);border:1px solid rgba(212,175,55,.2);border-radius:30px;padding:40px;text-align:center}
-        .fcp-premium-card span{color:#d4af37;font-weight:700;font-size:.85rem}
+        .fcp-premium-card{min-width:320px;background:rgba(255,255,255,.05);backdrop-filter:blur(18px);border:1px solid rgba(110,59,242,.2);border-radius:30px;padding:40px;text-align:center}
+        .fcp-premium-card span{color:#6E3BF2;font-weight:700;font-size:.85rem}
         .fcp-premium-card h3{margin:15px 0;font-size:3rem;color:#fff}
         .fcp-premium-card>p{color:#cfcfcf;margin-bottom:30px}
-        .fcp-start-btn{width:100%;height:58px;display:flex;align-items:center;justify-content:center;border-radius:18px;background:#d4af37;color:#111;text-decoration:none;font-weight:800;transition:.3s;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:1rem}
+        .fcp-start-btn{width:100%;height:58px;display:flex;align-items:center;justify-content:center;border-radius:18px;background:#6E3BF2;color:#fff;text-decoration:none;font-weight:800;transition:.3s;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:1rem}
         .fcp-start-btn:hover{transform:translateY(-3px)}
         .fcp-emp{text-align:center;padding:40px 20px;color:#999}
         .fcp-emp h3{color:#666;margin:0 0 8px}
@@ -138,8 +138,8 @@ export default function FreeCoursesPage() {
         .fcp-modal-desc{color:#777;line-height:1.8;margin-bottom:20px}
         .fcp-modal-perks{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
         .fcp-modal-perk{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:16px;background:#fafafa;font-size:.9rem;color:#444}
-        .fcp-modal-perk i{color:#d4af37}
-        .fcp-modal-start{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:18px;background:#d4af37;color:#111;text-decoration:none;font-weight:800;transition:.3s;border:none;cursor:pointer;font-family:'Cairo',sans-serif}
+        .fcp-modal-perk i{color:#6E3BF2}
+        .fcp-modal-start{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:18px;background:#6E3BF2;color:#fff;text-decoration:none;font-weight:800;transition:.3s;border:none;cursor:pointer;font-family:'Cairo',sans-serif}
         .fcp-modal-start:hover{transform:translateY(-2px)}
         @media(max-width:768px){
           .fcp-hero{padding:120px 20px 60px;min-height:auto}
@@ -155,12 +155,12 @@ export default function FreeCoursesPage() {
           .fcp-modal-box{width:100%;max-height:90vh;border-radius:20px 20px 0 0}
         }
         @media(min-width:769px) and (max-width:1024px){.fcp-premium-features{grid-template-columns:1fr}}
-        [data-theme="dark"] .fcp-hero{background:radial-gradient(circle at top right,rgba(212,175,55,.12),transparent 35%),radial-gradient(circle at bottom left,rgba(212,175,55,.08),transparent 35%),#1a1a2e}
+        [data-theme="dark"] .fcp-hero{background:radial-gradient(circle at top right,rgba(110,59,242,.12),transparent 35%),radial-gradient(circle at bottom left,rgba(110,59,242,.08),transparent 35%),#1a1a2e}
         [data-theme="dark"] .fcp-hero h1{color:#f0f0f0}
         [data-theme="dark"] .fcp-hero p{color:#aaa}
         [data-theme="dark"] .fcp-search-box{background:#2a2a3e;box-shadow:0 15px 40px rgba(0,0,0,.3)}
         [data-theme="dark"] .fcp-search-box input{color:#f0f0f0}
-        [data-theme="dark"] .fcp-search-box button{background:#d4af37;color:#111}
+        [data-theme="dark"] .fcp-search-box button{background:#6E3BF2;color:#fff}
         [data-theme="dark"] .fcp-cat-section-header h2{color:#f0f0f0}
         [data-theme="dark"] .fcp-cat-section-header .fcp-cat-count{background:#2a2a3e;color:#aaa}
         [data-theme="dark"] .fcp-cat-divider{border-top-color:#333}
@@ -183,26 +183,26 @@ export default function FreeCoursesPage() {
         .fcp-login-modal{width:min(460px,92%);background:#fff;border-radius:32px;overflow:hidden;transform:scale(.9) translateY(30px);transition:.35s;position:relative}
         .fcp-login-modal-overlay.open .fcp-login-modal{transform:scale(1) translateY(0)}
         .fcp-login-modal-top{background:linear-gradient(135deg,#111,#222);padding:40px 32px 30px;text-align:center;position:relative;overflow:hidden}
-        .fcp-login-modal-top::before{content:'';position:absolute;width:200px;height:200px;background:radial-gradient(circle,#d4af37 0%,transparent 70%);opacity:.12;top:-80px;right:-60px;border-radius:50%}
-        .fcp-login-modal-top::after{content:'';position:absolute;width:150px;height:150px;background:radial-gradient(circle,#d4af37 0%,transparent 70%);opacity:.08;bottom:-50px;left:-30px;border-radius:50%}
-        .fcp-login-modal-icon{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#d4af37,#f5d76e);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 8px 30px rgba(212,175,55,.4);position:relative;z-index:1}
-        .fcp-login-modal-icon i{font-size:32px;color:#111}
+        .fcp-login-modal-top::before{content:'';position:absolute;width:200px;height:200px;background:radial-gradient(circle,#6E3BF2 0%,transparent 70%);opacity:.12;top:-80px;right:-60px;border-radius:50%}
+        .fcp-login-modal-top::after{content:'';position:absolute;width:150px;height:150px;background:radial-gradient(circle,#6E3BF2 0%,transparent 70%);opacity:.08;bottom:-50px;left:-30px;border-radius:50%}
+        .fcp-login-modal-icon{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#6E3BF2,#B88BFF);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 8px 30px rgba(110,59,242,.4);position:relative;z-index:1}
+        .fcp-login-modal-icon i{font-size:32px;color:#fff}
         .fcp-login-modal-top h2{color:#fff;font-size:1.5rem;font-weight:800;margin:0 0 8px;position:relative;z-index:1}
         .fcp-login-modal-top p{color:rgba(255,255,255,.7);font-size:.95rem;margin:0;position:relative;z-index:1;line-height:1.6}
         .fcp-login-modal-body{padding:32px;text-align:center}
-        .fcp-login-modal-price{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#f9f5e6,#fef9e7);border:1px solid rgba(212,175,55,.25);padding:14px 24px;border-radius:18px;margin-bottom:24px}
-        .fcp-login-modal-price span{color:#c7a44c;font-size:1.3rem;font-weight:900}
+        .fcp-login-modal-price{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#f9f5e6,#fef9e7);border:1px solid rgba(110,59,242,.25);padding:14px 24px;border-radius:18px;margin-bottom:24px}
+        .fcp-login-modal-price span{color:#6E3BF2;font-size:1.3rem;font-weight:900}
         .fcp-login-modal-price small{color:#999;font-size:.85rem}
         .fcp-login-modal-btns{display:flex;gap:12px;justify-content:center}
         .fcp-login-modal-btns a,.fcp-login-modal-btns button{flex:1;height:52px;border-radius:16px;font-weight:800;font-family:'Cairo',sans-serif;font-size:1rem;cursor:pointer;transition:.3s;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;border:none}
-        .fcp-login-go{background:linear-gradient(135deg,#d4af37,#f5d76e);color:#111}
-        .fcp-login-go:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(212,175,55,.4)}
+        .fcp-login-go{background:linear-gradient(135deg,#6E3BF2,#B88BFF);color:#fff}
+        .fcp-login-go:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(110,59,242,.4)}
         .fcp-login-cancel{background:#f4f4f4;color:#666;border:1px solid #eee!important}
         .fcp-login-cancel:hover{background:#eee}
         @media(max-width:768px){.fcp-login-modal-overlay{align-items:flex-end;padding:0}.fcp-login-modal{width:100%;border-radius:24px 24px 0 0;transform:translateY(100%);max-height:85vh}.fcp-login-modal-overlay.open .fcp-login-modal{transform:translateY(0)}.fcp-login-modal-top{padding:28px 20px 24px}}
         [data-theme="dark"] .fcp-login-modal{background:#1e1e2f}
         [data-theme="dark"] .fcp-login-modal-body{background:#1e1e2f}
-        [data-theme="dark"] .fcp-login-modal-price{background:rgba(212,175,55,.08);border-color:rgba(212,175,55,.2)}
+        [data-theme="dark"] .fcp-login-modal-price{background:rgba(110,59,242,.08);border-color:rgba(110,59,242,.2)}
         [data-theme="dark"] .fcp-login-cancel{background:#2a2a3e;color:#aaa;border-color:#444!important}
       `}</style>
 

@@ -17,7 +17,7 @@ const GOVERNORATES = [
   "سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح"
 ];
 
-const gold = "#d4af37";
+const gold = "#6E3BF2";
 
 export default function CreateAccountPage() {
   const { user, login: authLogin } = useAuth();
@@ -105,7 +105,7 @@ export default function CreateAccountPage() {
     if (!/[0-9]/.test(form.password)) { setErr(t("كلمة المرور يجب أن تحتوي على رقم.", "Password must contain a number.")); setLoading(false); return; }
     if (!/[!@#$%^&*(),.?\":{}|<>_\-+=\[\]\\\/~`]/.test(form.password)) { setErr(t("كلمة المرور يجب أن تحتوي على رمز خاص.", "Password must contain a special character.")); setLoading(false); return; }
     if (form.password !== form.confirm) { setErr(t("كلمات المرور غير متطابقة!", "Passwords do not match!")); setLoading(false); return; }
-    if (!form.governorate) { setErr(t("اختر المحافظة", "Select a governorate")); setLoading(false); return; }
+    if (form.country === "مصر" && !form.governorate) { setErr(t("اختر المحافظة", "Select a governorate")); setLoading(false); return; }
 
     try {
       const res = await api("/api/users/create-for-others", {
@@ -221,15 +221,6 @@ export default function CreateAccountPage() {
               </div>
             )}
 
-            {/* Governorate */}
-            <div style={{ marginBottom: 14 }}>
-              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("المحافظة", "Governorate")}</label>
-              <select required value={form.governorate} onChange={e => setField("governorate", e.target.value)} style={{ ...inputS, cursor: "pointer" }} onFocus={onFocus} onBlur={onBlur}>
-                <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
-                {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
-            </div>
-
             {/* Country */}
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("الدولة", "Country")}</label>
@@ -244,6 +235,17 @@ export default function CreateAccountPage() {
                   style={{ ...inputS, marginTop: 8 }} onFocus={onFocus} onBlur={onBlur} />
               )}
             </div>
+
+            {/* Governorate (Egypt only) */}
+            {form.country === "مصر" && (
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("المحافظة", "Governorate")}</label>
+              <select required value={form.governorate} onChange={e => setField("governorate", e.target.value)} style={{ ...inputS, cursor: "pointer" }} onFocus={onFocus} onBlur={onBlur}>
+                <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
+                {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </div>
+            )}
 
             {/* ID Card Front */}
             <div style={{ marginBottom: 14 }}>
@@ -283,7 +285,7 @@ export default function CreateAccountPage() {
               cursor: loading ? "default" : "pointer",
               background: loading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`,
               color: "#fff", fontSize: 15, fontWeight: 800,
-              boxShadow: loading ? "none" : `0 8px 30px rgba(212,175,55,.3)`,
+              boxShadow: loading ? "none" : `0 8px 30px rgba(110,59,242,.3)`,
               display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
             }}>
               {loading ? <div style={{ width: 22, height: 22, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
@@ -295,11 +297,11 @@ export default function CreateAccountPage() {
         {/* Created Users List */}
         {createdUsers.length > 0 && (
           <div style={{ background: c.bgCard, border: `1px solid ${c.borderLight}`, borderRadius: 16, padding: m ? "16px" : "24px" }}>
-            <h3 style={{ fontSize: m ? 15 : 17, fontWeight: 700, color: "#e2c275", marginBottom: 14 }}>{t("الحسابات التي أنشأتها", "Accounts You Created")}</h3>
+            <h3 style={{ fontSize: m ? 15 : 17, fontWeight: 700, color: "#B88BFF", marginBottom: 14 }}>{t("الحسابات التي أنشأتها", "Accounts You Created")}</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {createdUsers.map((u, i) => (
                 <div key={u.id || i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 12, background: c.bgInput, border: `1px solid ${c.border}` }}>
-                  <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg,#d4af37,#b38728)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: "50%", background: "linear-gradient(135deg,#6E3BF2,#6E3BF2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
                     {(u.full_name || "?")[0].toUpperCase()}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>

@@ -23,7 +23,7 @@ const rankKeyframes = `
 @keyframes rkFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
 @keyframes rkPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.8;transform:scale(1.05)}}
 @keyframes rkGradientFlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-@keyframes rkProgressGlow{0%,100%{box-shadow:0 0 8px rgba(212,175,55,.3)}50%{box-shadow:0 0 20px rgba(212,175,55,.6)}}
+@keyframes rkProgressGlow{0%,100%{box-shadow:0 0 8px rgba(110,59,242,.3)}50%{box-shadow:0 0 20px rgba(110,59,242,.6)}}
 @keyframes rkSlideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 @keyframes rkShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 `;
@@ -37,8 +37,8 @@ const cardStyle = (c, extra) => ({
 });
 
 const statCard = (c, active) => ({
-  background: active ? "rgba(212,175,55,.06)" : c.bgSoft,
-  border: `1px solid ${active ? "rgba(212,175,55,.2)" : c.borderLight}`,
+  background: active ? "rgba(110,59,242,.06)" : c.bgSoft,
+  border: `1px solid ${active ? "rgba(110,59,242,.2)" : c.borderLight}`,
   borderRadius: 16, padding: 18, flex: "1 1 140px", minWidth: 140
 });
 
@@ -60,7 +60,7 @@ export default function RankingsPage() {
   const [showNetworkMembers, setShowNetworkMembers] = useState(false);
   const [directMembers, setDirectMembers] = useState([]);
 
-  const gold = "#d4af37";
+  const gold = "#6E3BF2";
 
   useEffect(() => {
     if (!user?.id) return;
@@ -108,20 +108,20 @@ export default function RankingsPage() {
       <style>{rankKeyframes + `
         .rk-hero{position:relative;min-height:70vh;display:flex;align-items:center;overflow:hidden}
         .rk-hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,#0a0a1a 0%,#1a0a2e 25%,#0a1628 50%,#15102a 75%,#0f0f13 100%)}
-        .rk-hero-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(212,175,55,.12) 0%,transparent 50%);animation:rkPulse 6s ease-in-out infinite}
+        .rk-hero-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(110,59,242,.12) 0%,transparent 50%);animation:rkPulse 6s ease-in-out infinite}
         .rk-orb{position:absolute;border-radius:50%;filter:blur(70px);animation:rkFloat 8s ease-in-out infinite}
-        .rk-orb-1{width:350px;height:350px;background:rgba(212,175,55,.1);top:-80px;right:-50px}
+        .rk-orb-1{width:350px;height:350px;background:rgba(110,59,242,.1);top:-80px;right:-50px}
         .rk-orb-2{width:280px;height:280px;background:rgba(139,92,246,.08);bottom:-60px;left:-40px;animation-delay:2s}
         .rk-hero-inner{position:relative;z-index:2;width:95%;max-width:1200px;margin:0 auto;padding:40px 20px;display:flex;align-items:center;justify-content:space-between;gap:40px}
         .rk-hero-left{flex:1;max-width:600px;animation:rkSlideUp .8s ease-out}
         .rk-hero-left h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:900;line-height:1.15;margin-bottom:12px;color:#fff}
-        .rk-hero-left h1 span{background:linear-gradient(135deg,#d4af37,#f0d78c,#d4af37);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rkGradientFlow 3s ease infinite}
+        .rk-hero-left h1 span{background:linear-gradient(135deg,#6E3BF2,#B88BFF,#6E3BF2);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rkGradientFlow 3s ease infinite}
         .rk-hero-left p{font-size:.9rem;color:#9a9aae;line-height:1.7;margin-bottom:24px}
         .rk-progress-wrap{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px 22px;backdrop-filter:blur(10px)}
         .rk-progress-bar{height:8px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin:10px 0}
-        .rk-progress-fill{height:100%;background:linear-gradient(90deg,#d4af37,#f0d78c);border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1);animation:rkProgressGlow 2s ease-in-out infinite}
+        .rk-progress-fill{height:100%;background:linear-gradient(90deg,#6E3BF2,#B88BFF);border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1);animation:rkProgressGlow 2s ease-in-out infinite}
         .rk-trophy-center{display:flex;align-items:center;justify-content:center;flex-direction:column}
-        .rk-trophy-emoji{font-size:80px;filter:drop-shadow(0 10px 30px rgba(212,175,55,.3));animation:rkFloat 5s ease-in-out infinite}
+        .rk-trophy-emoji{font-size:80px;filter:drop-shadow(0 10px 30px rgba(110,59,242,.3));animation:rkFloat 5s ease-in-out infinite}
         .rk-section{animation:rkSlideUp .6s ease-out both}
         .rk-tab-bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
         .rk-tab-btn{padding:10px 22px;border-radius:14px;border:none;cursor:pointer;font-weight:700;font-size:13px;transition:.3s}
@@ -161,9 +161,9 @@ export default function RankingsPage() {
               <div className="rk-progress-wrap">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   <span style={{ fontSize: 13, color: "#ccc" }}>
-                    {t("الترتيب التالي:", "Next:")} <strong style={{ color: "#d4af37" }}>{nextRankName}</strong>
+                    {t("الترتيب التالي:", "Next:")} <strong style={{ color: "#6E3BF2" }}>{nextRankName}</strong>
                   </span>
-                  <span style={{ fontSize: 18, fontWeight: 900, color: "#d4af37" }}>{progressPct}%</span>
+                  <span style={{ fontSize: 18, fontWeight: 900, color: "#6E3BF2" }}>{progressPct}%</span>
                 </div>
                 <div className="rk-progress-bar">
                   <div className="rk-progress-fill" style={{ width: `${Math.min(100, progressPct)}%` }}></div>
@@ -183,14 +183,14 @@ export default function RankingsPage() {
 
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", animation: "rkSlideUp .8s ease-out .2s both" }}>
             <div style={{ position: "relative", width: 220, height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ position: "absolute", inset: -15, border: "1.5px dashed rgba(212,175,55,.15)", borderRadius: "50%" }}></div>
+              <div style={{ position: "absolute", inset: -15, border: "1.5px dashed rgba(110,59,242,.15)", borderRadius: "50%" }}></div>
               <div className="rk-trophy-center">
                 {ranks[userRankIndex]?.image ? (
-                  <img src={ranks[userRankIndex].image} alt={currentRankName} style={{ width: 80, height: 80, borderRadius: 16, objectFit: "cover", filter: "drop-shadow(0 8px 20px rgba(212,175,55,.3))" }} />
+                  <img src={ranks[userRankIndex].image} alt={currentRankName} style={{ width: 80, height: 80, borderRadius: 16, objectFit: "cover", filter: "drop-shadow(0 8px 20px rgba(110,59,242,.3))" }} />
                 ) : (
                   <span className="rk-trophy-emoji">🏆</span>
                 )}
-                <span style={{ fontSize: 14, color: "#d4af37", fontWeight: 700, marginTop: 8, letterSpacing: 1 }}>{currentRankName || "Star"}</span>
+                <span style={{ fontSize: 14, color: "#6E3BF2", fontWeight: 700, marginTop: 8, letterSpacing: 1 }}>{currentRankName || "Star"}</span>
               </div>
             </div>
           </div>
@@ -208,7 +208,7 @@ export default function RankingsPage() {
             { key: "history", icon: "📜", label: t("السجل الأسبوعي", "Weekly History") },
           ].map(tb => (
             <button key={tb.key} className="rk-tab-btn" onClick={() => setTab(tb.key)}
-              style={{ background: tab === tb.key ? "rgba(212,175,55,.12)" : c.bgCard, color: tab === tb.key ? gold : c.textSoft, border: tab === tb.key ? `1px solid rgba(212,175,55,.3)` : `1px solid ${c.borderLight}` }}>
+              style={{ background: tab === tb.key ? "rgba(110,59,242,.12)" : c.bgCard, color: tab === tb.key ? gold : c.textSoft, border: tab === tb.key ? `1px solid rgba(110,59,242,.3)` : `1px solid ${c.borderLight}` }}>
               {tb.icon} {tb.label}
             </button>
           ))}
@@ -224,7 +224,7 @@ export default function RankingsPage() {
               return (
                 <div key={r.id} style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",
-                  background: isCurrent ? "rgba(212,175,55,.08)" : c.bgCard,
+                  background: isCurrent ? "rgba(110,59,242,.08)" : c.bgCard,
                   border: isCurrent ? `2px solid ${gold}` : `1px solid ${c.borderLight}`,
                   borderRadius: 16, padding: "14px 18px", transition: ".3s"
                 }}>
@@ -245,8 +245,8 @@ export default function RankingsPage() {
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    {isCurrent && <span className="rk-badge" style={{ background: "rgba(212,175,55,.15)", color: gold }}>▼ {t("الحالي", "CURRENT")}</span>}
-                    {isNext && <span className="rk-badge" style={{ background: "rgba(212,175,55,.15)", color: gold }}>▶ {t("التالي", "NEXT")}</span>}
+                    {isCurrent && <span className="rk-badge" style={{ background: "rgba(110,59,242,.15)", color: gold }}>▼ {t("الحالي", "CURRENT")}</span>}
+                    {isNext && <span className="rk-badge" style={{ background: "rgba(110,59,242,.15)", color: gold }}>▶ {t("التالي", "NEXT")}</span>}
                     {isUnlocked && !isCurrent && <span className="rk-badge" style={{ background: "rgba(34,197,94,.12)", color: "#22c55e" }}>✓ {t("مفتوح", "Unlocked")}</span>}
                     {!isCurrent && !isNext && !isUnlocked && <span style={{ fontSize: 11, color: c.textMuted }}>🔒 {t("مقفل", "Locked")}</span>}
                   </div>
@@ -453,8 +453,8 @@ export default function RankingsPage() {
               </div>
             </div>
 
-            <div style={{ ...cardStyle(c), background: "rgba(212,175,55,.04)", border: "1px solid rgba(212,175,55,.15)" }}>
-              <h4 style={{ margin: 0, fontSize: 14, color: "#d4af37" }}>📝 {t("قواعد الشبكة المؤهلة", "Qualified Network Rules")}</h4>
+            <div style={{ ...cardStyle(c), background: "rgba(110,59,242,.04)", border: "1px solid rgba(110,59,242,.15)" }}>
+              <h4 style={{ margin: 0, fontSize: 14, color: "#6E3BF2" }}>📝 {t("قواعد الشبكة المؤهلة", "Qualified Network Rules")}</h4>
               <ul style={{ fontSize: 12, color: c.textMuted, margin: "8px 0 0 16px", lineHeight: 1.8 }}>
                 <li>{t("الأعضاء النشطون فقط (status = active)", "Only active members (status = active)")}</li>
                 <li>{t("رتبة العضو ≤ رتبتك الحالية", "Member's rank ≤ your current rank")}</li>

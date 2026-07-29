@@ -267,12 +267,12 @@ export default function CourseViewPage() {
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <span style={{fontSize:m?20:24}}>🔒</span>
               <div>
-                <p style={{fontWeight:700,color:"#e2c275",fontSize:m?13:15,margin:0}}>{t("سجّل دخولك للمشاهدة الكاملة", "Sign in for full access")}</p>
+                <p style={{fontWeight:700,color:"#B88BFF",fontSize:m?13:15,margin:0}}>{t("سجّل دخولك للمشاهدة الكاملة", "Sign in for full access")}</p>
                 <p style={{fontSize:m?11:12,color:c.textMuted,margin:"2px 0 0"}}>{t("بعض الدروس مقفلة. سجّل دخولك أو أنشئ حسابًا جديدًا للمشاهدة.", "Some lessons are locked. Sign in or create an account to watch.")}</p>
               </div>
             </div>
             <div style={{display:"flex",gap:8,flexShrink:0}}>
-              <Link to="/login" style={{padding:m?"10px 18px":"10px 22px",background:"linear-gradient(135deg,#b38728,#e2c275)",borderRadius:10,color:"#05030a",fontWeight:800,fontSize:m?12:13,textDecoration:"none",whiteSpace:"nowrap"}}>
+              <Link to="/login" style={{padding:m?"10px 18px":"10px 22px",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",borderRadius:10,color:"#FFFFFF",fontWeight:800,fontSize:m?12:13,textDecoration:"none",whiteSpace:"nowrap"}}>
                 🔑 {t("تسجيل الدخول", "Login")}
               </Link>
               <Link to="/register" style={{padding:m?"10px 18px":"10px 22px",background:"transparent",border:`1px solid ${c.borderLight}`,borderRadius:10,color:c.text,fontWeight:700,fontSize:m?12:13,textDecoration:"none",whiteSpace:"nowrap"}}>
@@ -302,7 +302,7 @@ export default function CourseViewPage() {
             {!user ? (
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:m?10:14}}>
                 <div style={{display:"flex",gap:m?8:12,justifyContent:"center",flexWrap:"wrap",width:"100%"}}>
-                  <Link to="/login" style={{padding:m?"12px 22px":"14px 28px",background:"linear-gradient(135deg,#b38728,#e2c275)",borderRadius:12,color:"#05030a",fontWeight:800,fontSize:m?13:14,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:8}}>
+                  <Link to="/login" style={{padding:m?"12px 22px":"14px 28px",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",borderRadius:12,color:"#FFFFFF",fontWeight:800,fontSize:m?13:14,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:8}}>
                     🔑 {t("سجّل دخولك لشراء الكورس", "Login to Buy")} — {course.price} E-Money
                   </Link>
                   <Link to="/register" style={{padding:m?"12px 22px":"14px 28px",background:"transparent",border:`1px solid ${c.borderLight}`,borderRadius:12,color:c.text,fontWeight:700,fontSize:m?13:14,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:8}}>
@@ -332,7 +332,7 @@ export default function CourseViewPage() {
                     if ((user?.e_money || 0) < course.price) { setBalanceError(t("رصيد E-Money غير كافٍ. تواصل مع خدمة العملاء لشحن رصيدك.", "Insufficient E-Money balance. Contact customer service to top up.")); return; }
                     setBalanceError(""); await buyCourse("emoney");
                   }} disabled={buying || (user?.e_money || 0) < course.price}
-                    style={{padding:m?"12px 18px":"14px 26px",background:(user?.e_money || 0) < course.price ? "#555" : "linear-gradient(135deg,#b38728,#e2c275)",border:"none",borderRadius:12,color:"#05030a",fontWeight:800,fontSize:m?13:14,cursor:(user?.e_money || 0) < course.price ? "not-allowed" : "pointer",opacity:buying?0.6:1}}>
+                    style={{padding:m?"12px 18px":"14px 26px",background:(user?.e_money || 0) < course.price ? "#555" : "linear-gradient(135deg,#6E3BF2,#B88BFF)",border:"none",borderRadius:12,color:"#FFFFFF",fontWeight:800,fontSize:m?13:14,cursor:(user?.e_money || 0) < course.price ? "not-allowed" : "pointer",opacity:buying?0.6:1}}>
                     {buying ? t("جاري الشراء...", "Purchasing...") : `💳 ${t("اشتري بـ", "Buy for")} ${course.price} E-Money`}
                   </button>
                 </div>
@@ -377,15 +377,15 @@ export default function CourseViewPage() {
               )
             ) : !user ? (
               <div style={{textAlign:"center",padding:m?24:40}}>
-                <div style={{width:m?60:80,height:m?60:80,borderRadius:"50%",background:"linear-gradient(135deg,rgba(179,135,40,.15),rgba(212,175,55,.25))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:m?28:36}}>🔒</div>
+                <div style={{width:m?60:80,height:m?60:80,borderRadius:"50%",background:"linear-gradient(135deg,rgba(110,59,242,.15),rgba(110,59,242,.25))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:m?28:36}}>🔒</div>
                 <p style={{fontWeight:800,color:"#fff",marginBottom:6,fontSize:m?15:18}}>{t("هذا الدرس مقفل", "This lesson is locked")}</p>
                 <p style={{fontSize:m?12:14,color:"#888",marginBottom:m?16:24,lineHeight:1.5,maxWidth:350,marginLeft:"auto",marginRight:"auto"}}>
                   {t("سجّل دخولك أو أنشئ حسابًا جديدًا لمشاهدة هذا الدرس والمحتوى المدفوع.", "Sign in or create a new account to watch this lesson and paid content.")}
                 </p>
                 <div style={{display:"flex",gap:m?8:12,justifyContent:"center",flexWrap:"wrap"}}>
                   <Link to="/login" style={{
-                    padding:m?"12px 28px":"14px 32px",background:"linear-gradient(135deg,#b38728,#e2c275)",
-                    borderRadius:12,color:"#05030a",fontWeight:800,fontSize:m?13:15,textDecoration:"none",
+                    padding:m?"12px 28px":"14px 32px",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",
+                    borderRadius:12,color:"#FFFFFF",fontWeight:800,fontSize:m?13:15,textDecoration:"none",
                     display:"inline-flex",alignItems:"center",gap:8,transition:"all 0.3s"
                   }}>
                     🔑 {t("تسجيل الدخول", "Login")}
@@ -410,7 +410,7 @@ export default function CourseViewPage() {
                     <button onClick={() => {
                       if ((user?.e_money || 0) < course.price) { alert(t("رصيد E-Money غير كافٍ", "Insufficient E-Money balance")); return; }
                       buyCourse("emoney");
-                    }} style={{display:"inline-flex",alignItems:"center",gap:8,padding:m?"10px 18px":"10px 24px",background:"linear-gradient(135deg,#b38728,#e2c275)",borderRadius:10,color:"#05030a",fontWeight:800,fontSize:m?12:13,border:"none",cursor:"pointer"}}>
+                    }} style={{display:"inline-flex",alignItems:"center",gap:8,padding:m?"10px 18px":"10px 24px",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",borderRadius:10,color:"#FFFFFF",fontWeight:800,fontSize:m?12:13,border:"none",cursor:"pointer"}}>
                       💳 {t("اشترِ بـ", "Buy for")} {course.price} E-Money
                     </button>
                   </>
@@ -418,7 +418,7 @@ export default function CourseViewPage() {
                   <>
                     <p style={{fontWeight:700,color:c.text,marginBottom:4,fontSize:m?13:16}}>{t("هذا الدرس مقفل", "This lesson is locked")}</p>
                     <p style={{fontSize:m?11:13,color:c.textMuted,marginBottom:m?10:16}}>{t("اشترِ الكورس للمشاهدة الكاملة", "Buy the course for full access")}</p>
-                    <Link to={`/courses/${id}`} style={{display:"inline-flex",alignItems:"center",gap:8,padding:m?"10px 18px":"10px 24px",background:"linear-gradient(135deg,#b38728,#e2c275)",borderRadius:10,color:"#05030a",fontWeight:800,fontSize:m?12:13,textDecoration:"none"}}>
+                    <Link to={`/courses/${id}`} style={{display:"inline-flex",alignItems:"center",gap:8,padding:m?"10px 18px":"10px 24px",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",borderRadius:10,color:"#FFFFFF",fontWeight:800,fontSize:m?12:13,textDecoration:"none"}}>
                       💳 {t("اشترِ الكورس", "Buy Course")} — {course.price} E-Money
                     </Link>
                   </>
@@ -448,12 +448,12 @@ export default function CourseViewPage() {
           {current && (
             <div style={{padding:m?10:16,borderTop:`1px solid ${c.borderLight}`}}>
               {currentQuizBlocked && (
-                <div style={{background:"rgba(212,175,55,.1)",border:"1px solid rgba(212,175,55,.3)",borderRadius:10,padding:m?10:14,marginBottom:m?8:12,display:"flex",flexDirection:m?"column":"row",justifyContent:"space-between",alignItems:m?"stretch":"center",gap:m?8:0}}>
-                  <div style={{color:"#d4af37",fontSize:m?11:14,fontWeight:700}}>
+                <div style={{background:"rgba(110,59,242,.1)",border:"1px solid rgba(110,59,242,.3)",borderRadius:10,padding:m?10:14,marginBottom:m?8:12,display:"flex",flexDirection:m?"column":"row",justifyContent:"space-between",alignItems:m?"stretch":"center",gap:m?8:0}}>
+                  <div style={{color:"#6E3BF2",fontSize:m?11:14,fontWeight:700}}>
                     📝 {t("هذا الدرس له اختبار. أجب على الاختبار للمتابعة.", "This lesson has a quiz. Complete it to continue.")}
                   </div>
                   <button onClick={() => setActiveQuiz(currentLessonQuiz)}
-                    style={{padding:"8px 20px",background:"linear-gradient(135deg,#b38728,#e2c275)",border:"none",borderRadius:10,color:"#05030a",fontWeight:800,fontSize:m?12:13,cursor:"pointer",marginTop:m?4:0}}>
+                    style={{padding:"8px 20px",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",border:"none",borderRadius:10,color:"#FFFFFF",fontWeight:800,fontSize:m?12:13,cursor:"pointer",marginTop:m?4:0}}>
                     {t("ابدأ الاختبار", "Take Quiz")}
                   </button>
                 </div>
@@ -467,7 +467,7 @@ export default function CourseViewPage() {
                   {idx > 0 && <button onClick={goToPrev} style={{padding:m?"10px 14px":"8px 16px",background:c.bgInput,border:`1px solid ${c.borderLight}`,borderRadius:8,color:c.text,cursor:"pointer",fontSize:m?12:13,flex:m?1:"none",minHeight:40}}>{t("السابق", "Previous")}</button>}
                   {idx < allLessons.length-1 && (
                     <button onClick={goToNext} disabled={currentQuizBlocked}
-                      style={{padding:m?"10px 14px":"8px 16px",background:currentQuizBlocked ? c.border : "linear-gradient(135deg,#b38728,#e2c275)",border:"none",borderRadius:8,color:currentQuizBlocked ? c.textMuted : "#05030a",cursor:currentQuizBlocked ? "not-allowed" : "pointer",fontWeight:700,fontSize:m?12:13,opacity:currentQuizBlocked ? 0.5 : 1,flex:m?1:"none",minHeight:40}}>
+                      style={{padding:m?"10px 14px":"8px 16px",background:currentQuizBlocked ? c.border : "linear-gradient(135deg,#6E3BF2,#B88BFF)",border:"none",borderRadius:8,color:currentQuizBlocked ? c.textMuted : "#FFFFFF",cursor:currentQuizBlocked ? "not-allowed" : "pointer",fontWeight:700,fontSize:m?12:13,opacity:currentQuizBlocked ? 0.5 : 1,flex:m?1:"none",minHeight:40}}>
                       {t("التالي", "Next")}
                     </button>
                   )}
@@ -479,7 +479,7 @@ export default function CourseViewPage() {
 
         {/* 2. Course Content */}
         {(isEnrolled || isStudentAccount) && (<div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:m?12:16,padding:m?14:20,marginBottom:m?12:20}}>
-          <h3 style={{fontSize:m?14:15,fontWeight:700,color:"#e2c275",marginBottom:m?12:16,letterSpacing:1}}>{t("محتوى الكورس", "COURSE CONTENT")}</h3>
+          <h3 style={{fontSize:m?14:15,fontWeight:700,color:"#B88BFF",marginBottom:m?12:16,letterSpacing:1}}>{t("محتوى الكورس", "COURSE CONTENT")}</h3>
           {(course.topics || []).map((topic) => {
             const topicQuiz = getTopicQuiz(topic);
             const topicQuizPassed = topicQuiz ? isQuizPassed(topicQuiz.id) : true;
@@ -487,7 +487,7 @@ export default function CourseViewPage() {
               <div key={topic.id} style={{marginBottom:m?12:16}}>
                 <p style={{fontSize:m?11:12,fontWeight:700,color:c.textMuted,marginBottom:6,padding:"0 4px"}}>
                   {topic.title_ar || topic.title}
-                  {topicQuiz && <span style={{marginLeft:6,fontSize:10,color:topicQuizPassed ? "#22c55e" : "#e2c275"}}>{topicQuizPassed ? "✅" : "📝"}</span>}
+                  {topicQuiz && <span style={{marginLeft:6,fontSize:10,color:topicQuizPassed ? "#22c55e" : "#B88BFF"}}>{topicQuizPassed ? "✅" : "📝"}</span>}
                 </p>
                 {(topic.lessons || []).map((lesson) => {
                   const locked = !canWatchAll && !lesson.is_free;
@@ -498,8 +498,8 @@ export default function CourseViewPage() {
                   return (
                     <button key={lesson.id} onClick={() => { if (locked) { setPlaying(lesson); } else { setPlaying(lesson); trackViewed(lesson.id); } }}
                       style={{width:"100%",textAlign:lang==="ar"?"right":"left",padding:m?"10px 12px":"10px 14px",borderRadius:10,border:"none",fontSize:m?12:13,cursor:locked?"not-allowed":"pointer",display:"flex",alignItems:"center",gap:8,marginBottom:3,
-                        background:isPlaying?"linear-gradient(135deg,#b38728,#e2c275)":c.bgInput,
-                        color:isPlaying?"#05030a":locked?"#555":c.text,
+                        background:isPlaying?"linear-gradient(135deg,#6E3BF2,#B88BFF)":c.bgInput,
+                        color:isPlaying?"#FFFFFF":locked?"#555":c.text,
                         fontWeight:isPlaying?700:400,transition:"all 0.2s",minHeight:42
                       }}>
                       <span style={{width:m?22:24,height:m?22:24,borderRadius:6,background:isPlaying?"rgba(0,0,0,.1)":isViewed?"rgba(34,197,94,.15)":theme==="dark"?"rgba(255,255,255,.06)":"rgba(0,0,0,.04)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:m?10:11,flexShrink:0}}>
@@ -516,8 +516,8 @@ export default function CourseViewPage() {
                 {topicQuiz && (
                   <button onClick={() => setActiveQuiz(topicQuiz)}
                     style={{width:"100%",textAlign:lang==="ar"?"right":"left",padding:m?"8px 12px":"8px 14px",borderRadius:10,border:"none",fontSize:m?11:12,cursor:"pointer",display:"flex",alignItems:"center",gap:8,marginBottom:3,minHeight:38,
-                      background:topicQuizPassed ? "rgba(34,197,94,.08)" : "rgba(212,175,55,.08)",
-                      color:topicQuizPassed ? "#22c55e" : "#d4af37",
+                      background:topicQuizPassed ? "rgba(34,197,94,.08)" : "rgba(110,59,242,.08)",
+                      color:topicQuizPassed ? "#22c55e" : "#6E3BF2",
                       fontWeight:600
                     }}>
                     <span>📝</span>
@@ -531,8 +531,8 @@ export default function CourseViewPage() {
           {course.final_quiz && (
             <button onClick={() => setActiveQuiz(course.final_quiz)}
               style={{width:"100%",textAlign:lang==="ar"?"right":"left",padding:m?"10px 12px":"10px 14px",borderRadius:10,border:"none",fontSize:m?12:13,cursor:"pointer",display:"flex",alignItems:"center",gap:8,marginBottom:4,marginTop:8,minHeight:42,
-                background:isQuizPassed(course.final_quiz.id) ? "rgba(34,197,94,.08)" : "rgba(212,175,55,.08)",
-                color:isQuizPassed(course.final_quiz.id) ? "#22c55e" : "#d4af37",
+                background:isQuizPassed(course.final_quiz.id) ? "rgba(34,197,94,.08)" : "rgba(110,59,242,.08)",
+                color:isQuizPassed(course.final_quiz.id) ? "#22c55e" : "#6E3BF2",
                 fontWeight:600
               }}>
               <span>🏆</span>
@@ -544,7 +544,7 @@ export default function CourseViewPage() {
 
         {/* 3. Course Information */}
         <div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:m?12:16,padding:m?16:28,marginBottom:m?12:20}}>
-          <h2 style={{fontSize:m?"1.15rem":"1.6rem",fontWeight:800,background:"linear-gradient(135deg,#fdfbfb,#e2c275,#b38728)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:12}}>
+          <h2 style={{fontSize:m?"1.15rem":"1.6rem",fontWeight:800,background:"linear-gradient(135deg,#fdfbfb,#B88BFF,#6E3BF2)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:12}}>
             {course.title_ar || course.title}
           </h2>
           <p style={{color:c.textMuted,fontSize:m?12:14,lineHeight:m?1.6:1.8,marginBottom:m?14:20}}>{course.description_ar || course.description}</p>
@@ -571,7 +571,7 @@ export default function CourseViewPage() {
         {/* 4. Course Reviews */}
         {(isEnrolled || isStudentAccount) && (
           <div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:m?12:16,padding:m?16:24,marginBottom:m?12:20}}>
-            <h3 style={{fontSize:m?14:16,fontWeight:700,color:"#e2c275",marginBottom:m?12:16}}>⭐ {t("قيّم هذا الكورس", "Rate This Course")}</h3>
+            <h3 style={{fontSize:m?14:16,fontWeight:700,color:"#B88BFF",marginBottom:m?12:16}}>⭐ {t("قيّم هذا الكورس", "Rate This Course")}</h3>
             <div style={{display:"flex",gap:m?4:6,marginBottom:12}}>
               {[1,2,3,4,5].map(s => (
                 <button key={s} onClick={() => setMyRating(s)} style={{fontSize:m?26:28,cursor:"pointer",background:"none",border:"none",color:s <= myRating ? "#f59e0b" : c.textMuted,transition:"transform 0.2s",transform:s<=myRating?"scale(1.2)":"scale(1)",padding:"4px"}}>★</button>
@@ -588,7 +588,7 @@ export default function CourseViewPage() {
                 setMyRating(0); setMyComment("");
               } catch(e) {}
               setSubmittingReview(false);
-            }} disabled={!myRating || submittingReview} style={{padding:m?"10px 18px":"10px 24px",background:myRating && !submittingReview ? "linear-gradient(135deg,#b38728,#e2c275)" : c.border,border:"none",borderRadius:10,color:myRating && !submittingReview ? "#05030a" : c.textMuted,fontWeight:700,fontSize:m?12:13,cursor:myRating && !submittingReview ? "pointer" : "not-allowed"}}>
+            }} disabled={!myRating || submittingReview} style={{padding:m?"10px 18px":"10px 24px",background:myRating && !submittingReview ? "linear-gradient(135deg,#6E3BF2,#B88BFF)" : c.border,border:"none",borderRadius:10,color:myRating && !submittingReview ? "#FFFFFF" : c.textMuted,fontWeight:700,fontSize:m?12:13,cursor:myRating && !submittingReview ? "pointer" : "not-allowed"}}>
               {submittingReview ? t("جاري الإرسال...", "Submitting...") : t("إرسال التقييم", "Submit Review")}
             </button>
           </div>
@@ -598,14 +598,14 @@ export default function CourseViewPage() {
         {reviewData.reviews.length > 0 && (
           <div style={{background:c.bgCard,border:`1px solid ${c.borderLight}`,borderRadius:m?12:16,padding:m?16:24,marginBottom:m?12:20}}>
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:m?14:20,flexWrap:"wrap"}}>
-              <h3 style={{fontSize:m?14:16,fontWeight:700,color:"#e2c275",margin:0}}>⭐ {t("تقييمات الطلاب", "Student Reviews")}</h3>
+              <h3 style={{fontSize:m?14:16,fontWeight:700,color:"#B88BFF",margin:0}}>⭐ {t("تقييمات الطلاب", "Student Reviews")}</h3>
               <span style={{fontSize:m?13:14,color:"#f59e0b",fontWeight:700}}>{reviewData.avg_rating}</span>
               <span style={{fontSize:m?11:12,color:c.textMuted}}>({reviewData.count} {t("تقييم", "reviews")})</span>
             </div>
             {reviewData.reviews.map((r) => (
               <div key={r.id} style={{padding:m?"12px 0":"14px 0",borderBottom:`1px solid ${c.borderLight}`}}>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
-                  <div style={{width:m?28:32,height:m?28:32,borderRadius:"50%",background:"linear-gradient(135deg,#b38728,#e2c275)",display:"flex",alignItems:"center",justifyContent:"center",color:"#05030a",fontWeight:700,fontSize:m?11:13,flexShrink:0}}>
+                  <div style={{width:m?28:32,height:m?28:32,borderRadius:"50%",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",display:"flex",alignItems:"center",justifyContent:"center",color:"#FFFFFF",fontWeight:700,fontSize:m?11:13,flexShrink:0}}>
                     {r.full_name?.charAt(0) || "?"}
                   </div>
                   <span style={{fontSize:m?12:13,fontWeight:600,color:c.text}}>{r.full_name}</span>

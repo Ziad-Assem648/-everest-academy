@@ -7,7 +7,7 @@ import AppNavbar from "../components/AppNavbar";
 import { useTheme } from "../ThemeContext";
 import FooterSection from "../components/FooterSection";
 
-const GOLD = "#d4af37";
+const GOLD = "#6E3BF2";
 
 const rankIcons = {
   Star: "⭐",
@@ -26,7 +26,7 @@ function flattenTree(nodes, depth = 0) {
   return list;
 }
 
-const levelColors = ["#d4af37", "#3b82f6", "#10b981", "#a78bfa", "#f97316", "#ef4444", "#06b6d4", "#ec4899"];
+const levelColors = ["#6E3BF2", "#3b82f6", "#10b981", "#a78bfa", "#f97316", "#ef4444", "#06b6d4", "#ec4899"];
 function getLevelColor(d) { return levelColors[d % levelColors.length]; }
 
 function TeamMemberNode({ member, depth, t, c, total, dbRanks }) {
@@ -205,7 +205,7 @@ export default function AffiliatePage() {
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
-                background: tab === tb.key ? `linear-gradient(135deg, ${GOLD}, #c9a227)` : c.bgCard,
+                background: tab === tb.key ? `linear-gradient(135deg, ${GOLD}, #6E3BF2)` : c.bgCard,
                 color: tab === tb.key ? "#fff" : c.textSoft,
                 boxShadow: tab === tb.key ? `0 4px 14px ${GOLD}44` : "none",
                 transition: "all 0.2s",
@@ -421,7 +421,7 @@ export default function AffiliatePage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontWeight: 700, fontSize: 14, margin: 0, color: c.text }}>
                     {user?.full_name || user?.name}
-                    <span style={{ fontSize: 9, background: GOLD, color: "#111", padding: "1px 6px", borderRadius: 6, marginLeft: 6, fontWeight: 700 }}>
+                    <span style={{ fontSize: 9, background: GOLD, color: "#fff", padding: "1px 6px", borderRadius: 6, marginLeft: 6, fontWeight: 700 }}>
                       {t("أنت", "YOU")}
                     </span>
                   </p>
@@ -474,7 +474,7 @@ export default function AffiliatePage() {
                       padding: "10px 24px",
                       borderRadius: 12,
                       border: "none",
-                      background: `linear-gradient(135deg, ${GOLD}, #c9a227)`,
+                      background: `linear-gradient(135deg, ${GOLD}, #6E3BF2)`,
                       color: "#fff",
                       fontWeight: 700,
                       fontSize: 13,
@@ -821,7 +821,7 @@ export default function AffiliatePage() {
                   }}
                   style={{
                     padding: "12px 28px",
-                    background: `linear-gradient(135deg, ${GOLD}, #c9a227)`,
+                    background: `linear-gradient(135deg, ${GOLD}, #6E3BF2)`,
                     border: "none",
                     borderRadius: 12,
                     fontWeight: 700,

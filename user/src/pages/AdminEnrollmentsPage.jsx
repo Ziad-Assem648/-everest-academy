@@ -102,15 +102,15 @@ export default function AdminEnrollmentsPage() {
 
       <main className="courses-main" style={{padding:"30px 0"}}>
         <div style={{display:"flex",gap:10,marginBottom:25,flexWrap:"wrap"}}>
-          <button onClick={() => setTab("pending")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="pending"?"#e2c275":c.bgCard,color:tab==="pending"?"#05030a":c.text}}>🛒 {t("طلبات الشراء","Purchase Requests")}</button>
-          <button onClick={() => setTab("topups")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="topups"?"#e2c275":c.bgCard,color:tab==="topups"?"#05030a":c.text}}>💰 {t("طلبات شحن الرصيد","Top-up Requests")}</button>
-          <button onClick={() => setTab("upgrades")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="upgrades"?"#e2c275":c.bgCard,color:tab==="upgrades"?"#05030a":c.text}}>⬆️ {t("طلبات الترقية","Upgrade Requests")}</button>
-          <button onClick={() => setTab("add")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="add"?"#e2c275":c.bgCard,color:tab==="add"?"#05030a":c.text}}>➕ {t("إضافة كورس يدوي","Manual Add Course")}</button>
+          <button onClick={() => setTab("pending")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="pending"?"#B88BFF":c.bgCard,color:tab==="pending"?"#FFFFFF":c.text}}>🛒 {t("طلبات الشراء","Purchase Requests")}</button>
+          <button onClick={() => setTab("topups")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="topups"?"#B88BFF":c.bgCard,color:tab==="topups"?"#FFFFFF":c.text}}>💰 {t("طلبات شحن الرصيد","Top-up Requests")}</button>
+          <button onClick={() => setTab("upgrades")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="upgrades"?"#B88BFF":c.bgCard,color:tab==="upgrades"?"#FFFFFF":c.text}}>⬆️ {t("طلبات الترقية","Upgrade Requests")}</button>
+          <button onClick={() => setTab("add")} style={{padding:"10px 22px",borderRadius:14,border:"none",cursor:"pointer",fontWeight:700,fontSize:14,background:tab==="add"?"#B88BFF":c.bgCard,color:tab==="add"?"#FFFFFF":c.text}}>➕ {t("إضافة كورس يدوي","Manual Add Course")}</button>
         </div>
 
         {tab === "pending" && (
           <>
-            <h2 style={{color:"#e2c275",marginBottom:20,fontSize:20}}>🛒 {t("طلبات شراء الكورسات (Pending)","Course Purchase Requests (Pending)")}</h2>
+            <h2 style={{color:"#B88BFF",marginBottom:20,fontSize:20}}>🛒 {t("طلبات شراء الكورسات (Pending)","Course Purchase Requests (Pending)")}</h2>
             {loading ? <p style={{color:"#9a95b0"}}>{t("جاري التحميل...","Loading...")}</p> : enrollments.length === 0 ? (
               <p style={{color:"#9a95b0"}}>{t("لا توجد طلبات شراء معلقة","No pending purchase requests")}</p>
             ) : (
@@ -121,7 +121,7 @@ export default function AdminEnrollmentsPage() {
                       <div>
                         <p style={{color:c.text,fontWeight:700,fontSize:15,marginBottom:4}}>{e.student_name}</p>
                         <p style={{color:"#9a95b0",fontSize:13}}>{e.student_email}</p>
-                        <p style={{color:"#e2c275",fontSize:14,marginTop:4}}>📚 {e.course_name_ar || e.course_name}</p>
+                        <p style={{color:"#B88BFF",fontSize:14,marginTop:4}}>📚 {e.course_name_ar || e.course_name}</p>
                         <p style={{color:"#666",fontSize:12,marginTop:2}}>{t("طريقة الدفع:","Payment:")} {e.payment_method === "vodafone" ? "📱 " + t("فودافون كاش","Vodafone Cash") : e.payment_method === "cash" ? "💵 " + t("كاش","Cash") : "💳 E-Money"}</p>
                         <p style={{color:"#666",fontSize:12}}>{t("التاريخ:","Date:")} {e.enrolled_at?.slice(0,16) || "—"}</p>
                       </div>
@@ -147,7 +147,7 @@ export default function AdminEnrollmentsPage() {
 
         {tab === "topups" && (
           <>
-            <h2 style={{color:"#e2c275",marginBottom:16,fontSize:20}}>💰 {t("طلبات شحن الرصيد","Top-up Requests")}</h2>
+            <h2 style={{color:"#B88BFF",marginBottom:16,fontSize:20}}>💰 {t("طلبات شحن الرصيد","Top-up Requests")}</h2>
             <div style={{display:"flex",gap:12,marginBottom:20,flexWrap:"wrap",alignItems:"center"}}>
               <input type="text" placeholder={t("بحث عن طالب...","Search for student...")} value={topupSearch} onChange={(e) => setTopupSearch(e.target.value)}
                 style={{padding:"10px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:c.bgCard,color:c.text,fontSize:13,flex:1,minWidth:200}} />
@@ -157,7 +157,7 @@ export default function AdminEnrollmentsPage() {
                 <option value="approved" style={{background:"#1a1530"}}>{t("تم الموافقة","Approved")}</option>
                 <option value="rejected" style={{background:"#1a1530"}}>{t("مرفوض","Rejected")}</option>
               </select>
-              <button onClick={() => loadTopups()} style={{padding:"10px 22px",background:"#e2c275",border:"none",borderRadius:10,color:"#05030a",fontWeight:700,cursor:"pointer",fontSize:13}}>{t("بحث","Search")}</button>
+              <button onClick={() => loadTopups()} style={{padding:"10px 22px",background:"#B88BFF",border:"none",borderRadius:10,color:"#FFFFFF",fontWeight:700,cursor:"pointer",fontSize:13}}>{t("بحث","Search")}</button>
             </div>
             <div style={{overflowX:"auto"}}>
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
@@ -178,7 +178,7 @@ export default function AdminEnrollmentsPage() {
                     <tr key={r.id} style={{borderBottom:`1px solid ${c.border}`}}>
                       <td style={{padding:"10px",color:c.text}}>#{r.id?.slice(0,8)}</td>
                       <td style={{padding:"10px"}}><div style={{color:c.text,fontWeight:600}}>{r.full_name}</div><div style={{color:"#9a95b0",fontSize:11}}>{r.email}</div></td>
-                      <td style={{padding:"10px",color:"#e2c275",fontWeight:700}}>{r.amount} EGP</td>
+                      <td style={{padding:"10px",color:"#B88BFF",fontWeight:700}}>{r.amount} EGP</td>
                       <td style={{padding:"10px",color:c.text}}>{r.phone_number || "—"}</td>
                       <td style={{padding:"10px",color:c.text}}>📱 {t("فودافون كاش","Vodafone Cash")}</td>
                       <td style={{padding:"10px"}}>
@@ -216,7 +216,7 @@ export default function AdminEnrollmentsPage() {
 
         {tab === "upgrades" && (
           <>
-            <h2 style={{color:"#e2c275",marginBottom:20,fontSize:20}}>⬆️ {t("طلبات الترقية إلى Student","Upgrade Requests to Student")}</h2>
+            <h2 style={{color:"#B88BFF",marginBottom:20,fontSize:20}}>⬆️ {t("طلبات الترقية إلى Student","Upgrade Requests to Student")}</h2>
             {upgradeRequests.length === 0 ? (
               <p style={{color:"#9a95b0"}}>{t("لا توجد طلبات ترقية","No upgrade requests")}</p>
             ) : (
@@ -244,7 +244,7 @@ export default function AdminEnrollmentsPage() {
 
         {tab === "add" && (
           <>
-            <h2 style={{color:"#e2c275",marginBottom:20,fontSize:20}}>➕ {t("إضافة كورس لمستخدم (يدوي)","Add Course to User (Manual)")}</h2>
+            <h2 style={{color:"#B88BFF",marginBottom:20,fontSize:20}}>➕ {t("إضافة كورس لمستخدم (يدوي)","Add Course to User (Manual)")}</h2>
             <div style={{background:c.bgCard,border:`1px solid ${c.border}`,borderRadius:16,padding:24,maxWidth:500}}>
               <form onSubmit={handleAdminAdd}>
                 <div style={{marginBottom:16}}>
@@ -261,7 +261,7 @@ export default function AdminEnrollmentsPage() {
                   </select>
                 </div>
                 {addMsg && <p style={{marginBottom:12,fontSize:13,color:addMsg.includes("✅")?"#22c55e":"#ff5b5b"}}>{addMsg}</p>}
-                <button type="submit" style={{width:"100%",padding:"12px",background:"#e2c275",border:"none",borderRadius:12,color:"#05030a",fontWeight:700,cursor:"pointer"}}>{t("تفعيل الكورس للمستخدم","Activate Course for User")}</button>
+                <button type="submit" style={{width:"100%",padding:"12px",background:"#B88BFF",border:"none",borderRadius:12,color:"#FFFFFF",fontWeight:700,cursor:"pointer"}}>{t("تفعيل الكورس للمستخدم","Activate Course for User")}</button>
               </form>
             </div>
           </>

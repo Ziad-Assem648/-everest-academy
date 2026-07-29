@@ -21,7 +21,7 @@ export default function PendingActivationPage() {
       .catch(() => {});
   }, []);
 
-  const gold = "#d4af37";
+  const gold = "#6E3BF2";
 
   return (
     <div style={{ minHeight: "100vh", background: c.bg }}>

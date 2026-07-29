@@ -14,10 +14,10 @@ const pscStyles = `
 .psc-track { -ms-overflow-style:none; scrollbar-width:none; scroll-snap-type:x mandatory; cursor:grab; }
 .psc-track:active { cursor:grabbing; }
 .psc-card { scroll-snap-align:start; }
-.psc-card:hover .psc-icon-box { transform:translateY(-4px) scale(1.06); box-shadow:0 12px 32px rgba(212,175,55,0.3); }
+.psc-card:hover .psc-icon-box { transform:translateY(-4px) scale(1.06); box-shadow:0 12px 32px rgba(110,59,242,0.3); }
 .psc-card:hover { transform:translateY(-6px); box-shadow:0 20px 50px rgba(0,0,0,0.1); }
 .psc-dot { transition:all 0.3s ease; }
-.psc-dot.active { width:28px; background:#d4af37; }
+.psc-dot.active { width:28px; background:#6E3BF2; }
 `;
 
 function AnimatedNumber({ target, suffix, isVisible }) {
@@ -76,7 +76,7 @@ function PremiumStatsCarousel({ stats, t, c, theme }) {
       suffix: "K+",
       title: t("ساعه تعليميه", "Educational Hours"),
       desc: t("محتوى تعليمي غني بأكثر من 6 آلاف ساعة.", "Rich educational content with over 6,000 hours."),
-      accent: "#d4af37",
+      accent: "#6E3BF2",
     },
     {
       icon: "fa-solid fa-graduation-cap",
@@ -151,8 +151,8 @@ function PremiumStatsCarousel({ stats, t, c, theme }) {
         }}>
           <span style={{
             display: "inline-block", fontSize: 12, fontWeight: 700, letterSpacing: 3,
-            color: "#d4af37", textTransform: "uppercase", marginBottom: 14,
-            background: "rgba(212,175,55,0.1)", padding: "6px 18px", borderRadius: 99,
+            color: "#6E3BF2", textTransform: "uppercase", marginBottom: 14,
+            background: "rgba(110,59,242,0.1)", padding: "6px 18px", borderRadius: 99,
           }}>
             {t("لماذا إيفرست", "WHY EVEREST")}
           </span>

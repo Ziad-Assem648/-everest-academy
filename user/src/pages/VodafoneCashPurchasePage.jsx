@@ -77,7 +77,7 @@ export default function VodafoneCashPurchasePage() {
         <p style={{fontSize:60,marginBottom:16}}>✅</p>
         <h2 style={{color:c.text,marginBottom:8}}>{err === "existing" ? t("أنت مسجل بالفعل", "Already Enrolled") : t("تم إرسال طلب الشراء", "Purchase Request Sent")}</h2>
         <p style={{color:c.textSoft,marginBottom:20}}>{err === "existing" ? t("هذا الكورس مسجل لك بالفعل أو في انتظار الموافقة.", "You are already enrolled or awaiting approval.") : t("في انتظار موافقة الادمن. سيتم تفعيل الكورس بعد التأكد من الدفع.", "Waiting for admin approval. Course will be activated after payment confirmation.")}</p>
-        <Link to="/courses" style={{padding:"12px 24px",background:"linear-gradient(135deg,#b38728,#e2c275)",borderRadius:12,color:"#05030a",fontWeight:700,textDecoration:"none"}}>{t("العودة للكورسات", "Back to Courses")}</Link>
+        <Link to="/courses" style={{padding:"12px 24px",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",borderRadius:12,color:"#FFFFFF",fontWeight:700,textDecoration:"none"}}>{t("العودة للكورسات", "Back to Courses")}</Link>
       </div>
     </div>
   );
@@ -92,11 +92,11 @@ export default function VodafoneCashPurchasePage() {
 
       <main className="courses-main" style={{maxWidth:600,margin:"0 auto",padding:"40px 0"}}>
         <div style={{background:"rgba(20,16,36,.6)",border:`1px solid ${c.border}`,borderRadius:20,padding:30}}>
-          <h2 style={{color:"#e2c275",fontSize:20,marginBottom:20,textAlign:"center"}}>{t("💳 شراء الكورس عبر فودافون كاش", "💳 Purchase via Vodafone Cash")}</h2>
+          <h2 style={{color:"#B88BFF",fontSize:20,marginBottom:20,textAlign:"center"}}>{t("💳 شراء الكورس عبر فودافون كاش", "💳 Purchase via Vodafone Cash")}</h2>
 
           <div style={{background:c.bgCard,borderRadius:14,padding:20,marginBottom:24}}>
             <p style={{color:c.text,fontWeight:700,fontSize:16,marginBottom:8}}>{course.title_ar || course.title}</p>
-            <p style={{color:"#e2c275",fontSize:24,fontWeight:800}}>{course.price} E-Money</p>
+            <p style={{color:"#B88BFF",fontSize:24,fontWeight:800}}>{course.price} E-Money</p>
           </div>
 
           <div style={{background:"rgba(254,212,0,.06)",border:"1px solid rgba(254,212,0,.15)",borderRadius:14,padding:16,marginBottom:24}}>
@@ -131,7 +131,7 @@ export default function VodafoneCashPurchasePage() {
               </div>
 
               <button type="submit" disabled={uploading}
-                style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#b38728,#e2c275)",border:"none",borderRadius:14,color:"#05030a",fontWeight:800,fontSize:16,cursor:"pointer",opacity:uploading?0.6:1}}>
+                style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",border:"none",borderRadius:14,color:"#FFFFFF",fontWeight:800,fontSize:16,cursor:"pointer",opacity:uploading?0.6:1}}>
                 {uploading ? t("جاري رفع الصورة...", "Uploading image...") : t("تأكيد الدفع وإرسال الطلب", "Confirm Payment & Submit")}
               </button>
             </form>

@@ -36,7 +36,7 @@ const getStyles = (c) => ({
     transition: "0.15s", padding: "2px"
   }),
   submitBtn: {
-    border: "none", background: "linear-gradient(135deg, #b38728, #e2c275)", color: "#05030a",
+    border: "none", background: "linear-gradient(135deg, #6E3BF2, #B88BFF)", color: "#FFFFFF",
     padding: "16px 24px", borderRadius: 14, fontWeight: 800, cursor: "pointer",
     fontSize: 15, transition: "0.3s"
   },
