@@ -111,6 +111,7 @@ import adminLogsRoutes from "./routes/admin_logs.js";
 import settingsRoutes from "./routes/settings.js";
 import bunnyRoutes from "./routes/bunny.js";
 import adminAuthRoutes, { seedAdmins } from "./routes/admin_auth.js";
+import transactionsRoutes from "./routes/transactions.js";
 
 app.use("/api", sessionAuth, apiLimiter);
 app.use("/api/auth", authLimiter, authRoutes);
@@ -131,6 +132,7 @@ app.use("/api/proofs", proofsRoutes);
 app.use("/api/admin-logs", adminAuth, adminLogsRoutes);
 app.use("/api/bunny", adminAuth, bunnyRoutes);
 app.use("/api/settings", adminAuth, settingsRoutes);
+app.use("/api/transactions", adminAuth, transactionsRoutes);
 
 // Public customer service settings (no auth needed)
 app.get("/api/customer-service", async (req, res) => {

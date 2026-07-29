@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
-
-const ADMIN_API = "/api/admin-auth";
-const getHeaders = () => {
-  const s = JSON.parse(localStorage.getItem("admin_session") || "{}");
-  return { "Content-Type": "application/json", "x-user-id": s.userId || "", "x-session-token": s.token || "" };
-};
+import { api, getAdminSession } from "../api.js";
 
 export default function AdminsListPage() {
   const { t: tFn } = useLang();
@@ -16,47 +11,47 @@ export default function AdminsListPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ id: "", full_name: "", email: "", password: "", role: "admin" });
   const [msg, setMsg] = useState("");
-  const adminSession = JSON.parse(localStorage.getItem("admin_session") || "{}");
+  const adminSession = getAdminSession();
   const isManager = adminSession?.user?.role === "manager";
 
   const load = () => {
     setLoading(true);
-    fetch(`${ADMIN_API}/list`, { headers: getHeaders() })
-      .then(r => r.json())
-      .then(d => { if (Array.isArray(d)) setAdmins(d); else console.error(d); })
+    api("/api/admin-auth/list")
+      .then(d => { if (Array.isArray(d)) setAdmins(d); else setAdmins([]); })
+      .catch(() => setAdmins([]))
       .finally(() => setLoading(false));
   };
   useEffect(load, []);
 
   const handleAdd = async () => {
     if (!form.id || !form.full_name || !form.email || !form.password) { alert(t("جميع الحقول مطلوبة", "All fields required")); return; }
-    const r = await fetch(`${ADMIN_API}/list`, { method: "POST", headers: getHeaders(), body: JSON.stringify(form) });
-    const d = await r.json();
-    if (d.error) { alert("❌ " + d.error); return; }
-    setMsg(t("✅ تم إضافة الأدمن بنجاح", "✅ Admin added successfully"));
-    setShowAdd(false); setForm({ id: "", full_name: "", email: "", password: "", role: "admin" }); load();
-    setTimeout(() => setMsg(""), 3000);
+    try {
+      const d = await api("/api/admin-auth/list", { method: "POST", body: JSON.stringify(form) });
+      setMsg(t("✅ تم إضافة الأدمن بنجاح", "✅ Admin added successfully"));
+      setShowAdd(false); setForm({ id: "", full_name: "", email: "", password: "", role: "admin" }); load();
+      setTimeout(() => setMsg(""), 3000);
+    } catch (e) { alert("❌ " + e.message); }
   };
 
   const handleEdit = async () => {
     const body = { full_name: form.full_name, email: form.email, role: form.role };
     if (form.password) body.password = form.password;
-    const r = await fetch(`${ADMIN_API}/list/${form.id}`, { method: "PUT", headers: getHeaders(), body: JSON.stringify(body) });
-    const d = await r.json();
-    if (d.error) { alert("❌ " + d.error); return; }
-    setMsg(t("✅ تم تحديث البيانات بنجاح", "✅ Admin updated successfully"));
-    setEditItem(null); load();
-    setTimeout(() => setMsg(""), 3000);
+    try {
+      await api(`/api/admin-auth/list/${form.id}`, { method: "PUT", body: JSON.stringify(body) });
+      setMsg(t("✅ تم تحديث البيانات بنجاح", "✅ Admin updated successfully"));
+      setEditItem(null); load();
+      setTimeout(() => setMsg(""), 3000);
+    } catch (e) { alert("❌ " + e.message); }
   };
 
   const handleDelete = async (id, name) => {
     if (!confirm(t(`هل أنت متأكد من حذف "${name}"؟`, `Are you sure you want to delete "${name}"?`))) return;
-    const r = await fetch(`${ADMIN_API}/list/${id}`, { method: "DELETE", headers: getHeaders() });
-    const d = await r.json();
-    if (d.error) { alert("❌ " + d.error); return; }
-    setMsg(t("✅ تم الحذف بنجاح", "✅ Admin deleted successfully"));
-    load();
-    setTimeout(() => setMsg(""), 3000);
+    try {
+      await api(`/api/admin-auth/list/${id}`, { method: "DELETE" });
+      setMsg(t("✅ تم الحذف بنجاح", "✅ Admin deleted successfully"));
+      load();
+      setTimeout(() => setMsg(""), 3000);
+    } catch (e) { alert("❌ " + e.message); }
   };
 
   const openEdit = (a) => { setForm({ id: a.id, full_name: a.full_name, email: a.email, password: "", role: a.role }); setEditItem(a); };

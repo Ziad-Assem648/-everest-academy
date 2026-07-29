@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useLang } from "../LangContext";
+import { useTheme } from "../ThemeContext";
 import { BACKEND_URL } from "../api.js";
 
 export default function AdminLoginPage({ onLogin }) {
   const { t: tFn } = useLang();
+  const { theme, toggle } = useTheme();
   const t = (ar, en) => tFn(ar, en);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,6 +32,11 @@ export default function AdminLoginPage({ onLogin }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-everest-950 via-everest-900 to-everest-800 flex items-center justify-center p-4">
+      {/* Theme toggle */}
+      <button onClick={toggle} title={theme === "dark" ? "Light Mode" : "Dark Mode"} className="absolute top-4 end-4 z-10 w-10 h-10 rounded-xl flex items-center justify-center text-lg cursor-pointer transition border border-white/10 bg-white/5 hover:bg-white/10">
+        {theme === "dark" ? "☀️" : "🌙"}
+      </button>
+
       {/* Decorative shapes */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-everest-500/10 blur-3xl" />

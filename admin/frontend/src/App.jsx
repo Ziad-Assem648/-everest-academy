@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { LangProvider, useLang } from "./LangContext";
+import { useTheme } from "./ThemeContext";
 import { api, BACKEND_URL } from "./api.js";
 import AdminLoginPage from "./pages/AdminLoginPage.jsx";
 import RoleManagementPage from "./pages/RoleManagementPage.jsx";
@@ -23,6 +24,7 @@ import AdminsListPage from "./pages/AdminsListPage.jsx";
 import CustomerServicePage from "./pages/CustomerServicePage.jsx";
 import FreeCoursesSettingsPage from "./pages/FreeCoursesSettingsPage.jsx";
 import PricingSettingsPage from "./pages/PricingSettingsPage.jsx";
+import TransactionsPage from "./pages/TransactionsPage.jsx";
 
 
 function AppInner() {
@@ -31,6 +33,7 @@ function AppInner() {
   const [currentUser, setCurrentUser] = useState(null);
   const [checking, setChecking] = useState(true);
   const { lang, toggle, t } = useLang();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const s = JSON.parse(localStorage.getItem("admin_session") || "{}");
@@ -49,7 +52,7 @@ function AppInner() {
   const handleLogin = (user) => { setCurrentUser(user); setPage("dashboard"); };
   const handleLogout = () => { localStorage.removeItem("admin_session"); setCurrentUser(null); };
 
-  if (checking) return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><p className="text-gray-400 text-lg animate-pulse">{t("جاري التحقق...", "Checking...")}</p></div>;
+  if (checking) return <div className="min-h-screen bg-theme-primary flex items-center justify-center"><p className="text-theme-text-secondary text-lg animate-pulse">{t("جاري التحقق...", "Checking...")}</p></div>;
   if (!currentUser) return <LangProvider><AdminLoginPage onLogin={handleLogin} /></LangProvider>;
 
   const isManager = currentUser.role === "manager";
@@ -71,28 +74,32 @@ function AppInner() {
     { id: "feedbacks", label: lang === "ar" ? "التقييمات" : "Feedbacks", icon: "💬" },
     { id: "cs", label: lang === "ar" ? "خدمة العملاء" : "Customer Service", icon: "📞" },
     { id: "pricing", label: lang === "ar" ? "إعدادات الأسعار" : "Pricing Settings", icon: "💰" },
+    { id: "transactions", label: lang === "ar" ? "سجل المعاملات" : "Transactions", icon: "💳" },
 
     ...(isManager ? [{ id: "admins-mgmt", label: lang === "ar" ? "👥 إدارة الأدمنز" : "👥 Admin Management", icon: "👥" }] : []),
     { id: "profile-settings", label: lang === "ar" ? "الإعدادات الشخصية" : "Settings", icon: "⚙️" },
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50" dir={lang === "ar" ? "rtl" : "ltr"}>
+    <div className="flex h-screen bg-theme-primary theme-transition" dir={lang === "ar" ? "rtl" : "ltr"}>
       <Sidebar navItems={navItems} current={page} onChange={setPage} />
       <main className="flex-1 overflow-y-auto p-3 sm:p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-            <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-500">
-              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${isManager ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-theme-text-secondary">
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${isManager ? 'badge-amber' : 'badge-blue'}`}>
                 {isManager ? '👑 Manager' : '🔧 Admin'}
               </span>
               <span className="hidden sm:inline">{currentUser.full_name}</span>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={toggle} className="px-3 py-1.5 text-xs sm:text-sm font-medium bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+              <button onClick={toggleTheme} className="w-9 h-9 flex items-center justify-center rounded-lg border border-theme-border bg-theme-surface shadow-card hover:bg-theme-surface-hover text-lg">
+                {theme === "dark" ? "☀️" : "🌙"}
+              </button>
+              <button onClick={toggle} className="px-3 py-1.5 text-xs sm:text-sm font-medium bg-theme-surface border border-theme-border rounded-lg shadow-card hover:bg-theme-surface-hover text-theme-text-primary">
                 {lang === "ar" ? "English" : "العربية"}
               </button>
-              <button onClick={handleLogout} className="px-3 py-1.5 text-xs sm:text-sm font-medium bg-red-50 text-red-600 border border-red-200 rounded-lg shadow-sm hover:bg-red-100 transition">
+              <button onClick={handleLogout} className="px-3 py-1.5 text-xs sm:text-sm font-medium bg-theme-surface text-theme-text-secondary border border-theme-border rounded-lg shadow-card hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition">
                 🚪 {t("خروج", "Logout")}
               </button>
             </div>
@@ -111,6 +118,7 @@ function AppInner() {
           {page === "feedbacks" && <FeedbacksPage />}
           {page === "cs" && <CustomerServicePage />}
           {page === "pricing" && <PricingSettingsPage />}
+          {page === "transactions" && <TransactionsPage />}
 
           {page === "admin-logs" && <AdminLogsPage />}
           {page === "membership-settings" && <MembershipSettingsPage />}
@@ -128,6 +136,7 @@ export default function App() {
 
 function Sidebar({ navItems, current, onChange }) {
   const [open, setOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   return (
     <>
       <button onClick={() => setOpen(true)} className="lg:hidden fixed top-3 right-3 z-50 bg-everest-950 text-white p-3 rounded-xl shadow-lg text-xl">☰</button>
@@ -135,12 +144,15 @@ function Sidebar({ navItems, current, onChange }) {
       <aside className={`${open ? "translate-x-0" : "translate-x-full"} lg:translate-x-0 transition-transform duration-300 w-64 bg-everest-950 text-white flex flex-col fixed lg:static inset-y-0 right-0 z-40`}>
         <div className="p-5 border-b border-white/10 flex items-center justify-between">
           <h1 className="text-lg font-bold"><span className="text-everest-400">Everest</span> Admin</h1>
-          <button onClick={() => setOpen(false)} className="lg:hidden text-white/60">✕</button>
+          <div className="flex items-center gap-2">
+            <button onClick={toggleTheme} className="text-white/60 hover:text-white text-sm transition">{theme === "dark" ? "☀️" : "🌙"}</button>
+            <button onClick={() => setOpen(false)} className="lg:hidden text-white/60 hover:text-white">✕</button>
+          </div>
         </div>
         <nav className="flex-1 overflow-y-auto p-3 space-y-1" style={{maxHeight:"calc(100vh - 80px)"}}>
           {navItems.map((item) => (
             <button key={item.id} onClick={() => { onChange(item.id); setOpen(false); }}
-              className={`w-full text-right px-4 py-3 rounded-lg text-sm font-medium transition flex items-center gap-3 ${current === item.id ? "bg-everest-600 text-white" : "text-gray-300 hover:bg-white/5"}`}>
+              className={`w-full text-right px-4 py-3 rounded-lg text-sm font-medium transition flex items-center gap-3 ${current === item.id ? "bg-everest-600 text-white" : "text-theme-text-secondary hover:bg-white/5"}`}>
               <span>{item.icon}</span>
               {item.label}
             </button>
@@ -165,7 +177,7 @@ function RingChart({ value, max, color, size = 90 }) {
   const r = 36; const circ = 2 * Math.PI * r; const pct = Math.min(value / (max || 1), 1);
   return (
     <svg width={size} height={size} viewBox="0 0 90 90" style={{transform:"rotate(-90deg)"}}>
-      <circle cx="45" cy="45" r={r} fill="none" stroke="#f0f0f0" strokeWidth="7" />
+      <circle cx="45" cy="45" r={r} fill="none" stroke="var(--border-color)" strokeWidth="7" />
       <circle cx="45" cy="45" r={r} fill="none" stroke={color} strokeWidth="7" strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} strokeLinecap="round" style={{transition:"stroke-dashoffset 1.5s ease"}} />
     </svg>
   );
@@ -264,12 +276,12 @@ function DashboardPage({ stats }) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">{t("📊 لوحة الإحصائيات", "📊 Dashboard")}</h1>
-          <p className="text-gray-500 text-sm mt-1">{t("نظرة عامة على أداء المنصة — بيانات حقيقية من قاعدة البيانات", "Platform performance overview — real data from database")}</p>
+          <h1 className="section-title">{t("📊 لوحة الإحصائيات", "📊 Dashboard")}</h1>
+          <p className="section-sub">{t("نظرة عامة على أداء المنصة — بيانات حقيقية من قاعدة البيانات", "Platform performance overview — real data from database")}</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-xs text-gray-400 bg-white px-3 py-1.5 rounded-lg border">{new Date().toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", { weekday:"long", year:"numeric", month:"long", day:"numeric" })}</div>
-          <button onClick={() => window.location.reload()} className="px-4 py-2 text-sm bg-white border rounded-xl shadow-sm hover:shadow-md transition flex items-center gap-2">
+          <div className="text-xs text-theme-text-secondary bg-theme-surface px-3 py-1.5 rounded-lg border border-theme-border">{new Date().toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", { weekday:"long", year:"numeric", month:"long", day:"numeric" })}</div>
+          <button onClick={() => window.location.reload()} className="px-4 py-2 text-sm bg-theme-surface border border-theme-border rounded-xl shadow-card hover:shadow-lg transition flex items-center gap-2 text-theme-text-primary">
             <span className="text-base">🔄</span> {t("تحديث", "Refresh")}
           </button>
         </div>
@@ -278,15 +290,15 @@ function DashboardPage({ stats }) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {mainCards.map((c, i) => (
           <button key={i} onClick={() => openDetail(c.type)}
-            className={`relative overflow-hidden bg-white rounded-2xl shadow-sm border p-5 text-left hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ${detail === c.type ? 'ring-2 ring-everest-500 border-everest-300' : 'border-gray-100'}`}
+            className={`relative overflow-hidden bg-theme-surface rounded-2xl shadow-card border border-theme-border p-5 text-left hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ${detail === c.type ? 'card-active' : 'border-theme-border'}`}
             style={{animation: `slideUp 0.4s ease ${i * 0.08}s both`}}>
             <div className={`absolute top-0 right-0 w-24 h-24 -mr-6 -mt-6 rounded-full bg-gradient-to-br ${c.bg} to-white/5 opacity-10`} />
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">{c.icon}</span>
-              <p className="text-gray-500 text-xs font-medium">{c.label}</p>
+              <p className="text-theme-text-secondary text-xs font-medium">{c.label}</p>
             </div>
-            <p className="text-3xl font-extrabold text-gray-900"><AnimatedNumber value={c.value || 0} /></p>
-            <p className="text-[10px] text-gray-400 mt-1">{c.sub}</p>
+            <p className="text-3xl font-extrabold text-theme-text-primary"><AnimatedNumber value={c.value || 0} /></p>
+            <p className="text-[10px] text-theme-text-secondary mt-1">{c.sub}</p>
           </button>
         ))}
       </div>
@@ -294,13 +306,13 @@ function DashboardPage({ stats }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
         {ringData.map((r, i) => (
           <button key={i} onClick={() => openDetail(r.type)}
-            className={`bg-white rounded-2xl shadow-sm border p-5 flex items-center gap-5 text-left hover:shadow-lg transition-all duration-300 ${detail === r.type ? 'ring-2 ring-everest-500 border-everest-300' : 'border-gray-100'}`}
+            className={`bg-theme-surface rounded-2xl shadow-card border border-theme-border p-5 flex items-center gap-5 text-left hover:shadow-lg transition-all duration-300 ${detail === r.type ? 'card-active' : 'border-theme-border'}`}
             style={{animation: `slideUp 0.4s ease ${0.4 + i * 0.1}s both`}}>
             <RingChart value={r.value} max={r.max} color={r.color} />
             <div>
-              <p className="text-gray-700 font-bold text-sm">{r.label}</p>
-              <p className="text-2xl font-extrabold text-gray-900 mt-1">{r.detail}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{Math.round((r.value / (r.max || 1)) * 100)}%</p>
+              <p className="text-theme-text-primary font-bold text-sm">{r.label}</p>
+              <p className="text-2xl font-extrabold text-theme-text-primary mt-1">{r.detail}</p>
+              <p className="text-xs text-theme-text-secondary mt-0.5">{Math.round((r.value / (r.max || 1)) * 100)}%</p>
             </div>
           </button>
         ))}
@@ -309,13 +321,13 @@ function DashboardPage({ stats }) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {pendingCards.map((c, i) => (
           <button key={i} onClick={() => openDetail(c.type)}
-            className={`bg-white rounded-2xl shadow-sm border p-5 flex items-center gap-4 text-left hover:shadow-md transition-all duration-300 ${detail === c.type ? 'ring-2 ring-everest-500 border-everest-300' : 'border-gray-100'}`}
+            className={`bg-theme-surface rounded-2xl shadow-card border border-theme-border p-5 flex items-center gap-4 text-left hover:shadow-md transition-all duration-300 ${detail === c.type ? 'card-active' : 'border-theme-border'}`}
             style={{animation: `slideUp 0.4s ease ${0.7 + i * 0.08}s both`}}>
             <div className="w-11 h-11 rounded-xl flex items-center justify-center text-lg" style={{background: c.color + "15"}}>{c.icon}</div>
             <div>
-              <p className="text-gray-400 text-xs">{c.label}</p>
-              <p className="text-xl font-extrabold text-gray-900"><AnimatedNumber value={c.value || 0} /></p>
-              <p className="text-[10px] text-gray-400 mt-0.5">{c.desc}</p>
+              <p className="text-theme-text-secondary text-xs">{c.label}</p>
+              <p className="text-xl font-extrabold text-theme-text-primary"><AnimatedNumber value={c.value || 0} /></p>
+              <p className="text-[10px] text-theme-text-secondary mt-0.5">{c.desc}</p>
             </div>
           </button>
         ))}
@@ -324,23 +336,23 @@ function DashboardPage({ stats }) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {breakdownCards.map((c, i) => (
           <button key={i} onClick={() => openDetail(c.type)}
-            className={`relative overflow-hidden bg-white rounded-2xl shadow-sm border p-5 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${detail === c.type ? 'ring-2 ring-everest-500 border-everest-300' : 'border-gray-100'}`}>
+            className={`relative overflow-hidden bg-theme-surface rounded-2xl shadow-card border border-theme-border p-5 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${detail === c.type ? 'card-active' : 'border-theme-border'}`}>
             <div className="flex items-center gap-2 mb-1">
               <span>{c.icon}</span>
-              <p className="text-gray-500 text-xs font-medium">{c.label}</p>
+              <p className="text-theme-text-secondary text-xs font-medium">{c.label}</p>
             </div>
-            <p className="text-2xl font-extrabold">{(c.value || 0).toLocaleString()}</p>
-            <p className="text-[10px] text-gray-400 mt-0.5">{c.desc}</p>
+            <p className="text-2xl font-extrabold text-theme-text-primary">{(c.value || 0).toLocaleString()}</p>
+            <p className="text-[10px] text-theme-text-secondary mt-0.5">{c.desc}</p>
           </button>
         ))}
       </div>
 
       {detail && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6" style={{animation:"slideUp 0.3s ease both"}}>
+        <div className="bg-theme-surface rounded-2xl shadow-card border border-theme-border p-5 mb-6" style={{animation:"slideUp 0.3s ease both"}}>
             <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-gray-700">{detailTitles[detail] || detail}</h3>
+            <h3 className="font-bold text-theme-text-primary">{detailTitles[detail] || detail}</h3>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-lg">{detailData.length} {t("عنصر", "items")}</span>
+              <span className="text-xs text-theme-text-secondary bg-theme-secondary px-2 py-1 rounded-lg">{detailData.length} {t("عنصر", "items")}</span>
               {(detail === "quiz-pass-rate" || detail === "quizzes-passed") && detailData.length > 0 && (
                 <button onClick={async () => {
                   if (!confirm(t("هل أنت متأكد من حذف جميع نتائج الاختبارات؟", "Are you sure you want to delete all quiz results?"))) return;
@@ -351,123 +363,54 @@ function DashboardPage({ stats }) {
                   🗑️ {t("حذف الكل", "Delete All")}
                 </button>
               )}
-              <button onClick={() => { setDetail(null); setDetailData([]); }} className="text-sm text-gray-400 hover:text-gray-600">{t("إغلاق ✕", "Close ✕")}</button>
+              <button onClick={() => { setDetail(null); setDetailData([]); }} className="text-sm text-theme-text-secondary hover:text-theme-text-primary">{t("إغلاق ✕", "Close ✕")}</button>
             </div>
           </div>
           {detailLoading ? (
-            <p className="text-gray-400 text-center py-8">{t("جاري التحميل...", "Loading...")}</p>
+            <p className="text-theme-text-secondary text-center py-8">{t("جاري التحميل...", "Loading...")}</p>
           ) : detailData.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">{t("لا يوجد بيانات", "No data")}</p>
+            <p className="text-theme-text-secondary text-center py-8">{t("لا يوجد بيانات", "No data")}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="border-b border-gray-100">
+                <thead><tr className="border-b border-theme-border">
                   {detail === "courses" || detail === "published-courses" ? (
-                    <>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("الكورس", "Course")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("الفئة", "Category")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("السعر", "Price")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("الحالة", "Status")}</th>
-                    </>
+                    <><th className="table-header">{t("الكورس", "Course")}</th><th className="table-header">{t("الفئة", "Category")}</th><th className="table-header">{t("السعر", "Price")}</th><th className="table-header">{t("الحالة", "Status")}</th></>
                   ) : detail === "commissions" ? (
-                    <>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("العضو", "Member")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("الرتبة", "Rank")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("المبلغ", "Amount")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("التاريخ", "Date")}</th>
-                    </>
+                    <><th className="table-header">{t("العضو", "Member")}</th><th className="table-header">{t("الرتبة", "Rank")}</th><th className="table-header">{t("المبلغ", "Amount")}</th><th className="table-header">{t("التاريخ", "Date")}</th></>
                   ) : detail === "feedbacks" ? (
-                    <>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("العضو", "Member")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("التقييم", "Rating")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("التعليق", "Comment")}</th>
-                    </>
+                    <><th className="table-header">{t("العضو", "Member")}</th><th className="table-header">{t("التقييم", "Rating")}</th><th className="table-header">{t("التعليق", "Comment")}</th></>
                   ) : detail === "quiz-pass-rate" || detail === "quizzes-passed" ? (
-                    <>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("العضو", "Member")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("الاختبار", "Quiz")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("النتيجة", "Result")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("الدرجة", "Score")}</th>
-                    </>
+                    <><th className="table-header">{t("العضو", "Member")}</th><th className="table-header">{t("الاختبار", "Quiz")}</th><th className="table-header">{t("النتيجة", "Result")}</th><th className="table-header">{t("الدرجة", "Score")}</th></>
                   ) : detail.includes("enrollment") || detail === "total-enrollments" || detail === "pending-enrollments2" ? (
-                    <>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("العضو", "Member")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("الكورس", "Course")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("الحالة", "Status")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("التاريخ", "Date")}</th>
-                    </>
+                    <><th className="table-header">{t("العضو", "Member")}</th><th className="table-header">{t("الكورس", "Course")}</th><th className="table-header">{t("الحالة", "Status")}</th><th className="table-header">{t("التاريخ", "Date")}</th></>
                   ) : detail === "pending-topup" ? (
-                    <>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("العضو", "Member")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("المبلغ", "Amount")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("الحالة", "Status")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("التاريخ", "Date")}</th>
-                    </>
+                    <><th className="table-header">{t("العضو", "Member")}</th><th className="table-header">{t("المبلغ", "Amount")}</th><th className="table-header">{t("الحالة", "Status")}</th><th className="table-header">{t("التاريخ", "Date")}</th></>
                   ) : (
-                    <>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("الاسم", "Name")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("البريد", "Email")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("النوع", "Type")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("الرتبة", "Rank")}</th>
-                      <th className="text-right py-2 px-3 text-gray-500 font-medium">{t("الحالة", "Status")}</th>
-                    </>
+                    <><th className="table-header">{t("الاسم", "Name")}</th><th className="table-header">{t("البريد", "Email")}</th><th className="table-header">{t("النوع", "Type")}</th><th className="table-header">{t("الرتبة", "Rank")}</th><th className="table-header">{t("الحالة", "Status")}</th></>
                   )}
                 </tr></thead>
                 <tbody>
                   {detailData.map((item, idx) => {
                     if (detail === "courses" || detail === "published-courses") {
-                      return <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="py-2 px-3 font-medium">{item.title_ar || item.title}</td>
-                        <td className="py-2 px-3 text-gray-500">{item.category_ar || item.category || "–"}</td>
-                        <td className="py-2 px-3">{item.is_free ? <span className="text-green-600 font-bold">{t("مجاني", "Free")}</span> : `${item.price_egp || item.price} EGP`}</td>
-                        <td className="py-2 px-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{item.status}</span></td>
-                      </tr>;
+                      return <tr key={idx} className="table-row"><td className="table-cell font-medium">{item.title_ar || item.title}</td><td className="table-cell text-theme-text-secondary">{item.category_ar || item.category || "–"}</td><td className="table-cell">{item.is_free ? <span className="text-green-600 font-bold">{t("مجاني", "Free")}</span> : `${item.price_egp || item.price} EGP`}</td><td className="table-cell"><span className={`badge ${item.status === 'published' ? 'badge-green' : 'badge-gray'}`}>{item.status}</span></td></tr>;
                     }
                     if (detail === "commissions") {
-                      return <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="py-2 px-3 font-medium">{item.user_name || item.user_id}</td>
-                        <td className="py-2 px-3 text-gray-500">{item.rank_name || "–"}</td>
-                        <td className="py-2 px-3 text-green-600 font-bold">{item.amount} EM</td>
-                        <td className="py-2 px-3 text-gray-400 text-xs">{item.created_at ? item.created_at.slice(0,10) : "–"}</td>
-                      </tr>;
+                      return <tr key={idx} className="table-row"><td className="table-cell font-medium">{item.user_name || item.user_id}</td><td className="table-cell text-theme-text-secondary">{item.rank_name || "–"}</td><td className="table-cell text-green-600 font-bold">{item.amount} EM</td><td className="table-cell text-theme-text-secondary text-xs">{item.created_at ? item.created_at.slice(0,10) : "–"}</td></tr>;
                     }
                     if (detail === "feedbacks") {
-                      return <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="py-2 px-3 font-medium">{item.full_name || item.user_name || item.user_id}</td>
-                        <td className="py-2 px-3 text-gray-500 text-xs max-w-xs truncate">{item.comment || "–"}</td>
-                      </tr>;
+                      return <tr key={idx} className="table-row"><td className="table-cell font-medium">{item.full_name || item.user_name || item.user_id}</td><td className="table-cell text-theme-text-secondary text-xs max-w-xs truncate">{item.comment || "–"}</td></tr>;
                     }
                     if (detail === "quiz-pass-rate" || detail === "quizzes-passed") {
-                      return <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="py-2 px-3 font-medium">{item.student_name || item.user_name || item.user_id}</td>
-                        <td className="py-2 px-3 text-gray-500 text-xs">{item.quiz_title || item.quiz_id}</td>
-                        <td className="py-2 px-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.result === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{item.result === 'pass' ? t("ناجح", "Pass") : t("راسب", "Fail")}</span></td>
-                        <td className="py-2 px-3">{item.correct_answers ?? item.correct}/{item.total_marks ?? item.total}</td>
-                      </tr>;
+                      return <tr key={idx} className="table-row"><td className="table-cell font-medium">{item.student_name || item.user_name || item.user_id}</td><td className="table-cell text-theme-text-secondary text-xs">{item.quiz_title || item.quiz_id}</td><td className="table-cell"><span className={`badge ${item.result === 'pass' ? 'badge-green' : 'badge-red'}`}>{item.result === 'pass' ? t("ناجح", "Pass") : t("راسب", "Fail")}</span></td><td className="table-cell">{item.correct_answers ?? item.correct}/{item.total_marks ?? item.total}</td></tr>;
                     }
                     if (detail.includes("enrollment") || detail === "total-enrollments" || detail === "pending-enrollments2") {
-                      return <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="py-2 px-3 font-medium">{item.student_name || item.user_name || item.user_id}</td>
-                        <td className="py-2 px-3 text-gray-500 text-xs">{item.course_name || item.course_title || item.course_id}</td>
-                        <td className="py-2 px-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.status === 'approved' ? 'bg-green-100 text-green-700' : item.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>{item.status}</span></td>
-                        <td className="py-2 px-3 text-gray-400 text-xs">{item.enrolled_at ? item.enrolled_at.slice(0,10) : "–"}</td>
-                      </tr>;
+                      return <tr key={idx} className="table-row"><td className="table-cell font-medium">{item.student_name || item.user_name || item.user_id}</td><td className="table-cell text-theme-text-secondary text-xs">{item.course_name || item.course_title || item.course_id}</td><td className="table-cell"><span className={`badge ${item.status === 'approved' ? 'badge-green' : item.status === 'pending' ? 'badge-yellow' : 'badge-gray'}`}>{item.status}</span></td><td className="table-cell text-theme-text-secondary text-xs">{item.enrolled_at ? item.enrolled_at.slice(0,10) : "–"}</td></tr>;
                     }
                     if (detail === "pending-topup") {
-                      return <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="py-2 px-3 font-medium">{item.user_name || item.user_id}</td>
-                        <td className="py-2 px-3 font-bold">{item.amount} EGP</td>
-                        <td className="py-2 px-3"><span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">{item.status}</span></td>
-                        <td className="py-2 px-3 text-gray-400 text-xs">{item.created_at ? item.created_at.slice(0,10) : "–"}</td>
-                      </tr>;
+                      return <tr key={idx} className="table-row"><td className="table-cell font-medium">{item.user_name || item.user_id}</td><td className="table-cell font-bold">{item.amount} EGP</td><td className="table-cell"><span className="badge badge-yellow">{item.status}</span></td><td className="table-cell text-theme-text-secondary text-xs">{item.created_at ? item.created_at.slice(0,10) : "–"}</td></tr>;
                     }
-                    return <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="py-2 px-3 font-medium">{item.full_name || item.name}</td>
-                      <td className="py-2 px-3 text-gray-500 text-xs">{item.email}</td>
-                      <td className="py-2 px-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.role === 'student' ? 'bg-blue-100 text-blue-700' : item.role === 'registration' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>{item.role || item.account_type}</span></td>
-                      <td className="py-2 px-3 text-gray-500">{item.rank || "–"}</td>
-                      <td className="py-2 px-3">{item.blocked ? <span className="text-red-600 font-bold">🚫</span> : <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.status === 'active' ? 'bg-green-100 text-green-700' : item.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>{item.status}</span>}</td>
-                    </tr>;
+                    return <tr key={idx} className="table-row"><td className="table-cell font-medium">{item.full_name || item.name}</td><td className="table-cell text-theme-text-secondary text-xs">{item.email}</td><td className="table-cell"><span className={`badge ${item.role === 'student' ? 'badge-blue' : item.role === 'registration' ? 'badge-yellow' : 'badge-gray'}`}>{item.role || item.account_type}</span></td><td className="table-cell text-theme-text-secondary">{item.rank || "–"}</td><td className="table-cell">{item.blocked ? <span className="text-red-600 font-bold">🚫</span> : <span className={`badge ${item.status === 'active' ? 'badge-green' : item.status === 'pending' ? 'badge-yellow' : 'badge-red'}`}>{item.status}</span>}</td></tr>;
                   })}
                 </tbody>
               </table>
@@ -476,14 +419,14 @@ function DashboardPage({ stats }) {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6" style={{animation: "slideUp 0.4s ease 1s both"}}>
-        <div className="flex items-center gap-2 mb-3"><span className="text-sm">📋</span><span className="text-sm font-bold text-gray-700">{t("ملخص المنصة", "Platform Summary")}</span></div>
+      <div className="bg-theme-surface rounded-2xl shadow-card border border-theme-border p-5 mb-6" style={{animation: "slideUp 0.4s ease 1s both"}}>
+        <div className="flex items-center gap-2 mb-3"><span className="text-sm">📋</span><span className="text-sm font-bold text-theme-text-primary">{t("ملخص المنصة", "Platform Summary")}</span></div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
           {summaryItems.map((s, i) => (
             <button key={i} onClick={() => openDetail(s.type)}
-              className={`flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-3 text-left hover:bg-gray-100 transition ${detail === s.type ? 'ring-2 ring-everest-500' : ''}`}>
+              className={`flex items-center gap-2 bg-theme-secondary rounded-xl px-4 py-3 text-left hover:bg-theme-surface-hover transition ${detail === s.type ? 'ring-2 ring-everest-500' : ''}`}>
               <span>{s.icon}</span>
-              <div><p className="text-gray-500 text-xs">{s.label}</p><p className="font-bold text-gray-800">{(s.value || 0).toLocaleString()}</p></div>
+              <div><p className="text-theme-text-secondary text-xs">{s.label}</p><p className="font-bold text-theme-text-primary">{(s.value || 0).toLocaleString()}</p></div>
             </button>
           ))}
         </div>

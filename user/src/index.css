@@ -1,1 +1,153 @@
 @import "./styles/pro.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== THEME VARIABLES ===== */
+:root {
+  --bg-primary: #F8F6FF;
+  --bg-secondary: #F1ECFF;
+  --surface: #FFFFFF;
+  --surface-hover: #F7F2FF;
+  --primary: #6A35F0;
+  --secondary: #875CFF;
+  --accent: #B78CFF;
+  --text-primary: #1A1230;
+  --text-secondary: #5F547A;
+  --border-color: #D8CCFF;
+  --button-gradient: linear-gradient(90deg,#6A35F0,#B78CFF);
+  --main-gradient: linear-gradient(135deg,#ECE3FF 0%,#DCC8FF 100%);
+  --card-shadow: 0 8px 25px rgba(106,53,240,.10);
+
+  --everest-50: #F5F3FF;
+  --everest-100: #EDE9FE;
+  --everest-200: #DDD6FE;
+  --everest-300: #C084FC;
+  --everest-400: #A855F7;
+  --everest-500: #7C3AED;
+  --everest-600: #6D28D9;
+  --everest-700: #5B21B6;
+  --everest-800: #4C1D95;
+  --everest-900: #1E0B36;
+  --everest-950: #0C041D;
+}
+
+.dark {
+  --bg-primary: #08070F;
+  --bg-secondary: #120A1F;
+  --surface: #1E1036;
+  --surface-hover: #2A1248;
+  --primary: #7442F5;
+  --secondary: #5A22C8;
+  --accent: #B78CFF;
+  --text-primary: #F5F2FF;
+  --text-secondary: #CDB9FF;
+  --border-color: #3D2372;
+  --button-gradient: linear-gradient(90deg,#7442F5,#B78CFF);
+  --main-gradient: linear-gradient(135deg,#31145B 0%,#7442F5 60%,#B78CFF 100%);
+  --card-shadow: 0 10px 35px rgba(116,66,245,.18);
+
+  --everest-50: #1E0B36;
+  --everest-100: #2A1248;
+  --everest-200: #3D2372;
+  --everest-300: #5A22C8;
+  --everest-400: #7442F5;
+  --everest-500: #7C3AED;
+  --everest-600: #A855F7;
+  --everest-700: #B78CFF;
+  --everest-800: #D9C2FF;
+  --everest-900: #F5F2FF;
+  --everest-950: #F8F6FF;
+}
+
+/* ===== DARK MODE OVERRIDES — pro.css user frontend ===== */
+html.dark body { background: #08070F; color: #F5F2FF; }
+html.dark .auth-body { background: #08070F; color: #F5F2FF; }
+html.dark .auth-card { background: #1E1036; color: #F5F2FF; box-shadow: 0 20px 60px rgba(116,66,245,.15); }
+html.dark .auth-brand h1 { background: var(--button-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+html.dark .auth-field input { background: #120A1F; border-color: #3D2372; color: #F5F2FF; }
+html.dark .auth-field input:focus { border-color: #7442F5; }
+html.dark .auth-btn { background: var(--button-gradient); border: none; }
+html.dark .auth-btn:hover { background: var(--button-gradient); opacity: .9; transform: translateY(-3px); }
+html.dark .dash-nav { background: #120A1F; border-color: #3D2372; }
+html.dark .dash-nav-links a { color: #CDB9FF; }
+html.dark .dash-nav-links a:hover { color: #B78CFF; }
+html.dark .dash-nav-wallet { background: #1E1036; }
+html.dark .membership-card { background: var(--main-gradient); }
+html.dark .welcome-card { background: #1E1036; border-color: #3D2372; }
+html.dark .welcome-card h2 { color: #F5F2FF; }
+html.dark .welcome-card p { color: #CDB9FF; }
+html.dark .mini-stat { background: #1E1036; border-color: #3D2372; }
+html.dark .mini-stat h3 { color: #F5F2FF; }
+html.dark .mini-stat span { color: #CDB9FF; }
+html.dark .rank-card { background: var(--main-gradient); }
+html.dark .section-header h2 { color: #F5F2FF; }
+html.dark .slide-card { background: #1E1036; border-color: #3D2372; }
+html.dark .slide-body h3 { color: #F5F2FF; }
+html.dark .profile-card { background: #1E1036; box-shadow: var(--card-shadow); }
+html.dark .profile-top h2 { color: #F5F2FF; }
+html.dark .stat-box { background: #120A1F; border-color: #3D2372; }
+html.dark .stat-box strong { color: #F5F2FF; }
+html.dark .dash-footer { border-color: #3D2372; }
+html.dark .dash-footer p { color: #CDB9FF; }
+html.dark .courses-body { background: #08070F; }
+html.dark .courses-header { background: rgba(8,7,15,.85); }
+html.dark .courses-search input { background: #120A1F; border-color: #3D2372; color: #F5F2FF; }
+html.dark .luxury-card { background: #1E1036; border-color: #3D2372; }
+html.dark .card-body h3 { color: #F5F2FF; }
+html.dark .modal-window { background: #1E1036; border-color: #3D2372; }
+html.dark .modal-body h2 { color: #F5F2FF; }
+html.dark .rank-navbar { background: rgba(30,16,54,.85); border-color: #3D2372; }
+html.dark .rank-nav-links a { color: #CDB9FF; }
+html.dark .rank-navbar a:hover { color: #B78CFF; }
+html.dark .rank-nav-links a::after { background: #B78CFF; }
+html.dark .rank-notif { background: #1E1036; }
+html.dark .rank-profile h5 { color: #F5F2FF; }
+html.dark .mobile-menu { background: #120A1F; }
+html.dark .mobile-links a { color: #CDB9FF; }
+html.dark .mobile-links a:hover { background: #2A1248; color: #B78CFF; }
+html.dark .rank-hero { background: #120A1F; }
+html.dark .rank-hero h1 { color: #B78CFF; }
+html.dark .leaders-section { background: #08070F; }
+html.dark .leader-card { background: #1E1036; border-color: #3D2372; }
+html.dark .leader-card h3 { color: #F5F2FF; }
+html.dark .rank-courses { background: #120A1F; }
+html.dark .rank-courses-header h2 { color: #F5F2FF; }
+html.dark .rank-courses-header p { color: #CDB9FF; }
+html.dark .rank-course-card { background: #1E1036; box-shadow: var(--card-shadow); }
+html.dark .rank-course-card h3 { color: #F5F2FF; }
+html.dark .rank-course-card p { color: #CDB9FF; }
+html.dark .rank-guide { background: #120A1F; }
+html.dark .guide-header h2 { color: #F5F2FF; }
+html.dark .guide-header p { color: #CDB9FF; }
+html.dark .guide-wrapper { background: #1E1036; }
+html.dark .guide-item { border-color: #3D2372; }
+html.dark .guide-summary { color: #F5F2FF; }
+html.dark .guide-content p { color: #CDB9FF; }
+html.dark .guide-content strong { color: #F5F2FF; }
+html.dark .rank-footer { background: #120A1F; }
+html.dark .footer-help { background: #1E1036; }
+html.dark .footer-top { border-color: #3D2372; }
+html.dark .footer-contact { color: #CDB9FF; border-color: #3D2372; }
+html.dark .footer-contact span { color: #F5F2FF; }
+html.dark .footer-bottom { background: #08070F; }
+html.dark .footer-item strong { color: #F5F2FF; }
+html.dark .network-card { background: #1E1036; border-color: #3D2372; }
+html.dark .network-card h3 { color: #F5F2FF; }
+html.dark .network-card span { color: #CDB9FF; }
+html.dark .rank-progress-card { background: #1E1036; border-color: #3D2372; }
+html.dark .rank-progress-card .rl { color: #B78CFF; }
+html.dark .rank-top h2 { color: #F5F2FF; }
+html.dark .next-rank-box strong { color: #F5F2FF; }
+html.dark .navbar { background: rgba(30,16,54,.85); border-color: #3D2372; backdrop-filter: blur(20px); }
+html.dark .navbar .nav-links a { color: #CDB9FF; }
+html.dark .navbar .nav-links a::after { background: #B78CFF; }
+html.dark .navbar .lang-btn { background: #2A1248; color: #F5F2FF; }
+html.dark .navbar .lang-menu { background: #1E1036; }
+html.dark .navbar .lang-menu a { color: #CDB9FF; }
+html.dark .navbar .lang-menu a:hover { background: #2A1248; }
+html.dark .navbar .login-btn { background: var(--button-gradient); }
+html.dark .navbar .signup-btn { background: transparent; border: 1.5px solid #B78CFF; color: #B78CFF; }
+html.dark .pdm-drawer { background: rgba(14,12,28,.97); }
+html.dark .pdm-brand h2 { color: #F5F2FF; }

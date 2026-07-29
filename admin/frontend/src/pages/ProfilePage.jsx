@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLang } from "../LangContext";
-
-const ADMIN_API = "/api/admin-auth";
-const getHeaders = () => {
-  const s = JSON.parse(localStorage.getItem("admin_session") || "{}");
-  return { "Content-Type": "application/json", "x-user-id": s.userId || "", "x-session-token": s.token || "" };
-};
+import { api, getAdminHeaders } from "../api.js";
 
 export default function ProfilePage() {
   const { t: tFn } = useLang();
@@ -17,9 +12,8 @@ export default function ProfilePage() {
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    fetch(`${ADMIN_API}/me`, { headers: getHeaders() })
-      .then(r => r.json())
-      .then(d => { if (d.error) throw d; setProfile(d); })
+    api("/api/admin-auth/me")
+      .then(d => { setProfile(d); })
       .catch(e => console.error("Failed to load profile:", e))
       .finally(() => setLoading(false));
   }, []);
@@ -36,9 +30,7 @@ export default function ProfilePage() {
         bio: profile.bio || "",
       };
       if (pw) body.password = pw;
-      const r = await fetch(`${ADMIN_API}/me`, { method: "PUT", headers: getHeaders(), body: JSON.stringify(body) });
-      const d = await r.json();
-      if (d.error) throw new Error(d.error);
+      const d = await api("/api/admin-auth/me", { method: "PUT", body: JSON.stringify(body) });
       setProfile(d);
       setPw("");
       setMsg(t("✅ تم حفظ التغييرات بنجاح", "✅ Changes saved successfully"));
