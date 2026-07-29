@@ -100,7 +100,7 @@ export async function sendVerificationEmail(to, name, token) {
   if (transporter) {
     try {
       await transporter.sendMail({
-        from: `"Everest Academy" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
+        from: `"Everest Academy" <noreply@myeverestcompany.com>`,
         to,
         subject: "Verify Your Email - Everest Academy",
         html,
@@ -114,9 +114,7 @@ export async function sendVerificationEmail(to, name, token) {
   // Fallback: use Resend API
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) throw new Error("No email provider configured (SMTP or Resend)");
-  const from = process.env.EMAIL_USER
-    ? `Everest Academy <${process.env.EMAIL_USER}>`
-    : "Everest Academy <onboarding@resend.dev>";
+  const from = "Everest Academy <noreply@myeverestcompany.com>";
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
