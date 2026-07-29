@@ -2,7 +2,7 @@ import express from "express";
 import { query, queryOne, execute } from "../db.js";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
-import { createVerification, verifyEmailToken, clearOldTokens } from "../services/verificationService.js";
+import { sendOTPEmail } from "../services/emailService.js";
 
 const router = express.Router();
 
@@ -199,10 +199,13 @@ router.post("/register", async (req, res) => {
         [referredBy, id]);
     }
 
-    // Send verification email
+    // Send OTP verification email
     let verificationSent = false;
     try {
-      await createVerification(id, email, full_name);
+      const otp = String(Math.floor(100000 + Math.random() * 900000));
+      const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+      await execute("UPDATE users SET email_otp = ?, email_otp_expires = ? WHERE id = ?", [otp, expires, id]);
+      await sendOTPEmail(email, otp, full_name, "email_verification");
       verificationSent = true;
     } catch (emailErr) {
       console.error("Registration verification email failed:", emailErr.message);
@@ -216,45 +219,41 @@ router.post("/register", async (req, res) => {
   }
 });
 
-const FRONTEND_URL = process.env.BASE_URL || "https://myeverestcompany.com";
-
-// Verify email via link (GET)
-router.get("/verify-email", async (req, res) => {
+// Verify email via OTP (POST)
+router.post("/verify-email-otp", async (req, res) => {
   try {
-    const { token } = req.query;
-    if (!token) {
-      return res.redirect(`${FRONTEND_URL}/login?verification=invalid`);
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ error: "Email and OTP are required" });
+
+    const user = await queryOne("SELECT id, email_otp, email_otp_expires FROM users WHERE email = ?", [email]);
+    if (!user) return res.status(404).json({ error: "No account found with this email" });
+    if (user.email_verified) return res.status(400).json({ error: "Email is already verified" });
+    if (!user.email_otp) return res.status(400).json({ error: "No OTP has been sent. Please request a new one." });
+
+    if (user.email_otp !== otp) return res.status(400).json({ error: "Invalid OTP code" });
+
+    if (new Date(user.email_otp_expires) < new Date()) {
+      return res.status(400).json({ error: "OTP code has expired. Please request a new one." });
     }
 
-    const result = await verifyEmailToken(token);
-
-    if (!result.valid) {
-      const reason = result.reason;
-      if (reason === "already_verified") {
-        return res.redirect(`${FRONTEND_URL}/login?verification=already_verified`);
-      } else if (reason === "expired") {
-        return res.redirect(`${FRONTEND_URL}/login?verification=expired`);
-      }
-      return res.redirect(`${FRONTEND_URL}/login?verification=invalid`);
-    }
-
-    return res.redirect(`${FRONTEND_URL}/login?verification=success`);
+    await execute("UPDATE users SET email_verified = 1, email_otp = NULL, email_otp_expires = NULL WHERE id = ?", [user.id]);
+    res.json({ success: true, message: "Email verified successfully" });
   } catch (e) {
-    console.error("verify-email error:", e.message);
-    return res.redirect(`${FRONTEND_URL}/login?verification=error`);
+    console.error("verify-email-otp error:", e.message);
+    res.status(500).json({ error: e.message });
   }
 });
 
-// Resend verification email
-router.post("/resend-verification", async (req, res) => {
+// Resend verification OTP
+router.post("/resend-email-otp", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: "Email is required" });
 
     if (!checkResendLimit(email)) {
       return res.status(429).json({
-        error: "Please wait 2 minutes before requesting another verification email.",
-        error_ar: "يرجى الانتظار دقيقتين قبل طلب إعادة إرسال البريد الإلكتروني."
+        error: "Please wait 2 minutes before requesting another OTP.",
+        error_ar: "يرجى الانتظار دقيقتين قبل طلب إعادة إرسال رمز التحقق."
       });
     }
 
@@ -262,11 +261,14 @@ router.post("/resend-verification", async (req, res) => {
     if (!user) return res.status(404).json({ error: "No account found with this email" });
     if (user.email_verified) return res.status(400).json({ error: "Email is already verified" });
 
-    await clearOldTokens(user.id);
-    await createVerification(user.id, user.email, user.full_name);
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    await execute("UPDATE users SET email_otp = ?, email_otp_expires = ? WHERE id = ?", [otp, expires, user.id]);
+    await sendOTPEmail(email, otp, user.full_name, "email_verification");
 
-    res.json({ success: true, message: "Verification email sent" });
+    res.json({ success: true, message: "OTP sent to your email" });
   } catch (e) {
+    console.error("resend-email-otp error:", e.message);
     res.status(500).json({ error: e.message });
   }
 });

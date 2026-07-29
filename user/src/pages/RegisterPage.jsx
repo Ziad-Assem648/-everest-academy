@@ -154,8 +154,8 @@ export default function RegisterPage() {
 
   const resendVerification = async () => {
     try {
-      await api("/api/auth/resend-verification", { method: "POST", body: JSON.stringify({ email: registeredEmail }) });
-      setErr(""); alert(t("تم إرسال رابط التحقق إلى بريدك الإلكتروني", "Verification link sent to your email"));
+      await api("/api/auth/resend-email-otp", { method: "POST", body: JSON.stringify({ email: registeredEmail }) });
+      setErr(""); alert(t("تم إرسال رمز التحقق إلى بريدك الإلكتروني", "Verification code sent to your email"));
     } catch (e) { setErr(e.message); }
   };
 

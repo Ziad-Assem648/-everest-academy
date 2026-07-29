@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
 import PublicNavbar from "../components/PublicNavbar";
@@ -9,12 +9,15 @@ import { formatWhatsAppLink } from "../whatsapp";
 export default function PendingActivationPage() {
   const { t, lang } = useLang();
   const { colors: c } = useTheme();
+  const nav = useNavigate();
   const location = useLocation();
   const userEmail = location.state?.email || "";
   const [csWhatsapp, setCsWhatsapp] = useState("");
   const [csEmail, setCsEmail] = useState("");
   const [resending, setResending] = useState(false);
   const [resendMsg, setResendMsg] = useState("");
+  const [otp, setOtp] = useState("");
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     api("/api/customer-service")
@@ -32,12 +35,25 @@ export default function PendingActivationPage() {
     setResending(true);
     setResendMsg("");
     try {
-      await api("/api/auth/resend-verification", { method: "POST", body: JSON.stringify({ email: userEmail }) });
-      setResendMsg(t("تم إرسال رابط التحقق إلى بريدك", "Verification link sent to your email"));
+      await api("/api/auth/resend-email-otp", { method: "POST", body: JSON.stringify({ email: userEmail }) });
+      setResendMsg(t("تم إرسال رمز التحقق إلى بريدك", "Verification code sent to your email"));
     } catch (e) {
       setResendMsg(e.message || t("حدث خطأ", "Error"));
     }
     setResending(false);
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!userEmail || !otp) return;
+    setVerifying(true);
+    setResendMsg("");
+    try {
+      await api("/api/auth/verify-email-otp", { method: "POST", body: JSON.stringify({ email: userEmail, otp }) });
+      nav("/login?verification=success", { replace: true });
+    } catch (e) {
+      setResendMsg(e.message || t("رمز التحقق غير صحيح", "Invalid verification code"));
+    }
+    setVerifying(false);
   };
 
   return (
@@ -77,20 +93,20 @@ export default function PendingActivationPage() {
           ))}
         </div>
 
-        {/* Verification Email Card */}
+        {/* Verification OTP Card */}
         <div style={{ background: c.bgCard, border: `1px solid ${c.borderLight}`, borderRadius: 20, padding: "28px 24px", marginBottom: 20 }}>
           <div style={{ textAlign: "center", marginBottom: 18 }}>
             <p style={{ fontSize: 15, color: c.textSoft, lineHeight: 1.9, margin: 0 }}>
               {t(
-                "تم إنشاء حسابك بنجاح! لقد أرسلنا رابط تأكيد إلى بريدك الإلكتروني. يرجى النقر على الرابط لتفعيل حسابك.",
-                "Your account has been created successfully! We've sent a verification link to your email. Please click the link to verify your account."
+                "تم إنشاء حسابك بنجاح! لقد أرسلنا رمز تأكيد إلى بريدك الإلكتروني. أدخل الرمز أدناه لتفعيل حسابك.",
+                "Your account has been created successfully! We've sent a verification code to your email. Enter the code below to verify your account."
               )}
             </p>
           </div>
 
           {userEmail && (
             <p style={{ fontSize: 13, color: c.textMuted, textAlign: "center", margin: "0 0 16px" }}>
-              📧 {t("أرسلنا الرابط إلى", "We sent the link to")} <strong style={{ color: gold }}>{userEmail}</strong>
+              📧 {t("أرسلنا الرمز إلى", "We sent the code to")} <strong style={{ color: gold }}>{userEmail}</strong>
             </p>
           )}
 
@@ -104,18 +120,45 @@ export default function PendingActivationPage() {
             }}>{resendMsg}</div>
           )}
 
-          <button onClick={handleResend} disabled={resending}
+          {/* OTP Input */}
+          <div style={{ marginBottom: 16 }}>
+            <input type="text" inputMode="numeric" maxLength={6} placeholder={t("أدخل رمز التحقق", "Enter verification code")}
+              value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              style={{
+                width: "100%", padding: "14px 16px", borderRadius: 14, border: `2px solid ${c.border}`,
+                background: c.bgInput, color: c.text, fontSize: 22, fontWeight: 700, textAlign: "center",
+                letterSpacing: 10, outline: "none", boxSizing: "border-box",
+              }}
+              onFocus={e => e.target.style.borderColor = gold}
+              onBlur={e => e.target.style.borderColor = c.border} />
+          </div>
+
+          <button onClick={handleVerifyOtp} disabled={verifying || otp.length !== 6}
             style={{
               width: "100%", padding: "13px 0", borderRadius: 14, border: "none",
+              cursor: verifying || otp.length !== 6 ? "default" : "pointer",
+              background: verifying || otp.length !== 6 ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`,
+              color: "#fff", fontWeight: 800, fontSize: 15, marginBottom: 12,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            }}>
+            {verifying ? (
+              <div style={{ width: 20, height: 20, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
+            ) : (
+              <>✓ {t("تأكيد البريد الإلكتروني", "Verify Email")}</>
+            )}
+          </button>
+
+          <button onClick={handleResend} disabled={resending}
+            style={{
+              width: "100%", padding: "11px 0", borderRadius: 14, border: `1px solid ${c.border}`,
               cursor: resending ? "default" : "pointer",
-              background: resending ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`,
-              color: "#fff", fontWeight: 800, fontSize: 15,
+              background: "transparent", color: c.text, fontWeight: 600, fontSize: 14,
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}>
             {resending ? (
-              <div style={{ width: 20, height: 20, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
+              <div style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,.2)", borderTopColor: c.text, borderRadius: "50%", animation: "spin .8s linear infinite" }} />
             ) : (
-              <>🔄 {t("إعادة إرسال رابط التحقق", "Resend Verification Link")}</>
+              <>🔄 {t("إعادة إرسال الرمز", "Resend Code")}</>
             )}
           </button>
         </div>
@@ -174,9 +217,9 @@ export default function PendingActivationPage() {
         {/* Info Cards */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
           <div style={{ background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 16, padding: "16px", textAlign: "center" }}>
-            <div style={{ fontSize: 26, marginBottom: 6 }}>🔗</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: c.text, marginBottom: 4 }}>{t("رابط تحقق", "Verification Link")}</div>
-            <div style={{ fontSize: 11, color: c.textMuted }}>{t("ينتهي صلاحيته بعد 24 ساعة", "Expires after 24 hours")}</div>
+            <div style={{ fontSize: 26, marginBottom: 6 }}>🔐</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: c.text, marginBottom: 4 }}>{t("رمز تحقق", "Verification Code")}</div>
+            <div style={{ fontSize: 11, color: c.textMuted }}>{t("ينتهي صلاحيته بعد 10 دقائق", "Expires after 10 minutes")}</div>
           </div>
           <div style={{ background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 16, padding: "16px", textAlign: "center" }}>
             <div style={{ fontSize: 26, marginBottom: 6 }}>🛡️</div>

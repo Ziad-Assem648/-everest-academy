@@ -90,8 +90,8 @@ export default function LoginPage() {
     setResendingVerification(true);
     setResendVerificationMsg("");
     try {
-      await api("/api/auth/resend-verification", { method: "POST", body: JSON.stringify({ email: form.email.trim() }) });
-      setResendVerificationMsg(t("تم إرسال رابط التحقق إلى بريدك", "Verification link sent to your email"));
+      await api("/api/auth/resend-email-otp", { method: "POST", body: JSON.stringify({ email: form.email.trim() }) });
+      setResendVerificationMsg(t("تم إرسال رمز التحقق إلى بريدك", "Verification code sent to your email"));
     } catch (e) {
       setResendVerificationMsg(e.message || t("حدث خطأ", "Error"));
     }

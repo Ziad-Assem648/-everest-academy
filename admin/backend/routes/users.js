@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { query, queryOne, execute } from "../db.js";
 import { advanceUserRank } from "./ranks.js";
 import { v4 as uuidv4 } from "uuid";
-import { createVerification } from "../services/verificationService.js";
+import { sendOTPEmail } from "../services/emailService.js";
 
 const router = express.Router();
 
@@ -432,9 +432,12 @@ router.post("/create-for-others", async (req, res) => {
     await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, ?, ?, 'completed')",
       [tid, userId, COST, "debit", `إنشاء حساب لـ ${full_name}`]);
 
-    // Send verification email to the new user
+    // Send verification OTP to the new user
     try {
-      await createVerification(id, email, full_name);
+      const otp = String(Math.floor(100000 + Math.random() * 900000));
+      const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+      await execute("UPDATE users SET email_otp = ?, email_otp_expires = ? WHERE id = ?", [otp, expires, id]);
+      await sendOTPEmail(email, otp, full_name, "email_verification");
     } catch (emailErr) {
       console.error("Create-for-others verification email failed:", emailErr.message);
     }
