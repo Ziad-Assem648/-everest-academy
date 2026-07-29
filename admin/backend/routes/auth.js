@@ -39,13 +39,6 @@ router.post("/login", async (req, res) => {
   if (!valid) return res.status(401).json({ error: "Invalid credentials" });
   if (user.blocked) return res.status(403).json({ error: "تم حظر حسابك. يرجى التواصل مع الإدارة." });
   if (user.status === 'pending') return res.status(403).json({ error: "حسابك قيد المراجعة. يرجى الانتظار حتى يتم تفعيله من الإدارة." });
-  if (!user.email_verified) {
-    return res.status(403).json({
-      error: "يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. تحقق من بريدك الوارد (أو البريد المزعج) للحصول على رمز التحقق.",
-      code: "EMAIL_NOT_VERIFIED"
-    });
-  }
-
   const deviceType = detectDeviceType(req.headers["user-agent"]);
   const session_token = uuidv4() + "-" + Date.now();
 
