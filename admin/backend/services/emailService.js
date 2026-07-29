@@ -90,7 +90,7 @@ export function buildVerificationEmailHtml(name, verifyUrl) {
 
 export async function sendVerificationEmail(to, name, token) {
   const baseUrl = process.env.BASE_URL || (process.env.NODE_ENV === "production"
-    ? "https://myeverestcompany.com"
+    ? "https://steadfast-energy-production-a9d1.up.railway.app"
     : "http://localhost:5000");
   const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${token}`;
   const html = buildVerificationEmailHtml(name, verifyUrl);

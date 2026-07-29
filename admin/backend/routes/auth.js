@@ -216,12 +216,14 @@ router.post("/register", async (req, res) => {
   }
 });
 
+const FRONTEND_URL = process.env.BASE_URL || "https://myeverestcompany.com";
+
 // Verify email via link (GET)
 router.get("/verify-email", async (req, res) => {
   try {
     const { token } = req.query;
     if (!token) {
-      return res.redirect("/login?verification=invalid");
+      return res.redirect(`${FRONTEND_URL}/login?verification=invalid`);
     }
 
     const result = await verifyEmailToken(token);
@@ -229,17 +231,17 @@ router.get("/verify-email", async (req, res) => {
     if (!result.valid) {
       const reason = result.reason;
       if (reason === "already_verified") {
-        return res.redirect("/login?verification=already_verified");
+        return res.redirect(`${FRONTEND_URL}/login?verification=already_verified`);
       } else if (reason === "expired") {
-        return res.redirect("/login?verification=expired");
+        return res.redirect(`${FRONTEND_URL}/login?verification=expired`);
       }
-      return res.redirect("/login?verification=invalid");
+      return res.redirect(`${FRONTEND_URL}/login?verification=invalid`);
     }
 
-    return res.redirect("/login?verification=success");
+    return res.redirect(`${FRONTEND_URL}/login?verification=success`);
   } catch (e) {
     console.error("verify-email error:", e.message);
-    return res.redirect("/login?verification=error");
+    return res.redirect(`${FRONTEND_URL}/login?verification=error`);
   }
 });
 
