@@ -153,3 +153,8 @@ html.dark .navbar .login-btn { background: var(--button-gradient); }
 html.dark .navbar .signup-btn { background: transparent; border: 1.5px solid #B88BFF; color: #B88BFF; }
 html.dark .pdm-drawer { background: rgba(11,7,18,.97); }
 html.dark .pdm-brand h2 { color: #E9D8FF; }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

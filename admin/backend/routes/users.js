@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { query, queryOne, execute } from "../db.js";
 import { advanceUserRank } from "./ranks.js";
 import { v4 as uuidv4 } from "uuid";
-import { sendOTPEmail } from "../utils/email.js";
+import { createVerification } from "../services/verificationService.js";
 
 const router = express.Router();
 
@@ -412,13 +412,10 @@ router.post("/create-for-others", async (req, res) => {
     const code = "EVR-" + id.slice(0, 6);
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-
     // Create user as pending — creator is the referrer
     await execute(
-      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, referred_by, status, role, account_type, rank, governorate, country, id_card_front, id_card_back, created_by_user, email_otp, email_otp_expires) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?, ?, ?)",
-      [id, full_name, email, phone, address || null, hashedPassword, code, userId, governorate || null, country || null, id_card_front || null, id_card_back || null, userId, otp, otpExpires]
+      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, referred_by, status, role, account_type, rank, governorate, country, id_card_front, id_card_back, created_by_user, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?, 0)",
+      [id, full_name, email, phone, address || null, hashedPassword, code, userId, governorate || null, country || null, id_card_front || null, id_card_back || null, userId]
     );
 
     // Populate closure table
@@ -435,11 +432,11 @@ router.post("/create-for-others", async (req, res) => {
     await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, ?, ?, 'completed')",
       [tid, userId, COST, "debit", `إنشاء حساب لـ ${full_name}`]);
 
-    // Send OTP to the new user's email
+    // Send verification email to the new user
     try {
-      await sendOTPEmail(email, otp, "Everest Academy — Email Verification Code");
+      await createVerification(id, email, full_name);
     } catch (emailErr) {
-      console.error("Create-for-others email send failed:", emailErr.message);
+      console.error("Create-for-others verification email failed:", emailErr.message);
     }
 
     const newProfile = await queryOne("SELECT id, full_name, email, phone, governorate, status, created_at FROM users WHERE id = ?", [id]);

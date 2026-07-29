@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
@@ -28,7 +28,26 @@ export default function LoginPage() {
   const { user: authUser, login } = useAuth();
   const { theme, colors: c } = useTheme();
   const nav = useNavigate();
+  const loc = useLocation();
   const m = useIsMobile();
+  const [verifMsg, setVerifMsg] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(loc.search);
+    const v = params.get("verification");
+    if (v === "success") {
+      setVerifMsg(t("تم تأكيد بريدك الإلكتروني بنجاح! يمكنك الآن تسجيل الدخول.", "Email verified successfully! You can now log in."));
+    } else if (v === "already_verified") {
+      setVerifMsg(t("بريدك الإلكتروني مؤكد بالفعل.", "Your email is already verified."));
+    } else if (v === "expired") {
+      setVerifMsg(t("انتهت صلاحية رابط التحقق. يرجى إعادة إرسال رابط جديد.", "Verification link expired. Please request a new one."));
+    } else if (v === "invalid" || v === "error") {
+      setVerifMsg(t("رابط التحقق غير صالح.", "Invalid verification link."));
+    }
+    if (v) {
+      window.history.replaceState(null, "", "/login");
+    }
+  }, []);
   const [form, setForm] = useState({ email: "", password: "" });
   const [err, setErr] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -62,9 +81,25 @@ export default function LoginPage() {
   }, []);
 
   const [deviceActive, setDeviceActive] = useState(false);
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const [resendVerificationMsg, setResendVerificationMsg] = useState("");
+
+  const handleResendVerification = async () => {
+    if (!form.email.trim()) return;
+    setResendingVerification(true);
+    setResendVerificationMsg("");
+    try {
+      await api("/api/auth/resend-verification", { method: "POST", body: JSON.stringify({ email: form.email.trim() }) });
+      setResendVerificationMsg(t("تم إرسال رابط التحقق إلى بريدك", "Verification link sent to your email"));
+    } catch (e) {
+      setResendVerificationMsg(e.message || t("حدث خطأ", "Error"));
+    }
+    setResendingVerification(false);
+  };
 
   const submit = async (e) => {
-    e.preventDefault(); setErr(""); setDeviceActive(false); setLoading(true);
+    e.preventDefault(); setErr(""); setDeviceActive(false); setEmailNotVerified(false); setResendVerificationMsg(""); setLoading(true);
     try {
       const { user, session_token } = await api("/api/auth/login", { method: "POST", body: JSON.stringify(form) });
       login(user, session_token);
@@ -74,6 +109,8 @@ export default function LoginPage() {
     } catch (e) {
       if (e.code === "DEVICE_ALREADY_ACTIVE") {
         setDeviceActive(true);
+      } else if (e.code === "EMAIL_NOT_VERIFIED") {
+        setEmailNotVerified(true);
       } else {
         setErr(t(e.message || "بيانات الدخول غير صحيحة", e.message || "Invalid login credentials"));
       }
@@ -231,6 +268,15 @@ export default function LoginPage() {
           boxShadow: `0 20px 60px ${c.shadow}`,
         }}>
 
+          {/* Verification status */}
+          {verifMsg && (
+            <div style={{
+              background: "rgba(34,197,94,.08)", border: "1px solid rgba(34,197,94,.2)",
+              borderRadius: 14, padding: "12px 16px", marginBottom: 16,
+              textAlign: "center", color: "#22c55e", fontSize: 13,
+            }}>✅ {verifMsg}</div>
+          )}
+
           {/* Error */}
           {err && (
             <div style={{
@@ -257,6 +303,45 @@ export default function LoginPage() {
                   "This account is already logged in on another device. Please log out from that device first, then try again."
                 )}
               </p>
+            </div>
+          )}
+
+          {/* Email Not Verified */}
+          {emailNotVerified && (
+            <div style={{
+              background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.25)",
+              borderRadius: 14, padding: "14px 16px", marginBottom: 16,
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>📧</div>
+              <p style={{ fontWeight: 700, color: c.text, fontSize: 14, marginBottom: 8 }}>
+                {t("يرجى تأكيد بريدك الإلكتروني", "Please verify your email")}
+              </p>
+              <p style={{ fontSize: 12, color: c.textMuted, lineHeight: 1.7, margin: "0 0 12px" }}>
+                {t(
+                  "لقد أرسلنا رابط تأكيد إلى بريدك الإلكتروني. يرجى النقر على الرابط لتفعيل حسابك.",
+                  "We sent a verification link to your email. Please click the link to activate your account."
+                )}
+              </p>
+              {resendVerificationMsg && (
+                <div style={{
+                  background: resendVerificationMsg.includes("sent") || resendVerificationMsg.includes("أرسل") ? "rgba(34,197,94,.08)" : "rgba(239,68,68,.08)",
+                  borderRadius: 10, padding: "8px 12px", marginBottom: 10,
+                  color: resendVerificationMsg.includes("sent") || resendVerificationMsg.includes("أرسل") ? "#22c55e" : "#ef4444",
+                  fontSize: 12,
+                }}>{resendVerificationMsg}</div>
+              )}
+              <button onClick={handleResendVerification} disabled={resendingVerification}
+                style={{
+                  background: "none", border: `1px solid ${gold}`, color: gold,
+                  padding: "8px 20px", borderRadius: 10, fontSize: 12, fontWeight: 700,
+                  cursor: resendingVerification ? "default" : "pointer",
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                }}>
+                {resendingVerification ? (
+                  <div style={{ width: 14, height: 14, border: "2px solid rgba(110,59,242,.3)", borderTopColor: gold, borderRadius: "50%", animation: "spin .8s linear infinite" }} />
+                ) : "🔄 " + t("إعادة إرسال", "Resend")}
+              </button>
             </div>
           )}
 
@@ -484,6 +569,15 @@ export default function LoginPage() {
               </p>
             </div>
 
+            {/* Verification status */}
+            {verifMsg && (
+              <div style={{
+                background: "rgba(34,197,94,.08)", border: "1px solid rgba(34,197,94,.2)",
+                borderRadius: 14, padding: "12px 16px", marginBottom: 16,
+                textAlign: "center", color: "#22c55e", fontSize: 13,
+              }}>✅ {verifMsg}</div>
+            )}
+
             {/* Error */}
             {err && (
               <div style={{
@@ -512,6 +606,45 @@ export default function LoginPage() {
                     "This account is already logged in on another device. Please log out from that device first, then try again."
                   )}
                 </p>
+              </div>
+            )}
+
+            {/* Email Not Verified */}
+            {emailNotVerified && (
+              <div style={{
+                background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.25)",
+                borderRadius: 14, padding: "16px 20px", marginBottom: 20,
+                textAlign: "center",
+              }}>
+                <div style={{ fontSize: 32, marginBottom: 10 }}>📧</div>
+                <p style={{ fontWeight: 700, color: c.text, fontSize: 15, marginBottom: 8 }}>
+                  {t("يرجى تأكيد بريدك الإلكتروني", "Please verify your email")}
+                </p>
+                <p style={{ fontSize: 13, color: c.textMuted, lineHeight: 1.7, margin: "0 0 14px" }}>
+                  {t(
+                    "لقد أرسلنا رابط تأكيد إلى بريدك الإلكتروني. يرجى النقر على الرابط لتفعيل حسابك.",
+                    "We sent a verification link to your email. Please click the link to activate your account."
+                  )}
+                </p>
+                {resendVerificationMsg && (
+                  <div style={{
+                    background: resendVerificationMsg.includes("sent") || resendVerificationMsg.includes("أرسل") ? "rgba(34,197,94,.08)" : "rgba(239,68,68,.08)",
+                    borderRadius: 10, padding: "8px 12px", marginBottom: 12,
+                    color: resendVerificationMsg.includes("sent") || resendVerificationMsg.includes("أرسل") ? "#22c55e" : "#ef4444",
+                    fontSize: 12,
+                  }}>{resendVerificationMsg}</div>
+                )}
+                <button onClick={handleResendVerification} disabled={resendingVerification}
+                  style={{
+                    background: "none", border: `1px solid ${gold}`, color: gold,
+                    padding: "9px 24px", borderRadius: 10, fontSize: 13, fontWeight: 700,
+                    cursor: resendingVerification ? "default" : "pointer",
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                  }}>
+                  {resendingVerification ? (
+                    <div style={{ width: 16, height: 16, border: "2px solid rgba(110,59,242,.3)", borderTopColor: gold, borderRadius: "50%", animation: "spin .8s linear infinite" }} />
+                  ) : "🔄 " + t("إعادة إرسال", "Resend")}
+                </button>
               </div>
             )}
 

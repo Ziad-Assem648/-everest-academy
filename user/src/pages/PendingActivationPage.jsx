@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
 import PublicNavbar from "../components/PublicNavbar";
@@ -9,8 +9,12 @@ import { formatWhatsAppLink } from "../whatsapp";
 export default function PendingActivationPage() {
   const { t, lang } = useLang();
   const { colors: c } = useTheme();
+  const location = useLocation();
+  const userEmail = location.state?.email || "";
   const [csWhatsapp, setCsWhatsapp] = useState("");
   const [csEmail, setCsEmail] = useState("");
+  const [resending, setResending] = useState(false);
+  const [resendMsg, setResendMsg] = useState("");
 
   useEffect(() => {
     api("/api/customer-service")
@@ -23,6 +27,19 @@ export default function PendingActivationPage() {
 
   const gold = "#6E3BF2";
 
+  const handleResend = async () => {
+    if (!userEmail) return;
+    setResending(true);
+    setResendMsg("");
+    try {
+      await api("/api/auth/resend-verification", { method: "POST", body: JSON.stringify({ email: userEmail }) });
+      setResendMsg(t("تم إرسال رابط التحقق إلى بريدك", "Verification link sent to your email"));
+    } catch (e) {
+      setResendMsg(e.message || t("حدث خطأ", "Error"));
+    }
+    setResending(false);
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: c.bg }}>
       <PublicNavbar />
@@ -31,18 +48,19 @@ export default function PendingActivationPage() {
 
         {/* Icon */}
         <div style={{ width: 120, height: 120, margin: "0 auto 30px", borderRadius: "50%", background: c.bgCard, border: `2px solid ${gold}40`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ fontSize: 56 }}>⏳</span>
+          <span style={{ fontSize: 56 }}>📧</span>
         </div>
 
         {/* Title */}
         <h1 style={{ fontSize: 28, fontWeight: 900, color: c.text, textAlign: "center", marginBottom: 8 }}>
-          {t("حسابك في انتظار التفعيل", "Your Account is Pending Activation")}
+          {t("تم إنشاء حسابك بنجاح!", "Account Created Successfully!")}
         </h1>
 
         {/* Steps */}
         <div style={{ display: "flex", justifyContent: "center", gap: 8, margin: "20px 0" }}>
           {[
             { icon: "✓", label: t("تم التسجيل", "Registered"), done: true },
+            { icon: "📧", label: t("تأكيد البريد", "Verify Email"), active: true },
             { icon: "⏳", label: t("بانتظار التفعيل", "Pending"), active: true },
             { icon: "🎓", label: t("ابدأ التعلم", "Start Learning"), done: false },
           ].map((s, i) => (
@@ -54,16 +72,59 @@ export default function PendingActivationPage() {
                 color: s.done || s.active ? "#fff" : c.textMuted,
               }}>{s.icon}</div>
               <span style={{ fontSize: 12, color: s.active ? gold : c.textMuted, fontWeight: s.active ? 700 : 400 }}>{s.label}</span>
-              {i < 2 && <div style={{ width: 30, height: 2, background: s.done ? "#25d366" : c.border, margin: "0 4px", borderRadius: 2 }} />}
+              {i < 3 && <div style={{ width: 30, height: 2, background: s.done ? "#25d366" : c.border, margin: "0 4px", borderRadius: 2 }} />}
             </div>
           ))}
         </div>
 
-        {/* Description */}
-        <p style={{ fontSize: 15, color: c.textSoft, lineHeight: 1.9, textAlign: "center", marginBottom: 32, maxWidth: 480, margin: "0 auto 32px" }}>
+        {/* Verification Email Card */}
+        <div style={{ background: c.bgCard, border: `1px solid ${c.borderLight}`, borderRadius: 20, padding: "28px 24px", marginBottom: 20 }}>
+          <div style={{ textAlign: "center", marginBottom: 18 }}>
+            <p style={{ fontSize: 15, color: c.textSoft, lineHeight: 1.9, margin: 0 }}>
+              {t(
+                "تم إنشاء حسابك بنجاح! لقد أرسلنا رابط تأكيد إلى بريدك الإلكتروني. يرجى النقر على الرابط لتفعيل حسابك.",
+                "Your account has been created successfully! We've sent a verification link to your email. Please click the link to verify your account."
+              )}
+            </p>
+          </div>
+
+          {userEmail && (
+            <p style={{ fontSize: 13, color: c.textMuted, textAlign: "center", margin: "0 0 16px" }}>
+              📧 {t("أرسلنا الرابط إلى", "We sent the link to")} <strong style={{ color: gold }}>{userEmail}</strong>
+            </p>
+          )}
+
+          {resendMsg && (
+            <div style={{
+              background: resendMsg.includes("sent") || resendMsg.includes("أرسل") ? "rgba(34,197,94,.08)" : "rgba(239,68,68,.08)",
+              border: `1px solid ${resendMsg.includes("sent") || resendMsg.includes("أرسل") ? "rgba(34,197,94,.2)" : "rgba(239,68,68,.2)"}`,
+              borderRadius: 12, padding: "10px 14px", marginBottom: 16,
+              color: resendMsg.includes("sent") || resendMsg.includes("أرسل") ? "#22c55e" : "#ef4444",
+              fontSize: 13, textAlign: "center",
+            }}>{resendMsg}</div>
+          )}
+
+          <button onClick={handleResend} disabled={resending}
+            style={{
+              width: "100%", padding: "13px 0", borderRadius: 14, border: "none",
+              cursor: resending ? "default" : "pointer",
+              background: resending ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`,
+              color: "#fff", fontWeight: 800, fontSize: 15,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            }}>
+            {resending ? (
+              <div style={{ width: 20, height: 20, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
+            ) : (
+              <>🔄 {t("إعادة إرسال رابط التحقق", "Resend Verification Link")}</>
+            )}
+          </button>
+        </div>
+
+        {/* Steps after */}
+        <p style={{ fontSize: 13, color: c.textMuted, textAlign: "center", lineHeight: 1.7, marginBottom: 20 }}>
           {t(
-            "تم تسجيل حسابك بنجاح! فريقنا سيقوم بمراجعة حسابك وتفعيله في أقرب وقت. يمكنك التواصل مع خدمة العملاء لتسريع عملية التفعيل.",
-            "Your account has been registered successfully! Our team will review and activate your account shortly. You can contact customer service to speed up the process."
+            "بعد تأكيد بريدك الإلكتروني، سيقوم فريقنا بمراجعة حسابك وتفعيله. سنخطرك فور التفعيل.",
+            "After verifying your email, our team will review and activate your account. We'll notify you once activated."
           )}
         </p>
 
@@ -113,23 +174,15 @@ export default function PendingActivationPage() {
         {/* Info Cards */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
           <div style={{ background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 16, padding: "16px", textAlign: "center" }}>
-            <div style={{ fontSize: 26, marginBottom: 6 }}>⚡</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: c.text, marginBottom: 4 }}>{t("تفعيل سريع", "Quick Activation")}</div>
-            <div style={{ fontSize: 11, color: c.textMuted }}>{t("عادةً خلال 24 ساعة", "Usually within 24 hours")}</div>
+            <div style={{ fontSize: 26, marginBottom: 6 }}>🔗</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: c.text, marginBottom: 4 }}>{t("رابط تحقق", "Verification Link")}</div>
+            <div style={{ fontSize: 11, color: c.textMuted }}>{t("ينتهي صلاحيته بعد 24 ساعة", "Expires after 24 hours")}</div>
           </div>
           <div style={{ background: c.bgCard, border: `1px solid ${c.border}`, borderRadius: 16, padding: "16px", textAlign: "center" }}>
             <div style={{ fontSize: 26, marginBottom: 6 }}>🛡️</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: c.text, marginBottom: 4 }}>{t("حساب آمن", "Secure Account")}</div>
             <div style={{ fontSize: 11, color: c.textMuted }}>{t("بياناتك محمية بالكامل", "Your data is fully protected")}</div>
           </div>
-        </div>
-
-        {/* Notification info */}
-        <div style={{ background: `${gold}10`, border: `1px solid ${gold}25`, borderRadius: 14, padding: "14px 18px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 20, flexShrink: 0 }}>🔔</span>
-          <p style={{ fontSize: 13, color: c.textSoft, lineHeight: 1.7, margin: 0 }}>
-            {t("ستتلقى إشعاراً فور تفعيل حسابك من الإدارة. يمكنك أيضاً تسجيل الدخول للتأكد.", "You'll receive a notification once your account is activated. You can also check by logging in.")}
-          </p>
         </div>
 
         {/* Login Button */}
@@ -140,7 +193,7 @@ export default function PendingActivationPage() {
             background: `linear-gradient(135deg, ${gold}, ${gold}cc)`,
             color: "#fff", fontWeight: 800, fontSize: 15, textDecoration: "none",
           }}>
-            🔑 {t("الذهاب للتسجيل دخول", "Go to Login")}
+            🔑 {t("الذهاب لتسجيل الدخول", "Go to Login")}
           </Link>
         </div>
 

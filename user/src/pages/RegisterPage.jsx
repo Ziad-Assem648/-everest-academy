@@ -56,10 +56,7 @@ export default function RegisterPage() {
   const [idCardFront, setIdCardFront] = useState(null);
   const [idCardBack, setIdCardBack] = useState(null);
   const [uploadingImg, setUploadingImg] = useState(null);
-  const [otpStep, setOtpStep] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
   const [registeredEmail, setRegisteredEmail] = useState("");
-  const [otpWarning, setOtpWarning] = useState("");
 
   // Redirect browser back to landing page instead of previous history
   useEffect(() => {
@@ -125,7 +122,8 @@ export default function RegisterPage() {
       const country = form.country === "other" ? form.custom_country : form.country;
       const body = { full_name: form.full_name, email: form.email, phone: form.phone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, country, id_card_front: idCardFront, id_card_back: idCardBack };
       await api("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
-      nav("/pending-activation", { replace: true });
+      setRegisteredEmail(form.email);
+      nav("/pending-activation", { replace: true, state: { email: form.email } });
     } catch (e) { setErr(e.message); }
     setLoading(false);
   };
@@ -154,6 +152,13 @@ export default function RegisterPage() {
     });
   };
 
+  const resendVerification = async () => {
+    try {
+      await api("/api/auth/resend-verification", { method: "POST", body: JSON.stringify({ email: registeredEmail }) });
+      setErr(""); alert(t("تم إرسال رابط التحقق إلى بريدك الإلكتروني", "Verification link sent to your email"));
+    } catch (e) { setErr(e.message); }
+  };
+
   const handleImageUpload = async (file, setter) => {
     if (!file) return;
     const localPreview = URL.createObjectURL(file);
@@ -169,61 +174,6 @@ export default function RegisterPage() {
       setter(data.url.startsWith("http") ? data.url : `${BACKEND_URL}${data.url}`);
     } catch (e) { console.error("Upload failed:", e); }
   };
-
-  const verifyOtp = async () => {
-    if (!otpCode || otpCode.length !== 6) { setErr(t("أدخل الكود المكون من 6 أرقام", "Enter the 6-digit code")); return; }
-    setLoading(true); setErr("");
-    try {
-      await api("/api/auth/verify-email-otp", { method: "POST", body: JSON.stringify({ email: registeredEmail, otp: otpCode }) });
-      nav("/pending-activation", { replace: true });
-    } catch (e) { setErr(e.message); }
-    setLoading(false);
-  };
-
-  const resendOtp = async () => {
-    try {
-      await api("/api/auth/resend-email-otp", { method: "POST", body: JSON.stringify({ email: registeredEmail }) });
-      setOtpWarning(""); setErr(""); alert(t("تم إرسال كود جديد على إيميلك", "New code sent to your email"));
-    } catch (e) { setErr(e.message); }
-  };
-
-  if (otpStep) {
-    const otpInputStyle = { width: "100%", padding: "14px", borderRadius: 12, background: c.bgInput || c.bgCard, border: `2px solid ${c.border}`, color: c.text, fontSize: 22, textAlign: "center", letterSpacing: 12, fontWeight: 700, outline: "none", direction: "ltr" };
-    if (m) {
-      return (
-        <div style={{ minHeight: "100vh", background: c.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <div style={{ width: "100%", maxWidth: 400, background: c.bgCard, borderRadius: 20, border: `1px solid ${c.borderLight}`, padding: "32px 24px", textAlign: "center" }}>
-            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, rgba(110,59,242,.2), rgba(110,59,242,.05))", border: "2px solid rgba(110,59,242,.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 28 }}>📧</div>
-            <h2 style={{ fontSize: 20, fontWeight: 900, color: c.text, marginBottom: 6 }}>{t("تحقق من بريدك", "Verify Your Email")}</h2>
-            <p style={{ fontSize: 13, color: c.textMuted, marginBottom: 20 }}>{t("أرسلنا كود تحقق إلى", "We sent a code to")} <strong style={{ color: gold }}>{registeredEmail}</strong></p>
-            {err && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 14, color: "#ef4444", fontSize: 12 }}>{err}</div>}
-            {otpWarning && <div style={{ background: "rgba(234,179,8,.08)", border: "1px solid rgba(234,179,8,.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 14, color: "#ca8a04", fontSize: 12 }}>{otpWarning}</div>}
-            <input type="text" inputMode="numeric" maxLength={6} value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, ""))} placeholder="000000" style={otpInputStyle} />
-            <button onClick={verifyOtp} disabled={loading} style={{ width: "100%", height: 50, borderRadius: 14, border: "none", marginTop: 16, background: loading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`, color: "#fff", fontSize: 15, fontWeight: 800, cursor: loading ? "default" : "pointer" }}>
-              {loading ? <div style={{ width: 20, height: 20, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite", margin: "0 auto" }} /> : t("تحقق", "Verify")}
-            </button>
-            <p style={{ fontSize: 12, color: c.textMuted, marginTop: 14 }}>{t("لم تلتقط الكод؟", "Didn't receive the code?")} <button onClick={resendOtp} style={{ background: "none", border: "none", color: gold, fontWeight: 700, cursor: "pointer", fontSize: 12 }}>{t("إعادة إرسال", "Resend")}</button></p>
-          </div>
-        </div>
-      );
-    }
-    return (
-      <div style={{ minHeight: "100vh", background: c.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: "100%", maxWidth: 440, background: c.bgCard, borderRadius: 20, border: `1px solid ${c.borderLight}`, padding: "40px 36px", textAlign: "center" }}>
-          <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, rgba(110,59,242,.2), rgba(110,59,242,.05))", border: "2px solid rgba(110,59,242,.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px", fontSize: 32 }}>📧</div>
-          <h2 style={{ fontSize: 22, fontWeight: 900, color: c.text, marginBottom: 6 }}>{t("تحقق من بريدك", "Verify Your Email")}</h2>
-          <p style={{ fontSize: 14, color: c.textMuted, marginBottom: 24 }}>{t("أرسلنا كود تحقق إلى", "We sent a code to")} <strong style={{ color: gold }}>{registeredEmail}</strong></p>
-          {err && <div style={{ background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 16, color: "#ef4444", fontSize: 13 }}>{err}</div>}
-          {otpWarning && <div style={{ background: "rgba(234,179,8,.08)", border: "1px solid rgba(234,179,8,.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 16, color: "#ca8a04", fontSize: 13 }}>{otpWarning}</div>}
-          <input type="text" inputMode="numeric" maxLength={6} value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, ""))} placeholder="000000" style={otpInputStyle} />
-          <button onClick={verifyOtp} disabled={loading} style={{ width: "100%", height: 52, borderRadius: 14, border: "none", marginTop: 18, background: loading ? c.border : `linear-gradient(135deg, ${gold}, ${gold}cc)`, color: "#fff", fontSize: 15, fontWeight: 800, cursor: loading ? "default" : "pointer" }}>
-            {loading ? <div style={{ width: 22, height: 22, border: "3px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite", margin: "0 auto" }} /> : t("تحقق", "Verify")}
-          </button>
-          <p style={{ fontSize: 13, color: c.textMuted, marginTop: 16 }}>{t("لم تلتقط الكود؟", "Didn't receive the code?")} <button onClick={resendOtp} style={{ background: "none", border: "none", color: gold, fontWeight: 700, cursor: "pointer", fontSize: 13 }}>{t("إعادة إرسال", "Resend")}</button></p>
-        </div>
-      </div>
-    );
-  }
 
   // ─── MOBILE LAYOUT ───
   if (m) {

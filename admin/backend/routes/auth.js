@@ -2,9 +2,19 @@ import express from "express";
 import { query, queryOne, execute } from "../db.js";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
-import { sendOTPEmail } from "../utils/email.js";
+import { createVerification, verifyEmailToken, clearOldTokens } from "../services/verificationService.js";
 
 const router = express.Router();
+
+// Rate-limited resend endpoint (stored in memory)
+const resendTimers = {};
+function checkResendLimit(email) {
+  const now = Date.now();
+  const last = resendTimers[email] || 0;
+  if (now - last < 120000) return false; // 2 minutes
+  resendTimers[email] = now;
+  return true;
+}
 
 function detectDeviceType(ua) {
   if (!ua) return "desktop";
@@ -29,6 +39,14 @@ router.post("/login", async (req, res) => {
   if (!valid) return res.status(401).json({ error: "Invalid credentials" });
   if (user.blocked) return res.status(403).json({ error: "تم حظر حسابك. يرجى التواصل مع الإدارة." });
   if (user.status === 'pending') return res.status(403).json({ error: "حسابك قيد المراجعة. يرجى الانتظار حتى يتم تفعيله من الإدارة." });
+  if (!user.email_verified) {
+    return res.status(403).json({
+      success: false,
+      code: "EMAIL_NOT_VERIFIED",
+      message: "Please verify your email before logging in.",
+      message_ar: "يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول."
+    });
+  }
 
   const deviceType = detectDeviceType(req.headers["user-agent"]);
   const session_token = uuidv4() + "-" + Date.now();
@@ -160,13 +178,10 @@ router.post("/register", async (req, res) => {
       if (refUser) referredBy = refUser.id;
     }
 
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
-    const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-
     const hashedPassword = await bcrypt.hash(password, 10);
     await execute(
-      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, referred_by, status, role, account_type, rank, governorate, country, id_card_front, id_card_back, email_otp, email_otp_expires) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?, ?)",
-      [id, full_name, email, phone || null, address || null, hashedPassword, code, referredBy, governorate || null, country || null, id_card_front || null, id_card_back || null, otp, expires]
+      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, referred_by, status, role, account_type, rank, governorate, country, id_card_front, id_card_back, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?, 0)",
+      [id, full_name, email, phone || null, address || null, hashedPassword, code, referredBy, governorate || null, country || null, id_card_front || null, id_card_back || null]
     );
 
     // Populate closure table (for tree visibility — commissions handled on admin approval)
@@ -184,59 +199,71 @@ router.post("/register", async (req, res) => {
         [referredBy, id]);
     }
 
-    // Send OTP to email
-    let otpSent = false;
+    // Send verification email
+    let verificationSent = false;
     try {
-      await sendOTPEmail(email, otp, "Everest Academy — Email Verification Code");
-      otpSent = true;
+      await createVerification(id, email, full_name);
+      verificationSent = true;
     } catch (emailErr) {
-      console.error("Registration email send failed:", emailErr.message);
-      console.error("OTP for", email, "is:", otp, "(email not delivered — check RESEND_API_KEY)");
+      console.error("Registration verification email failed:", emailErr.message);
     }
 
-    const user = await queryOne("SELECT id, full_name, email, phone, address, referral_code, referred_by, status, rank, e_money, account_type, created_at FROM users WHERE id = ?", [id]);
-    res.json({ user, otp_sent: otpSent });
+    const user = await queryOne("SELECT id, full_name, email, phone, address, referral_code, referred_by, status, rank, e_money, account_type, created_at, email_verified FROM users WHERE id = ?", [id]);
+    res.json({ user, verification_sent: verificationSent });
   } catch (err) {
     console.error("Register error:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// Verify email OTP (registration verification)
-router.post("/verify-email-otp", async (req, res) => {
+// Verify email via link (GET)
+router.get("/verify-email", async (req, res) => {
   try {
-    const { email, otp } = req.body;
-    if (!email || !otp) return res.status(400).json({ error: "Email and OTP are required" });
-    const user = await queryOne("SELECT id, email_otp, email_otp_expires FROM users WHERE email = ?", [email]);
-    if (!user) return res.status(404).json({ error: "No account found with this email" });
-    if (user.email_otp !== otp) return res.status(400).json({ error: "Invalid OTP code" });
-    if (new Date(user.email_otp_expires) < new Date()) {
-      return res.status(400).json({ error: "OTP code has expired. Please register again." });
+    const { token } = req.query;
+    if (!token) {
+      return res.redirect("/login?verification=invalid");
     }
-    await execute("UPDATE users SET email_verified = 1, email_otp = NULL, email_otp_expires = NULL WHERE email = ?", [email]);
-    res.json({ success: true, message: "Email verified" });
+
+    const result = await verifyEmailToken(token);
+
+    if (!result.valid) {
+      const reason = result.reason;
+      if (reason === "already_verified") {
+        return res.redirect("/login?verification=already_verified");
+      } else if (reason === "expired") {
+        return res.redirect("/login?verification=expired");
+      }
+      return res.redirect("/login?verification=invalid");
+    }
+
+    return res.redirect("/login?verification=success");
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error("verify-email error:", e.message);
+    return res.redirect("/login?verification=error");
   }
 });
 
-// Resend email OTP
-router.post("/resend-email-otp", async (req, res) => {
+// Resend verification email
+router.post("/resend-verification", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: "Email is required" });
-    const user = await queryOne("SELECT id, email_otp_expires FROM users WHERE email = ?", [email]);
-    if (!user) return res.status(404).json({ error: "No account found with this email" });
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
-    const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-    await execute("UPDATE users SET email_otp = ?, email_otp_expires = ? WHERE email = ?", [otp, expires, email]);
-    try {
-      await sendOTPEmail(email, otp, "Everest Academy — Email Verification Code");
-    } catch (emailErr) {
-      console.error("Resend OTP email failed:", emailErr.message);
-      console.error("OTP for", email, "is:", otp, "(email not delivered — check RESEND_API_KEY)");
+
+    if (!checkResendLimit(email)) {
+      return res.status(429).json({
+        error: "Please wait 2 minutes before requesting another verification email.",
+        error_ar: "يرجى الانتظار دقيقتين قبل طلب إعادة إرسال البريد الإلكتروني."
+      });
     }
-    res.json({ success: true, message: "OTP sent to your email" });
+
+    const user = await queryOne("SELECT id, full_name, email FROM users WHERE email = ?", [email]);
+    if (!user) return res.status(404).json({ error: "No account found with this email" });
+    if (user.email_verified) return res.status(400).json({ error: "Email is already verified" });
+
+    await clearOldTokens(user.id);
+    await createVerification(user.id, user.email, user.full_name);
+
+    res.json({ success: true, message: "Verification email sent" });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

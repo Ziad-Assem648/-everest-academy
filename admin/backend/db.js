@@ -321,6 +321,8 @@ function createSchema(driver, isTursoDb) {
       try { await driver.execute("ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 0"); } catch(e) {}
       try { await driver.execute("ALTER TABLE users ADD COLUMN email_otp TEXT"); } catch(e) {}
       try { await driver.execute("ALTER TABLE users ADD COLUMN email_otp_expires TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN verification_token TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE users ADD COLUMN verification_expires TEXT"); } catch(e) {}
       try { await driver.execute("ALTER TABLE user_sessions ADD COLUMN last_heartbeat TEXT"); } catch(e) {}
       try { await driver.execute("ALTER TABLE commissions ADD COLUMN description TEXT"); } catch(e) {}
       try {
@@ -369,6 +371,8 @@ function createSchema(driver, isTursoDb) {
   try { driver.run("ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 0"); } catch(e) {}
   try { driver.run("ALTER TABLE users ADD COLUMN email_otp TEXT"); } catch(e) {}
   try { driver.run("ALTER TABLE users ADD COLUMN email_otp_expires TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN verification_token TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE users ADD COLUMN verification_expires TEXT"); } catch(e) {}
   try {
     driver.run("UPDATE users SET account_type = 'registration', role = 'registration' WHERE account_type = 'registration_sponsor'");
     driver.run("UPDATE users SET account_type = 'registration' WHERE role = 'registration' AND account_type = 'student'");
