@@ -81,6 +81,8 @@ router.put("/:id/id-cards", async (req, res) => {
 router.get("/:id", async (req, res) => {
   const user = await queryOne("SELECT id, full_name, email, phone, address, role, account_type, referral_code, rank, e_money, academic_points, total_team_sales, direct_count, qualified_direct_count, negative_allowed, blocked, status, bio, avatar, country, created_at, membership_expires_at FROM users WHERE id = ?", [req.params.id]);
   if (!user) return res.status(404).json({ error: "User not found" });
+  const realDirects = await queryOne("SELECT COUNT(*) as cnt FROM users WHERE referred_by = ?", [req.params.id]);
+  user.direct_count = realDirects?.cnt || 0;
   const teamLevels = await query(`
     SELECT u.id, u.full_name, u.email, u.role, u.rank, u.e_money, u.created_at, uc.depth
     FROM user_closure uc
@@ -354,37 +356,7 @@ router.put("/:id/account-type", async (req, res) => {
     // No notification sent when admin changes account type
     await logAdminAction(req, `change account_type to ${account_type}`, req.params.id, user.full_name, JSON.stringify({ from: user.account_type, to: account_type }));
 
-    // Pay commission when converting Registration/Registration Free → Student
-    if (account_type === "student" && (user.account_type === "registration" || user.account_type === "registration_free")) {
-      // Commission to referrer (referred_by)
-      if (user.referred_by && user.referred_by !== "") {
-        const existingCommission = await queryOne("SELECT id FROM commissions WHERE from_user_id = ? AND level = 1", [req.params.id]);
-        if (!existingCommission) {
-          const referrer = await queryOne("SELECT id, account_type FROM users WHERE id = ?", [user.referred_by]);
-          if (referrer && referrer.account_type === "student") {
-            const comId = uuidv4();
-            await execute("INSERT INTO commissions (id, from_user_id, to_user_id, level, amount) VALUES (?, ?, ?, 1, 1000)", [comId, req.params.id, referrer.id]);
-            await execute("UPDATE users SET e_money = e_money + 1000 WHERE id = ?", [referrer.id]);
-            await execute("UPDATE users SET direct_count = direct_count + 1 WHERE id = ?", [referrer.id]);
-            const nid2 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'commission')", [nid2, referrer.id, "💰 عمولة جديدة", `ربحت 1000 E-Money — تم تحويل عضو إلى Student`]);
-          }
-        }
-      }
-      // Commission to creator (created_by_user)
-      if (user.created_by_user) {
-        const existingCreatorComm = await queryOne("SELECT id FROM commissions WHERE from_user_id = ? AND description LIKE 'create-account%'", [req.params.id]);
-        if (!existingCreatorComm) {
-          const creatorUser = await queryOne("SELECT id, account_type FROM users WHERE id = ?", [user.created_by_user]);
-          if (creatorUser && creatorUser.account_type === "student") {
-            const comId = uuidv4();
-            await execute("INSERT INTO commissions (id, from_user_id, to_user_id, level, amount, description) VALUES (?, ?, ?, 1, 1000, 'create-account')", [comId, req.params.id, creatorUser.id]);
-            await execute("UPDATE users SET e_money = e_money + 1000 WHERE id = ?", [creatorUser.id]);
-            await execute("UPDATE users SET direct_count = direct_count + 1 WHERE id = ?", [creatorUser.id]);
-            const nid3 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'commission')", [nid3, creatorUser.id, "💰 عمولة إنشاء حساب", `ربحت 1000 E-Money — تم تحويل حساب أنشأته إلى Student`]);
-          }
-        }
-      }
-    }
+    // No commission paid when admin changes account type — commissions only on initial approve-registration
 
     res.json({ success: true, account_type, role });
   } catch (err) { res.status(500).json({ error: err.message }); }
