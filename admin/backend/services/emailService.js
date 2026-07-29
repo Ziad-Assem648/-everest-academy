@@ -16,6 +16,8 @@ function getTransporter() {
     port,
     secure: port === 465,
     auth: { user, pass },
+    connectionTimeout: 8000,
+    socketTimeout: 12000,
   });
 }
 
@@ -96,13 +98,17 @@ export async function sendVerificationEmail(to, name, token) {
   const transporter = getTransporter();
 
   if (transporter) {
-    await transporter.sendMail({
-      from: `"Everest Academy" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
-      to,
-      subject: "Verify Your Email - Everest Academy",
-      html,
-    });
-    return;
+    try {
+      await transporter.sendMail({
+        from: `"Everest Academy" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
+        to,
+        subject: "Verify Your Email - Everest Academy",
+        html,
+      });
+      return;
+    } catch (smtpErr) {
+      console.warn("SMTP send failed, falling back to Resend:", smtpErr.message);
+    }
   }
 
   // Fallback: use Resend API
