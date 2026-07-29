@@ -10,6 +10,9 @@ export default function RegistrationApprovalsPage() {
   const [viewUser, setViewUser] = useState(null);
   const [viewCards, setViewCards] = useState(null);
   const [loadingCards, setLoadingCards] = useState(false);
+  const [rejectUser, setRejectUser] = useState(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [rejecting, setRejecting] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -30,11 +33,20 @@ export default function RegistrationApprovalsPage() {
   };
 
   const handleReject = async (userId) => {
+    setRejectUser(userId);
+    setRejectReason("");
+  };
+
+  const confirmReject = async () => {
+    if (!rejectUser) return;
+    setRejecting(true);
     try {
-      await api(`/api/users/${userId}/reject-registration`, { method: "PUT" });
+      await api(`/api/users/${rejectUser}/reject-registration`, { method: "PUT", body: JSON.stringify({ reason: rejectReason.trim() }) });
       load();
-      setViewUser(null);
+      setRejectUser(null);
+      setRejectReason("");
     } catch (e) { alert(e.message); }
+    setRejecting(false);
   };
 
   const openViewUser = async (u) => {
@@ -169,6 +181,47 @@ export default function RegistrationApprovalsPage() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Reject Reason Modal */}
+      {rejectUser && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          onClick={() => { setRejectUser(null); setRejectReason(""); }}>
+          <div style={{ background: "#fff", borderRadius: 16, padding: 24, maxWidth: 480, width: "100%" }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
+              {t("❌ رفض الحساب", "❌ Reject Account")}
+            </h3>
+            <p style={{ fontSize: 13, color: "#666", marginBottom: 16 }}>
+              {t("اكتب سبب الرفض ليتم إرساله إلى المستخدم عبر البريد الإلكتروني.", "Write the rejection reason to be sent to the user via email.")}
+            </p>
+            <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
+              rows={4} placeholder={t("سبب الرفض...", "Rejection reason...")}
+              style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #ddd", fontSize: 14, resize: "vertical", boxSizing: "border-box", outline: "none" }}
+              onFocus={e => e.target.style.borderColor = "#ef4444"}
+              onBlur={e => e.target.style.borderColor = "#ddd"} />
+            <div style={{ display: "flex", gap: 10, marginTop: 16, justifyContent: "flex-end" }}>
+              <button onClick={() => { setRejectUser(null); setRejectReason(""); }}
+                style={{ padding: "10px 20px", borderRadius: 10, border: "1px solid #ddd", background: "#fff", cursor: "pointer", fontSize: 14, color: "#666" }}>
+                {t("إلغاء", "Cancel")}
+              </button>
+              <button onClick={confirmReject} disabled={rejecting || !rejectReason.trim()}
+                style={{
+                  padding: "10px 24px", borderRadius: 10, border: "none",
+                  cursor: rejecting || !rejectReason.trim() ? "default" : "pointer",
+                  background: rejecting || !rejectReason.trim() ? "#ccc" : "#ef4444",
+                  color: "#fff", fontSize: 14, fontWeight: 600,
+                  display: "flex", alignItems: "center", gap: 6,
+                }}>
+                {rejecting ? (
+                  <span>{t("جارٍ...", "Rejecting...")}</span>
+                ) : (
+                  <>{t("❌ تأكيد الرفض وإرسال", "❌ Confirm & Send")}</>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { query, queryOne, execute } from "../db.js";
 import { advanceUserRank } from "./ranks.js";
 import { v4 as uuidv4 } from "uuid";
-import { sendOTPEmail } from "../services/emailService.js";
+import { sendOTPEmail, sendRejectionEmail } from "../services/emailService.js";
 
 const router = express.Router();
 
@@ -272,12 +272,23 @@ router.put("/:id/approve-registration", async (req, res) => {
 
 router.put("/:id/reject-registration", async (req, res) => {
   try {
+    const { reason } = req.body;
     const user = await queryOne("SELECT id, full_name, email FROM users WHERE id = ?", [req.params.id]);
     if (!user) return res.status(404).json({ error: "User not found" });
+
+    // Send rejection email before deleting
+    if (reason) {
+      try {
+        await sendRejectionEmail(user.email, user.full_name, reason);
+      } catch (emailErr) {
+        console.error("Rejection email failed:", emailErr.message);
+      }
+    }
+
     await execute("DELETE FROM user_closure WHERE descendant = ? OR ancestor = ?", [req.params.id, req.params.id]);
     await execute("DELETE FROM notifications WHERE user_id = ?", [req.params.id]);
     await execute("DELETE FROM users WHERE id = ?", [req.params.id]);
-    res.json({ success: true });
+    res.json({ success: true, email_sent: !!reason });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
