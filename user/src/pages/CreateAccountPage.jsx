@@ -171,7 +171,7 @@ export default function CreateAccountPage() {
           <form onSubmit={submit} autoComplete="off">
             {/* Full Name */}
             <div style={{ marginBottom: 14 }}>
-              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("الاسم بالكامل", "Full Name")}</label>
+              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t(" الاسم كما هو مُدوَّن في البطاقة", "Name as shown on your ID")}</label>
               <input type="text" required placeholder={t("أدخل اسم الشخص", "Enter person's name")} value={form.full_name} onChange={e => setField("full_name", e.target.value)} style={inputS} onFocus={onFocus} onBlur={onBlur} />
             </div>
 
