@@ -41,10 +41,8 @@ router.post("/login", async (req, res) => {
   if (user.status === 'pending') return res.status(403).json({ error: "حسابك قيد المراجعة. يرجى الانتظار حتى يتم تفعيله من الإدارة." });
   if (!user.email_verified) {
     return res.status(403).json({
-      success: false,
-      code: "EMAIL_NOT_VERIFIED",
-      message: "Please verify your email before logging in.",
-      message_ar: "يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول."
+      error: "يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. تحقق من بريدك الوارد (أو البريد المزعج) للحصول على رمز التحقق.",
+      code: "EMAIL_NOT_VERIFIED"
     });
   }
 
