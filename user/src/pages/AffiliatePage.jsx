@@ -69,6 +69,7 @@ function TeamMemberNode({ member, depth, t, c, total, dbRanks }) {
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontWeight: 700, fontSize: 13, margin: 0, color: c.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{member.full_name}</p>
+          <p style={{ fontSize: 10, color: c.textMuted, margin: 0, direction: "ltr" }}>ID: {member.id}</p>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2, flexWrap: "wrap" }}>
             <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 7px", borderRadius: 6, background: member.rank ? `${lc}12` : `${lc}08`, color: member.rank ? lc : `${lc}88`, display:"inline-flex", alignItems:"center", gap:4 }}>
               {(() => { if (!member.rank) return null; const rk = (dbRanks || []).find(r => r.name === member.rank); return rk?.image ? <img src={rk.image} alt="" style={{width:14,height:14,borderRadius:3,objectFit:"cover"}} /> : (rankIcons[member.rank] || "⭐"); })()} {member.rank || `—`}
@@ -680,65 +681,7 @@ export default function AffiliatePage() {
               </p>
             </div>
 
-            {/* Direct Downlines */}
-            {directs.length > 0 && (
-              <div
-                style={{
-                  background: c.bgCard,
-                  borderRadius: 18,
-                  padding: "18px 16px",
-                  marginBottom: 16,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-                }}
-              >
-                <p style={{ fontSize: 13, fontWeight: 700, margin: "0 0 12px", color: c.text, display: "flex", alignItems: "center", gap: 6 }}>
-                  ⬇️ {t("الـ Downline المباشرون", "Direct Downlines")}
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {directs.map((d) => (
-                    <div
-                      key={d.id}
-                      onClick={() => setTransferTo(d.id)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        background: transferTo === d.id ? `${GOLD}0a` : "transparent",
-                        borderRadius: 12,
-                        padding: "10px 14px",
-                        cursor: "pointer",
-                        border: transferTo === d.id ? `2px solid ${GOLD}` : "2px solid transparent",
-                        transition: "all 0.2s",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: "50%",
-                          background: `linear-gradient(135deg, ${GOLD}22, ${GOLD}44)`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontWeight: 700,
-                          color: GOLD,
-                          fontSize: 14,
-                        }}
-                      >
-                        {(d.full_name || "?")[0]}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <p style={{ fontWeight: 600, fontSize: 13, margin: 0, color: c.text }}>{d.full_name}</p>
-                        <p style={{ fontSize: 11, color: c.textMuted, margin: 0 }}>{d.rank || "Star"}</p>
-                      </div>
-                      {transferTo === d.id && (
-                        <span style={{ color: GOLD, fontSize: 18, fontWeight: 700 }}>✓</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
 
             {/* Transfer Form */}
             <div
