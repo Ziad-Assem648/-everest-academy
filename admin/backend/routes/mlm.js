@@ -75,8 +75,8 @@ router.get("/transfer/validate", async (req, res) => {
   if (from === to) return res.json({ allowed: false, reason: "same_user" });
   const relation = await queryOne(`
     SELECT id FROM users
-    WHERE (referred_by = ? AND id = ?) OR (referred_by = ? AND id = ?)
-  `, [to, from, from, to]);
+    WHERE ((referred_by = ? OR created_by_user = ?) AND id = ?) OR ((referred_by = ? OR created_by_user = ?) AND id = ?)
+  `, [to, to, from, from, from, to]);
   if (!relation) return res.json({ allowed: false, reason: "not_directly_connected" });
   const fromUser = await queryOne("SELECT e_money, negative_allowed FROM users WHERE id = ?", [from]);
   if (!fromUser) return res.json({ allowed: false, reason: "sender_not_found" });
@@ -91,8 +91,8 @@ router.post("/transfer", async (req, res) => {
     if (amount <= 0) return res.status(400).json({ error: "Amount must be positive" });
     const relation = await queryOne(`
       SELECT id FROM users
-      WHERE (referred_by = ? AND id = ?) OR (referred_by = ? AND id = ?)
-    `, [to_user_id, from_user_id, from_user_id, to_user_id]);
+      WHERE ((referred_by = ? OR created_by_user = ?) AND id = ?) OR ((referred_by = ? OR created_by_user = ?) AND id = ?)
+    `, [to_user_id, to_user_id, from_user_id, from_user_id, from_user_id, to_user_id]);
     if (!relation) return res.status(403).json({ error: "Transfer allowed only between direct upline/downline" });
     const fromUser = await queryOne("SELECT e_money, negative_allowed, full_name FROM users WHERE id = ?", [from_user_id]);
     if (!fromUser) return res.status(404).json({ error: "Sender not found" });
