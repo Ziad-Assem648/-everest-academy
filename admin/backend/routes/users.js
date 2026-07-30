@@ -406,7 +406,8 @@ router.post("/create-for-others", async (req, res) => {
     const sessionToken = req.headers["x-session-token"];
     if (!userId || !sessionToken) return res.status(401).json({ error: "Unauthorized" });
     const creator = await queryOne("SELECT id, session_token, e_money, full_name FROM users WHERE id = ?", [userId]);
-    if (!creator || creator.session_token !== sessionToken) return res.status(401).json({ error: "Session invalid" });
+    const tokens = (creator?.session_token || '').split(',').filter(Boolean);
+    if (!creator || !tokens.includes(sessionToken)) return res.status(401).json({ error: "Session invalid" });
 
     const costRow = await queryOne("SELECT value FROM settings WHERE key = 'create_account_cost'");
     const COST = parseInt(costRow?.value) || 5500;
@@ -475,7 +476,8 @@ router.get("/created-by-me/:userId", async (req, res) => {
     const sessionToken = req.headers["x-session-token"];
     if (!userId || !sessionToken) return res.status(401).json({ error: "Unauthorized" });
     const requester = await queryOne("SELECT id, session_token FROM users WHERE id = ?", [userId]);
-    if (!requester || requester.session_token !== sessionToken) return res.status(401).json({ error: "Session invalid" });
+    const tokens = (requester?.session_token || '').split(',').filter(Boolean);
+    if (!requester || !tokens.includes(sessionToken)) return res.status(401).json({ error: "Session invalid" });
 
     const users = await query(
       "SELECT id, full_name, email, phone, governorate, country, status, account_type, created_at FROM users WHERE created_by_user = ? ORDER BY created_at DESC",

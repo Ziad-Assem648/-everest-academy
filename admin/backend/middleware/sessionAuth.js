@@ -34,9 +34,10 @@ export default async function sessionAuth(req, res, next) {
     return res.status(401).json({ error: "Unauthorized. يرجى تسجيل الدخول.", session_expired: true });
   }
 
-  // Validate session against users table
+  // Validate session against users table (supports multi-device CSV)
   const user = await queryOne("SELECT id, session_token FROM users WHERE id = ?", [userId]);
-  if (user && user.session_token === sessionToken) return next();
+  const tokens = (user?.session_token || '').split(',').filter(Boolean);
+  if (tokens.includes(sessionToken)) return next();
 
   res.status(401).json({ error: "Session expired. تم تسجيل الخروج من جهاز آخر. يرجى تسجيل الدخول مرة أخرى.", session_expired: true });
 }
@@ -51,7 +52,8 @@ export async function adminAuth(req, res, next) {
   }
 
   const user = await queryOne("SELECT id, session_token, role FROM users WHERE id = ?", [userId]);
-  if (!user || user.session_token !== sessionToken) {
+  const tokens = (user?.session_token || '').split(',').filter(Boolean);
+  if (!user || !tokens.includes(sessionToken)) {
     return res.status(401).json({ error: "Session expired" });
   }
   if (user.role !== "admin" && user.role !== "manager") {

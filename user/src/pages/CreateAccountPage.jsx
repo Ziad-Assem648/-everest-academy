@@ -5,11 +5,7 @@ import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
 import { api, uploadApi, BACKEND_URL } from "../App";
 import AppNavbar from "../components/AppNavbar";
-
-const ARAB_COUNTRIES = [
-  "مصر","السعودية","الإمارات","قطر","الكويت","عمان","البحرين","العراق","الأردن",
-  "لبنان","سوريا","فلسطين","اليمن","ليبيا","تونس","الجزائر","المغرب","السودان","موريتانيا","الصومال","جيبوتي","جزر القمر"
-];
+import { ALL_COUNTRIES, COUNTRY_CODE_MAP } from "../countryData.js";
 
 const GOVERNORATES = [
   "القاهرة","الجيزة","الإسكندرية","القليوبية","الدقهلية","الشرقية","الغربية","المنوفية","البحيرة","كفر الشيخ",
@@ -27,7 +23,7 @@ export default function CreateAccountPage() {
   const m = window.innerWidth <= 768;
   const [cost, setCost] = useState(5500);
 
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "", confirm: "", governorate: "", country: "", custom_country: "" });
+  const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "", confirm: "", governorate: "", country: "" });
   const [err, setErr] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -99,12 +95,9 @@ export default function CreateAccountPage() {
       setLoading(false); return;
     }
     const cleanedPhone = form.phone.replace(/\D/g, "");
-    if (countryCode === "+20" && (!/^01\d{9}$/.test(cleanedPhone))) {
-      setErr(t("رقم الهاتف غير صحيح لمصر. يجب أن يبدأ بـ 01 ويتكون من 11 رقمًا", "Invalid Egyptian phone number. Must start with 01 and be 11 digits"));
-      setLoading(false); return;
-    }
-    if (cleanedPhone.length < 7) {
-      setErr(t("رقم الهاتف قصير جدًا", "Phone number is too short"));
+    const codeInfo = COUNTRY_CODE_MAP[countryCode];
+    if (codeInfo && !codeInfo.regex.test(cleanedPhone)) {
+      setErr(t(`رقم الهاتف غير صحيح لـ ${codeInfo.name}. ${codeInfo.hint}`, `Invalid phone number for ${codeInfo.name}. ${codeInfo.hint}`));
       setLoading(false); return;
     }
     if (form.password.length < 8) { setErr(t("كلمة المرور يجب أن تكون 8 أحرف على الأقل.", "Password must be at least 8 characters.")); setLoading(false); return; }
@@ -122,12 +115,12 @@ export default function CreateAccountPage() {
         body: JSON.stringify({
           full_name: form.full_name, email: form.email, phone: fullPhone,
           password: form.password, governorate: form.governorate,
-          country: form.country === "other" ? form.custom_country : form.country,
+          country: form.country,
           id_card: idCard,
         }),
       });
       setSuccess(t(`تم إنشاء الحساب بنجاح! تم خصم ${cost} E-Money`, `Account created! ${cost} E-Money deducted`));
-      setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", governorate: "", country: "", custom_country: "" });
+      setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", governorate: "", country: "" });
       setIdCard(null);
       setProfile(p => ({ ...p, e_money: res.creator_balance }));
       setCreatedUsers(prev => [res.user, ...prev]);
@@ -190,21 +183,10 @@ export default function CreateAccountPage() {
                 <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("رقم الهاتف", "Phone")}</label>
                 <div style={{ display: "flex", gap: 6 }}>
                   <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)}
-                    style={{ ...inputS, width: 100, flexShrink: 0, padding: "12px 8px", fontSize: 13 }}>
-                    <option value="+20">🇪🇬 +20</option>
-                    <option value="+966">🇸🇦 +966</option>
-                    <option value="+971">🇦🇪 +971</option>
-                    <option value="+974">🇶🇦 +974</option>
-                    <option value="+973">🇧🇭 +973</option>
-                    <option value="+968">🇴🇲 +968</option>
-                    <option value="+965">🇰🇼 +965</option>
-                    <option value="+962">🇯🇴 +962</option>
-                    <option value="+1">🇺🇸 +1</option>
-                    <option value="+44">🇬🇧 +44</option>
-                    <option value="+213">🇩🇿 +213</option>
-                    <option value="+216">🇹🇳 +216</option>
-                    <option value="+212">🇲🇦 +212</option>
-                    <option value="+90">🇹🇷 +90</option>
+                    style={{ ...inputS, width: 110, flexShrink: 0, padding: "12px 8px", fontSize: 12 }}>
+                    {Object.entries(COUNTRY_CODE_MAP).map(([code, data]) => (
+                      <option key={code} value={code}>{code} ({data.name})</option>
+                    ))}
                   </select>
                   <input type="tel" required placeholder="xxxxxxxxxxx" value={form.phone} onChange={e => setField("phone", e.target.value)} style={{ ...inputS, flex: 1 }} onFocus={onFocus} onBlur={onBlur} />
                 </div>
@@ -252,16 +234,12 @@ export default function CreateAccountPage() {
             {/* Country */}
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("الدولة", "Country")}</label>
-              <select value={form.country} onChange={e => setField("country", e.target.value)} style={{ ...inputS, cursor: "pointer" }} onFocus={onFocus} onBlur={onBlur}>
-                <option value="">{t("اختر الدولة", "Select Country")}</option>
-                {ARAB_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-                <option value="other">{t("أخرى", "Other")}</option>
-              </select>
-              {form.country === "other" && (
-                <input type="text" placeholder={t("أدخل اسم الدولة", "Enter country name")}
-                  value={form.custom_country} onChange={e => setField("custom_country", e.target.value)}
-                  style={{ ...inputS, marginTop: 8 }} onFocus={onFocus} onBlur={onBlur} />
-              )}
+              <input type="text" list="countries" value={form.country} onChange={e => setField("country", e.target.value)}
+                placeholder={t("ابحث عن الدولة...", "Search country...")}
+                style={{ ...inputS }} onFocus={onFocus} onBlur={onBlur} />
+              <datalist id="countries">
+                {ALL_COUNTRIES.map(c => <option key={c} value={c} />)}
+              </datalist>
             </div>
 
             {/* Governorate (Egypt only) */}

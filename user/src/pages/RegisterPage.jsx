@@ -4,6 +4,7 @@ import { useAuth } from "../AuthContext";
 import { useLang } from "../LangContext";
 import { useTheme } from "../ThemeContext";
 import { api, uploadApi, BACKEND_URL } from "../App";
+import { ALL_COUNTRIES, COUNTRY_CODE_MAP } from "../countryData.js";
 
 const useIsMobile = () => {
   const [m, setM] = useState(typeof window !== "undefined" && window.innerWidth <= 768);
@@ -37,10 +38,7 @@ const GOVERNORATES = [
   "سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح"
 ];
 
-const ARAB_COUNTRIES = [
-  "مصر","السعودية","الإمارات","قطر","الكويت","عمان","البحرين","العراق","الأردن",
-  "لبنان","سوريا","فلسطين","اليمن","ليبيا","تونس","الجزائر","المغرب","السودان","موريتانيا","الصومال","جيبوتي","جزر القمر"
-];
+const ARAB_COUNTRIES = ALL_COUNTRIES;
 
 export default function RegisterPage() {
   const { t, lang } = useLang();
@@ -48,13 +46,14 @@ export default function RegisterPage() {
   const { colors: c } = useTheme();
   const nav = useNavigate();
   const m = useIsMobile();
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no", governorate: "", country: "", custom_country: "" });
+  const [form, setForm] = useState({ full_name: "", email: "", phone: "", password: "", confirm: "", address: "", referral_code: "", hasReferral: "no", governorate: "", country: "" });
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const inputRefs = useRef([]);
   const [idCard, setIdCard] = useState(null);
   const [countryCode, setCountryCode] = useState("+20");
+  const [countrySearch, setCountrySearch] = useState("");
   const [uploadingImg, setUploadingImg] = useState(null);
   const [registeredEmail, setRegisteredEmail] = useState("");
 
@@ -84,12 +83,9 @@ export default function RegisterPage() {
       setLoading(false); return;
     }
     const cleanedPhone = form.phone.replace(/\D/g, "");
-    if (countryCode === "+20" && (!/^01\d{9}$/.test(cleanedPhone))) {
-      setErr(t("رقم الهاتف غير صحيح لمصر. يجب أن يبدأ بـ 01 ويتكون من 11 رقمًا", "Invalid Egyptian phone number. Must start with 01 and be 11 digits"));
-      setLoading(false); return;
-    }
-    if (cleanedPhone.length < 7) {
-      setErr(t("رقم الهاتف قصير جدًا", "Phone number is too short"));
+    const codeInfo = COUNTRY_CODE_MAP[countryCode];
+    if (codeInfo && !codeInfo.regex.test(cleanedPhone)) {
+      setErr(t(`رقم الهاتف غير صحيح لـ ${codeInfo.name}. ${codeInfo.hint}`, `Invalid phone number for ${codeInfo.name}. ${codeInfo.hint}`));
       setLoading(false); return;
     }
 
@@ -126,9 +122,8 @@ export default function RegisterPage() {
 
     if (!idCard) { setErr(t("يرجى رفع صورة البطاقة أو الباسبور", "Please upload your ID or passport image")); setLoading(false); return; }
     try {
-      const country = form.country === "other" ? form.custom_country : form.country;
       const fullPhone = countryCode + form.phone;
-      const body = { full_name: form.full_name, email: form.email, phone: fullPhone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, country, id_card: idCard };
+      const body = { full_name: form.full_name, email: form.email, phone: fullPhone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, country: form.country, id_card: idCard };
       await api("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
       setRegisteredEmail(form.email);
       nav("/pending-activation", { replace: true, state: { email: form.email } });
@@ -267,30 +262,10 @@ export default function RegisterPage() {
               </label>
               <div style={{ display: "flex", gap: 8 }}>
                 <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)}
-                  style={{ width: 110, padding: "13px 10px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 13, outline: "none", transition: "0.3s", flexShrink: 0 }}>
-                  <option value="+20">🇪🇬 +20</option>
-                  <option value="+966">🇸🇦 +966</option>
-                  <option value="+971">🇦🇪 +971</option>
-                  <option value="+974">🇶🇦 +974</option>
-                  <option value="+973">🇧🇭 +973</option>
-                  <option value="+968">🇴🇲 +968</option>
-                  <option value="+965">🇰🇼 +965</option>
-                  <option value="+962">🇯🇴 +962</option>
-                  <option value="+1">🇺🇸 +1</option>
-                  <option value="+44">🇬🇧 +44</option>
-                  <option value="+49">🇩🇪 +49</option>
-                  <option value="+33">🇫🇷 +33</option>
-                  <option value="+213">🇩🇿 +213</option>
-                  <option value="+216">🇹🇳 +216</option>
-                  <option value="+212">🇲🇦 +212</option>
-                  <option value="+218">🇱🇾 +218</option>
-                  <option value="+249">🇸🇩 +249</option>
-                  <option value="+963">🇸🇾 +963</option>
-                  <option value="+964">🇮🇶 +964</option>
-                  <option value="+967">🇾🇪 +967</option>
-                  <option value="+91">🇮🇳 +91</option>
-                  <option value="+92">🇵🇰 +92</option>
-                  <option value="+90">🇹🇷 +90</option>
+                  style={{ width: 120, padding: "13px 10px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 12, outline: "none", transition: "0.3s", flexShrink: 0 }}>
+                  {Object.entries(COUNTRY_CODE_MAP).map(([code, data]) => (
+                    <option key={code} value={code}>{code} ({data.name})</option>
+                  ))}
                 </select>
                 <input type="tel" required placeholder="xxxxxxxxxxx"
                   ref={el => inputRefs.current[1] = el} readOnly autoComplete="off"
@@ -361,24 +336,18 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Country */}
+            {/* Country (searchable) */}
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
                 {t("الدولة", "Country")}
               </label>
-              <select value={form.country} onChange={(e) => setField("country", e.target.value)}
+              <input type="text" list="countries" value={form.country} onChange={(e) => setField("country", e.target.value)}
+                placeholder={t("ابحث عن الدولة...", "Search country...")}
                 style={{ width: "100%", padding: "13px 14px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 14, outline: "none", transition: "0.3s", boxSizing: "border-box" }}
-                onFocus={onFocus} onBlur={onBlur}>
-                <option value="">{t("اختر الدولة", "Select Country")}</option>
-                {ARAB_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-                <option value="other">{t("أخرى", "Other")}</option>
-              </select>
-              {form.country === "other" && (
-                <input type="text" placeholder={t("أدخل اسم الدولة", "Enter country name")}
-                  value={form.custom_country} onChange={(e) => setField("custom_country", e.target.value)}
-                  style={{ width: "100%", padding: "13px 14px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 14, outline: "none", transition: "0.3s", boxSizing: "border-box", marginTop: 8 }}
-                  onFocus={onFocus} onBlur={onBlur} />
-              )}
+                onFocus={onFocus} onBlur={onBlur} />
+              <datalist id="countries">
+                {ALL_COUNTRIES.map(c => <option key={c} value={c} />)}
+              </datalist>
             </div>
 
             {/* Governorate (Egypt only) */}
@@ -602,30 +571,10 @@ export default function RegisterPage() {
                   </label>
                   <div style={{ display: "flex", gap: 6 }}>
                     <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)}
-                      style={{ ...inputStyle(c), width: 90, flexShrink: 0, padding: "10px 6px", fontSize: 12 }}>
-                      <option value="+20">🇪🇬 +20</option>
-                      <option value="+966">🇸🇦 +966</option>
-                      <option value="+971">🇦🇪 +971</option>
-                      <option value="+974">🇶🇦 +974</option>
-                      <option value="+973">🇧🇭 +973</option>
-                      <option value="+968">🇴🇲 +968</option>
-                      <option value="+965">🇰🇼 +965</option>
-                      <option value="+962">🇯🇴 +962</option>
-                      <option value="+1">🇺🇸 +1</option>
-                      <option value="+44">🇬🇧 +44</option>
-                      <option value="+49">🇩🇪 +49</option>
-                      <option value="+33">🇫🇷 +33</option>
-                      <option value="+213">🇩🇿 +213</option>
-                      <option value="+216">🇹🇳 +216</option>
-                      <option value="+212">🇲🇦 +212</option>
-                      <option value="+218">🇱🇾 +218</option>
-                      <option value="+249">🇸🇩 +249</option>
-                      <option value="+963">🇸🇾 +963</option>
-                      <option value="+964">🇮🇶 +964</option>
-                      <option value="+967">🇾🇪 +967</option>
-                      <option value="+91">🇮🇳 +91</option>
-                      <option value="+92">🇵🇰 +92</option>
-                      <option value="+90">🇹🇷 +90</option>
+                      style={{ ...inputStyle(c), width: 100, flexShrink: 0, padding: "10px 6px", fontSize: 11 }}>
+                      {Object.entries(COUNTRY_CODE_MAP).map(([code, data]) => (
+                        <option key={code} value={code}>{code} ({data.name})</option>
+                      ))}
                     </select>
                     <input type="tel" required placeholder="xxxxxxxxxxx" ref={el => inputRefs.current[1] = el} readOnly autoComplete="off" value={form.phone} onChange={(e) => setField("phone", e.target.value)} style={{ ...inputStyle(c), flex: 1 }} onFocus={onFocus} onBlur={onBlur} />
                   </div>
@@ -681,21 +630,17 @@ export default function RegisterPage() {
                 <span style={{ fontSize: 12, color: c.textSoft }}>{t("إظهار كلمة المرور", "Show Password")}</span>
               </label>
 
-              {/* Country */}
+              {/* Country (searchable) */}
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
                   {t("الدولة", "Country")}
                 </label>
-                <select value={form.country} onChange={(e) => setField("country", e.target.value)} style={{ ...inputStyle(c), cursor: "pointer" }} onFocus={onFocus} onBlur={onBlur}>
-                  <option value="">{t("اختر الدولة", "Select Country")}</option>
-                  {ARAB_COUNTRIES.map(co => <option key={co} value={co}>{co}</option>)}
-                  <option value="other">{t("أخرى", "Other")}</option>
-                </select>
-                {form.country === "other" && (
-                  <input type="text" placeholder={t("أدخل اسم الدولة", "Enter country name")}
-                    value={form.custom_country} onChange={(e) => setField("custom_country", e.target.value)}
-                    style={{ ...inputStyle(c), marginTop: 8 }} onFocus={onFocus} onBlur={onBlur} />
-                )}
+                <input type="text" list="countries2" value={form.country} onChange={(e) => setField("country", e.target.value)}
+                  placeholder={t("ابحث عن الدولة...", "Search country...")}
+                  style={{ ...inputStyle(c) }} onFocus={onFocus} onBlur={onBlur} />
+                <datalist id="countries2">
+                  {ALL_COUNTRIES.map(co => <option key={co} value={co} />)}
+                </datalist>
               </div>
 
               {/* Governorate (Egypt only) */}

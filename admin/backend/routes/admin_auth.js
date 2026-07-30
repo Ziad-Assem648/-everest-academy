@@ -43,7 +43,12 @@ router.post("/login", async (req, res) => {
   if (!valid) return res.status(401).json({ error: "Invalid admin credentials" });
 
   const session_token = uuidv4() + "-" + Date.now();
-  await execute("UPDATE users SET session_token = ? WHERE id = ?", [session_token, user.id]);
+  // Append to existing tokens CSV (admin also supports multi-device)
+  const existing = await queryOne("SELECT session_token FROM users WHERE id = ?", [user.id]);
+  const tokens = (existing?.session_token || '').split(',').filter(Boolean);
+  tokens.push(session_token);
+  if (tokens.length > 2) tokens.shift(); // max 2
+  await execute("UPDATE users SET session_token = ? WHERE id = ?", [tokens.join(','), user.id]);
   res.json({ user: { id: user.id, full_name: user.full_name, email: user.email, role: user.role, avatar: user.avatar }, session_token });
 });
 
@@ -52,7 +57,10 @@ router.get("/me", async (req, res) => {
   const token = req.headers["x-session-token"];
   if (!userId || !token) return res.status(401).json({ error: "Not authenticated" });
 
-  const user = await queryOne("SELECT id, full_name, email, role, phone, address, bio, avatar, created_at FROM users WHERE id = ? AND session_token = ?", [userId, token]);
+  const userRow = await queryOne("SELECT id, session_token FROM users WHERE id = ?", [userId]);
+  const tokens = (userRow?.session_token || '').split(',').filter(Boolean);
+  if (!tokens.includes(token)) return res.status(401).json({ error: "Session expired" });
+  const user = await queryOne("SELECT id, full_name, email, role, phone, address, bio, avatar, created_at FROM users WHERE id = ?", [userId]);
   if (!user) return res.status(401).json({ error: "Session expired" });
   if (user.role !== "admin" && user.role !== "manager") return res.status(403).json({ error: "Not an admin" });
   res.json(user);
@@ -64,7 +72,8 @@ router.put("/me", async (req, res) => {
   if (!userId || !token) return res.status(401).json({ error: "Not authenticated" });
 
   const user = await queryOne("SELECT id, role, session_token FROM users WHERE id = ?", [userId]);
-  if (!user || user.session_token !== token) return res.status(401).json({ error: "Session expired" });
+  const tokens = (user?.session_token || '').split(',').filter(Boolean);
+  if (!user || !tokens.includes(token)) return res.status(401).json({ error: "Session expired" });
   if (user.role !== "admin" && user.role !== "manager") return res.status(403).json({ error: "Not an admin" });
 
   const { full_name, email, phone, address, bio, password } = req.body;
@@ -86,7 +95,8 @@ router.get("/list", async (req, res) => {
   if (!userId || !token) return res.status(401).json({ error: "Not authenticated" });
 
   const caller = await queryOne("SELECT role, session_token FROM users WHERE id = ?", [userId]);
-  if (!caller || caller.session_token !== token) return res.status(401).json({ error: "Session expired" });
+  const tokens = (caller?.session_token || '').split(',').filter(Boolean);
+  if (!caller || !tokens.includes(token)) return res.status(401).json({ error: "Session expired" });
   if (caller.role !== "manager") return res.status(403).json({ error: "Only manager can manage admins" });
 
   const admins = await query("SELECT id, full_name, email, role, phone, address, bio, avatar, created_at FROM users WHERE role IN ('admin','manager') ORDER BY created_at DESC");
@@ -99,7 +109,8 @@ router.post("/list", async (req, res) => {
   if (!userId || !token) return res.status(401).json({ error: "Not authenticated" });
 
   const caller = await queryOne("SELECT role, session_token FROM users WHERE id = ?", [userId]);
-  if (!caller || caller.session_token !== token) return res.status(401).json({ error: "Session expired" });
+  const tokens = (caller?.session_token || '').split(',').filter(Boolean);
+  if (!caller || !tokens.includes(token)) return res.status(401).json({ error: "Session expired" });
   if (caller.role !== "manager") return res.status(403).json({ error: "Only manager can manage admins" });
 
   const { id, full_name, email, password, role } = req.body;
@@ -120,7 +131,8 @@ router.put("/list/:id", async (req, res) => {
   if (!userId || !token) return res.status(401).json({ error: "Not authenticated" });
 
   const caller = await queryOne("SELECT role, session_token FROM users WHERE id = ?", [userId]);
-  if (!caller || caller.session_token !== token) return res.status(401).json({ error: "Session expired" });
+  const tokens = (caller?.session_token || '').split(',').filter(Boolean);
+  if (!caller || !tokens.includes(token)) return res.status(401).json({ error: "Session expired" });
   if (caller.role !== "manager") return res.status(403).json({ error: "Only manager can manage admins" });
 
   const { full_name, email, password, role } = req.body;
@@ -141,7 +153,8 @@ router.delete("/list/:id", async (req, res) => {
   if (!userId || !token) return res.status(401).json({ error: "Not authenticated" });
 
   const caller = await queryOne("SELECT role, session_token FROM users WHERE id = ?", [userId]);
-  if (!caller || caller.session_token !== token) return res.status(401).json({ error: "Session expired" });
+  const tokens = (caller?.session_token || '').split(',').filter(Boolean);
+  if (!caller || !tokens.includes(token)) return res.status(401).json({ error: "Session expired" });
   if (caller.role !== "manager") return res.status(403).json({ error: "Only manager can manage admins" });
   if (req.params.id === userId) return res.status(400).json({ error: "Cannot delete yourself" });
 

@@ -42,40 +42,41 @@ router.post("/login", async (req, res) => {
   const deviceType = detectDeviceType(req.headers["user-agent"]);
   const session_token = uuidv4() + "-" + Date.now();
 
-  // Single Active Device: check if user already has ANY active session
+  // Multi-device: check how many active sessions exist (heartbeat < 15s = browser open)
   const existingSessions = await query("SELECT id, device_type, device_info, last_heartbeat FROM user_sessions WHERE user_id = ?", [user.id]);
 
-  // Filter stale sessions in JS (heartbeat older than 15 seconds = browser closed)
   const now = Date.now();
-  const HEARTBEAT_TIMEOUT = 15 * 1000; // 15 seconds
+  const HEARTBEAT_TIMEOUT = 15 * 1000;
   const activeSessions = existingSessions.filter(s => {
-    if (!s.last_heartbeat) return false; // old session without heartbeat = stale
+    if (!s.last_heartbeat) return false;
     const lastHb = new Date(s.last_heartbeat).getTime();
     return (now - lastHb) < HEARTBEAT_TIMEOUT;
   });
 
-  if (activeSessions.length > 0) {
-    // Another device is already logged in — reject
+  // Allow up to 2 active devices
+  if (activeSessions.length >= 2) {
     return res.status(403).json({
       success: false,
       code: "DEVICE_ALREADY_ACTIVE",
-      message: "This account is already logged in on another device. Please log out from that device first.",
-      message_ar: "هذا الحساب مسجل الدخول على جهاز آخر. يرجى تسجيل الخروج من ذلك الجهاز أولاً."
+      message: "This account is already logged in on 2 devices. Please log out from one device first.",
+      message_ar: "هذا الحساب مسجل الدخول على جهازين بالفعل. يرجى تسجيل الخروج من أحد الأجهزة أولاً."
     });
   }
 
-  // Clean up ALL stale sessions (heartbeat expired — user closed browser)
-  await execute("DELETE FROM user_sessions WHERE user_id = ?", [user.id]);
+  // Clean stale sessions only (heartbeat expired — browser closed)
+  await execute("DELETE FROM user_sessions WHERE user_id = ? AND (last_heartbeat IS NULL OR datetime(last_heartbeat) < datetime('now', '-15 seconds'))", [user.id]);
 
-  // No active session — create new session
+  // Create new session
   const nowHb = new Date().toISOString();
   await execute(
     "INSERT INTO user_sessions (id, user_id, session_token, device_type, device_info, last_heartbeat) VALUES (?, ?, ?, ?, ?, ?)",
     [uuidv4(), user.id, session_token, deviceType, req.headers["user-agent"] || "", nowHb]
   );
 
-  // Also keep backward compatibility with users.session_token
-  await execute("UPDATE users SET session_token = ? WHERE id = ?", [session_token, user.id]);
+  // Store all active session tokens as CSV in users.session_token
+  const allSessions = await query("SELECT session_token FROM user_sessions WHERE user_id = ?", [user.id]);
+  const tokensCsv = allSessions.map(s => s.session_token).join(',');
+  await execute("UPDATE users SET session_token = ? WHERE id = ?", [tokensCsv, user.id]);
 
   user.session_token = session_token;
   delete user.password;
@@ -87,10 +88,12 @@ router.post("/logout", async (req, res) => {
     const userId = req.headers["x-user-id"];
     const sessionToken = req.headers["x-session-token"];
     if (!userId || !sessionToken) return res.status(401).json({ error: "Unauthorized" });
-    const user = await queryOne("SELECT id, session_token FROM users WHERE id = ?", [userId]);
-    if (!user || user.session_token !== sessionToken) return res.status(401).json({ error: "Session invalid" });
-    await execute("DELETE FROM user_sessions WHERE user_id = ?", [userId]);
-    await execute("UPDATE users SET session_token = NULL WHERE id = ?", [userId]);
+    // Delete only the specific session
+    await execute("DELETE FROM user_sessions WHERE user_id = ? AND session_token = ?", [userId, sessionToken]);
+    // Rebuild tokens CSV from remaining sessions
+    const remaining = await query("SELECT session_token FROM user_sessions WHERE user_id = ?", [userId]);
+    const tokensCsv = remaining.map(s => s.session_token).join(',');
+    await execute("UPDATE users SET session_token = ? WHERE id = ?", [tokensCsv || null, userId]);
     res.json({ success: true });
   } catch (e) {
     res.json({ success: true });
@@ -104,7 +107,8 @@ router.post("/cleanup-sessions", async (req, res) => {
     const sessionToken = req.headers["x-session-token"];
     if (!userId || !sessionToken) return res.status(401).json({ error: "Unauthorized" });
     const user = await queryOne("SELECT id, session_token, role FROM users WHERE id = ?", [userId]);
-    if (!user || user.session_token !== sessionToken) return res.status(401).json({ error: "Session invalid" });
+    const tokens = (user?.session_token || '').split(',').filter(Boolean);
+    if (!tokens.includes(sessionToken)) return res.status(401).json({ error: "Session invalid" });
     if (user.role !== "admin" && user.role !== "manager") return res.status(403).json({ error: "Admin access required" });
     await execute("DELETE FROM user_sessions WHERE user_id NOT IN (SELECT id FROM users)");
     res.json({ success: true });
@@ -120,14 +124,15 @@ router.post("/heartbeat", async (req, res) => {
     if (!user_id) return res.json({ success: false });
     const now = new Date().toISOString();
 
-    // Check if user's session_token was changed by another login
+    // Check if this session token is still valid (multi-device CSV)
     const user = await queryOne("SELECT id, session_token FROM users WHERE id = ?", [user_id]);
     const sessionToken = req.headers["x-session-token"];
-    if (sessionToken && user && user.session_token !== sessionToken) {
+    const tokens = (user?.session_token || '').split(',').filter(Boolean);
+    if (sessionToken && !tokens.includes(sessionToken)) {
       return res.json({ success: false, logout: true });
     }
 
-    await execute("UPDATE user_sessions SET last_heartbeat = ? WHERE user_id = ?", [now, user_id]);
+    await execute("UPDATE user_sessions SET last_heartbeat = ? WHERE user_id = ? AND session_token = ?", [now, user_id, sessionToken]);
     res.json({ success: true });
   } catch (e) {
     res.json({ success: true });

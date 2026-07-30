@@ -753,9 +753,11 @@ export default function AffiliatePage() {
                 🔄 {t("إجراء تحويل", "Make a Transfer")}
               </p>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <select
+                <input
+                  type="text"
                   value={transferTo}
                   onChange={(e) => setTransferTo(e.target.value)}
+                  placeholder={t("أدخل ID المستلم...", "Enter recipient ID...")}
                   style={{
                     flex: 1,
                     minWidth: 180,
@@ -767,13 +769,7 @@ export default function AffiliatePage() {
                     color: c.text,
                     outline: "none",
                   }}
-                >
-                  <option value="">{t("اختر المستلم...", "Select recipient...")}</option>
-                  {upline && <option value={upline.id}>↑ {upline.full_name} ({t("Upline", "Upline")})</option>}
-                  {directs.map((d) => (
-                    <option key={d.id} value={d.id}>↓ {d.full_name} ({t("Downline", "Downline")})</option>
-                  ))}
-                </select>
+                />
                 <input
                   type="number"
                   value={transferAmount}
