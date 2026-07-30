@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import cron from "node-cron";
 import rateLimit from "express-rate-limit";
+
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import fs from "fs";
@@ -26,7 +27,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(join(__dirname, "uploads")));
 
 const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500, message: { error: "Too many requests. يرجى المحاولة لاحقاً." } });
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, message: { error: "Too many login attempts. يرجى المحاولة بعد 15 دقيقة." } });
 const uploadLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50, message: { error: "Too many uploads." } });
 
 // Serve built frontends if dist folders exist
@@ -114,8 +114,8 @@ import adminAuthRoutes, { seedAdmins } from "./routes/admin_auth.js";
 import transactionsRoutes from "./routes/transactions.js";
 
 app.use("/api", sessionAuth, apiLimiter);
-app.use("/api/auth", authLimiter, authRoutes);
-app.use("/api/admin-auth", authLimiter, adminAuthRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/admin-auth", adminAuthRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/courses", coursesRoutes);
 app.use("/api/wallets", adminAuth, walletsRoutes);

@@ -38,6 +38,12 @@ export default function PricingSettingsPage() {
         body: JSON.stringify({ value: String(costVal), admin_id: adminId }),
       });
 
+      const commVal = settings.referral_commission || "1000";
+      await api("/api/settings/referral_commission", {
+        method: "PUT",
+        body: JSON.stringify({ value: String(commVal), admin_id: adminId }),
+      });
+
       setSaved(true);
     } catch (e) {
       alert(t("خطأ في الحفظ: ", "Error saving: ") + e.message);
@@ -85,6 +91,24 @@ export default function PricingSettingsPage() {
             <span className="text-sm font-bold text-gray-400">E-Money</span>
           </div>
           <p className="text-xs text-gray-400 mt-2">{t("القيمة الافتراضية: 5500 E-Money", "Default: 5500 E-Money")}</p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border p-6">
+        <h3 className="font-bold text-lg border-b pb-3 mb-4">{t("عمولة الإحالة", "Referral Commission")}</h3>
+        <p className="text-xs text-gray-400 mb-4">{t("المكافأة التي يحصل عليها المسوق عند تفعيل حساب عضو جديد", "Reward a marketer gets when a new member's account is activated")}</p>
+        <div className="max-w-md">
+          <label className="text-sm font-bold text-gray-700 mb-2 block">{t("العمولة (E-Money)", "Commission (E-Money)")}</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              value={settings.referral_commission || "1000"}
+              onChange={(e) => handleChange("referral_commission", e.target.value)}
+              className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition"
+            />
+            <span className="text-sm font-bold text-gray-400">E-Money</span>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">{t("القيمة الافتراضية: 1000 E-Money", "Default: 1000 E-Money")}</p>
         </div>
       </div>
 

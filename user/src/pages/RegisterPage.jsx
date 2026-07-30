@@ -53,8 +53,8 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const inputRefs = useRef([]);
-  const [idCardFront, setIdCardFront] = useState(null);
-  const [idCardBack, setIdCardBack] = useState(null);
+  const [idCard, setIdCard] = useState(null);
+  const [countryCode, setCountryCode] = useState("+20");
   const [uploadingImg, setUploadingImg] = useState(null);
   const [registeredEmail, setRegisteredEmail] = useState("");
 
@@ -79,10 +79,8 @@ export default function RegisterPage() {
   const submit = async (e) => {
     e.preventDefault(); setErr(""); setLoading(true);
 
-    // Egyptian phone validation: 010/011/012/015 + 8 digits
-    const phoneRegex = /^01[0125][0-9]{8}$/;
-    if (!phoneRegex.test(form.phone)) {
-      setErr(t("رقم الهاتف غير صحيح. يجب أن يبدأ بـ 010 أو 011 أو 012 أو 015 ويتكون من 11 رقم.", "Invalid phone number. Must start with 010/011/012/015 and be 11 digits."));
+    if (!form.phone.trim()) {
+      setErr(t("يرجى إدخال رقم الهاتف", "Please enter a phone number"));
       setLoading(false); return;
     }
 
@@ -117,10 +115,11 @@ export default function RegisterPage() {
 
     if (form.password !== form.confirm) { setErr(t("كلمات المرور غير متطابقة!", "Passwords do not match!")); setLoading(false); return; }
     if (form.country === "مصر" && !form.governorate) { setErr(t("اختر المحافظة", "Select a governorate")); setLoading(false); return; }
-    if (!idCardFront || !idCardBack) { setErr(t("يجب رفع صورة البطاقة الأمامية والخلفية", "Please upload both front and back ID card images")); setLoading(false); return; }
+    if (!idCard) { setErr(t("يرجى رفع صورة البطاقة أو الباسبور", "Please upload your ID or passport image")); setLoading(false); return; }
     try {
       const country = form.country === "other" ? form.custom_country : form.country;
-      const body = { full_name: form.full_name, email: form.email, phone: form.phone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, country, id_card_front: idCardFront, id_card_back: idCardBack };
+      const fullPhone = countryCode + form.phone;
+      const body = { full_name: form.full_name, email: form.email, phone: fullPhone, password: form.password, referral_code: form.hasReferral === "yes" ? form.referral_code : "", governorate: form.governorate, country, id_card: idCard };
       await api("/api/auth/register", { method: "POST", body: JSON.stringify(body) });
       setRegisteredEmail(form.email);
       nav("/pending-activation", { replace: true, state: { email: form.email } });
@@ -257,12 +256,39 @@ export default function RegisterPage() {
               <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
                 {t("رقم الهاتف", "Phone")}
               </label>
-              <input type="tel" required placeholder="01xxxxxxxxx"
-                ref={el => inputRefs.current[1] = el} readOnly autoComplete="off"
-                value={form.phone} onChange={(e) => setField("phone", e.target.value)}
-                style={{ width: "100%", padding: "13px 14px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 14, outline: "none", transition: "0.3s", boxSizing: "border-box" }}
-                onFocus={onFocus} onBlur={onBlur} />
-              <p style={{ fontSize: 10, color: c.textMuted, marginTop: 4 }}>{t("010 / 011 / 012 / 015 — 11 رقم", "010 / 011 / 012 / 015 — 11 digits")}</p>
+              <div style={{ display: "flex", gap: 8 }}>
+                <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)}
+                  style={{ width: 110, padding: "13px 10px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 13, outline: "none", transition: "0.3s", flexShrink: 0 }}>
+                  <option value="+20">🇪🇬 +20</option>
+                  <option value="+966">🇸🇦 +966</option>
+                  <option value="+971">🇦🇪 +971</option>
+                  <option value="+974">🇶🇦 +974</option>
+                  <option value="+973">🇧🇭 +973</option>
+                  <option value="+968">🇴🇲 +968</option>
+                  <option value="+965">🇰🇼 +965</option>
+                  <option value="+962">🇯🇴 +962</option>
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+44">🇬🇧 +44</option>
+                  <option value="+49">🇩🇪 +49</option>
+                  <option value="+33">🇫🇷 +33</option>
+                  <option value="+213">🇩🇿 +213</option>
+                  <option value="+216">🇹🇳 +216</option>
+                  <option value="+212">🇲🇦 +212</option>
+                  <option value="+218">🇱🇾 +218</option>
+                  <option value="+249">🇸🇩 +249</option>
+                  <option value="+963">🇸🇾 +963</option>
+                  <option value="+964">🇮🇶 +964</option>
+                  <option value="+967">🇾🇪 +967</option>
+                  <option value="+91">🇮🇳 +91</option>
+                  <option value="+92">🇵🇰 +92</option>
+                  <option value="+90">🇹🇷 +90</option>
+                </select>
+                <input type="tel" required placeholder="xxxxxxxxxxx"
+                  ref={el => inputRefs.current[1] = el} readOnly autoComplete="off"
+                  value={form.phone} onChange={(e) => setField("phone", e.target.value)}
+                  style={{ flex: 1, padding: "13px 14px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 14, outline: "none", transition: "0.3s", boxSizing: "border-box" }}
+                  onFocus={onFocus} onBlur={onBlur} />
+              </div>
             </div>
 
             {/* Email */}
@@ -361,38 +387,20 @@ export default function RegisterPage() {
             </div>
             )}
 
-            {/* ID Card Front */}
+            {/* ID Card / Passport */}
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
-                {t("صورة البطاقة (أمامي)", "ID Card (Front)")}
+                {t("صورة البطاقة أو الباسبور", "ID Card or Passport")}
               </label>
-              {idCardFront ? (
+              {idCard ? (
                 <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: `2px solid #22c55e` }}>
-                  <img src={idCardFront} alt="ID Front" style={{ width: "100%", maxHeight: 160, objectFit: "contain", background: "#000", display: "block" }} />
-                  <button type="button" onClick={() => setIdCardFront(null)} style={{ position: "absolute", top: 6, right: 6, width: 24, height: 24, borderRadius: "50%", background: "rgba(239,68,68,.9)", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                  <img src={idCard} alt="ID" style={{ width: "100%", maxHeight: 160, objectFit: "contain", background: "#000", display: "block" }} />
+                  <button type="button" onClick={() => setIdCard(null)} style={{ position: "absolute", top: 6, right: 6, width: 24, height: 24, borderRadius: "50%", background: "rgba(239,68,68,.9)", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
                 </div>
               ) : (
                 <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${c.border}`, color: c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
-                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardFront)} />
-                  {uploadingImg === setIdCardFront ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Tap to upload")}
-                </label>
-              )}
-            </div>
-
-            {/* ID Card Back */}
-            <div style={{ marginBottom: 14 }}>
-              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
-                {t("صورة البطاقة (خلفي)", "ID Card (Back)")}
-              </label>
-              {idCardBack ? (
-                <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: `2px solid #22c55e` }}>
-                  <img src={idCardBack} alt="ID Back" style={{ width: "100%", maxHeight: 160, objectFit: "contain", background: "#000", display: "block" }} />
-                  <button type="button" onClick={() => setIdCardBack(null)} style={{ position: "absolute", top: 6, right: 6, width: 24, height: 24, borderRadius: "50%", background: "rgba(239,68,68,.9)", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
-                </div>
-              ) : (
-                <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${c.border}`, color: c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
-                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardBack)} />
-                    {uploadingImg === setIdCardBack ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Tap to upload")}
+                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCard)} />
+                  {uploadingImg === setIdCard ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Tap to upload")}
                 </label>
               )}
             </div>
@@ -583,8 +591,35 @@ export default function RegisterPage() {
                   <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
                     {t("رقم الهاتف", "Phone")}
                   </label>
-                  <input type="tel" required placeholder="01xxxxxxxxx" ref={el => inputRefs.current[1] = el} readOnly autoComplete="off" value={form.phone} onChange={(e) => setField("phone", e.target.value)} style={inputStyle(c)} onFocus={onFocus} onBlur={onBlur} />
-                  <p style={{fontSize:10,color:c.textMuted,marginTop:4}}>{t("010 / 011 / 012 / 015 — 11 رقم", "010 / 011 / 012 / 015 — 11 digits")}</p>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)}
+                      style={{ ...inputStyle(c), width: 90, flexShrink: 0, padding: "10px 6px", fontSize: 12 }}>
+                      <option value="+20">🇪🇬 +20</option>
+                      <option value="+966">🇸🇦 +966</option>
+                      <option value="+971">🇦🇪 +971</option>
+                      <option value="+974">🇶🇦 +974</option>
+                      <option value="+973">🇧🇭 +973</option>
+                      <option value="+968">🇴🇲 +968</option>
+                      <option value="+965">🇰🇼 +965</option>
+                      <option value="+962">🇯🇴 +962</option>
+                      <option value="+1">🇺🇸 +1</option>
+                      <option value="+44">🇬🇧 +44</option>
+                      <option value="+49">🇩🇪 +49</option>
+                      <option value="+33">🇫🇷 +33</option>
+                      <option value="+213">🇩🇿 +213</option>
+                      <option value="+216">🇹🇳 +216</option>
+                      <option value="+212">🇲🇦 +212</option>
+                      <option value="+218">🇱🇾 +218</option>
+                      <option value="+249">🇸🇩 +249</option>
+                      <option value="+963">🇸🇾 +963</option>
+                      <option value="+964">🇮🇶 +964</option>
+                      <option value="+967">🇾🇪 +967</option>
+                      <option value="+91">🇮🇳 +91</option>
+                      <option value="+92">🇵🇰 +92</option>
+                      <option value="+90">🇹🇷 +90</option>
+                    </select>
+                    <input type="tel" required placeholder="xxxxxxxxxxx" ref={el => inputRefs.current[1] = el} readOnly autoComplete="off" value={form.phone} onChange={(e) => setField("phone", e.target.value)} style={{ ...inputStyle(c), flex: 1 }} onFocus={onFocus} onBlur={onBlur} />
+                  </div>
                 </div>
               </div>
 
@@ -667,38 +702,20 @@ export default function RegisterPage() {
               </div>
               )}
 
-              {/* ID Card Front */}
+              {/* ID Card / Passport */}
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
-                  {t("صورة البطاقة (أمامي)", "ID Card (Front)")}
+                  {t("صورة البطاقة أو الباسبور", "ID Card or Passport")}
                 </label>
-                {idCardFront ? (
+                {idCard ? (
                   <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: `2px solid #22c55e` }}>
-                    <img src={idCardFront} alt="ID Front" style={{ width: "100%", maxHeight: 180, objectFit: "contain", background: "#000", display: "block" }} />
-                    <button type="button" onClick={() => setIdCardFront(null)} style={{ position: "absolute", top: 6, right: 6, width: 26, height: 26, borderRadius: "50%", background: "rgba(239,68,68,.9)", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                    <img src={idCard} alt="ID" style={{ width: "100%", maxHeight: 180, objectFit: "contain", background: "#000", display: "block" }} />
+                    <button type="button" onClick={() => setIdCard(null)} style={{ position: "absolute", top: 6, right: 6, width: 26, height: 26, borderRadius: "50%", background: "rgba(239,68,68,.9)", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
                   </div>
                 ) : (
                   <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${c.border}`, color: c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
-                    <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardFront)} />
-                    {uploadingImg === setIdCardFront ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
-                  </label>
-                )}
-              </div>
-
-              {/* ID Card Back */}
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
-                  {t("صورة البطاقة (خلفي)", "ID Card (Back)")}
-                </label>
-                {idCardBack ? (
-                  <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: `2px solid #22c55e` }}>
-                    <img src={idCardBack} alt="ID Back" style={{ width: "100%", maxHeight: 180, objectFit: "contain", background: "#000", display: "block" }} />
-                    <button type="button" onClick={() => setIdCardBack(null)} style={{ position: "absolute", top: 6, right: 6, width: 26, height: 26, borderRadius: "50%", background: "rgba(239,68,68,.9)", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
-                  </div>
-                ) : (
-                  <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${c.border}`, color: c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
-                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCardBack)} />
-                    {uploadingImg === setIdCardBack ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
+                    <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e.target.files[0], setIdCard)} />
+                    {uploadingImg === setIdCard ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
                   </label>
                 )}
               </div>

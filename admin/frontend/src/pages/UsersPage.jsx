@@ -427,31 +427,13 @@ export default function UsersPage() {
                       </div>
 
                       {/* ID Card Images */}
-                      {(userCards?.id_card_front || userCards?.id_card_back) && (
+                      {userCards?.id_card_front && (
                         <div className="mb-4">
-                          <h4 className="font-bold mb-3 text-sm">{t("📷 البطاقة الشخصية", "📷 ID Card")}</h4>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <p className="text-xs text-gray-400 mb-1">{t("أمامي", "Front")}</p>
-                              {userCards.id_card_front ? (
-                                <div className="relative group">
-                                  <img src={userCards.id_card_front.startsWith("data:") || userCards.id_card_front.startsWith("http") ? userCards.id_card_front : `${BACKEND_URL}${userCards.id_card_front}`} alt="ID Front" className="w-full rounded-lg border object-contain max-h-48" />
-                                  <button onClick={() => uploadIdCard("front")} className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-sm font-medium rounded-lg cursor-pointer">{t("تغيير", "Change")}</button>
-                                </div>
-                              ) : (
-                                <button onClick={() => uploadIdCard("front")} className="w-full h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-sm text-gray-400 hover:border-everest-400 cursor-pointer">{t("اضغط لرفع الصورة", "Click to upload")}</button>
-                              )}
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-400 mb-1">{t("خلفي", "Back")}</p>
-                              {userCards.id_card_back ? (
-                                <div className="relative group">
-                                  <img src={userCards.id_card_back.startsWith("data:") || userCards.id_card_back.startsWith("http") ? userCards.id_card_back : `${BACKEND_URL}${userCards.id_card_back}`} alt="ID Back" className="w-full rounded-lg border object-contain max-h-48" />
-                                  <button onClick={() => uploadIdCard("back")} className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-sm font-medium rounded-lg cursor-pointer">{t("تغيير", "Change")}</button>
-                                </div>
-                              ) : (
-                                <button onClick={() => uploadIdCard("back")} className="w-full h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-sm text-gray-400 hover:border-everest-400 cursor-pointer">{t("اضغط لرفع الصورة", "Click to upload")}</button>
-                              )}
+                          <h4 className="font-bold mb-3 text-sm">{t("📷 البطاقة أو الباسبور", "📷 ID Card or Passport")}</h4>
+                          <div className="max-w-sm">
+                            <div className="relative group">
+                              <img src={userCards.id_card_front.startsWith("data:") || userCards.id_card_front.startsWith("http") ? userCards.id_card_front : `${BACKEND_URL}${userCards.id_card_front}`} alt="ID" className="w-full rounded-lg border object-contain max-h-48" />
+                              <button onClick={() => uploadIdCard("front")} className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-sm font-medium rounded-lg cursor-pointer">{t("تغيير", "Change")}</button>
                             </div>
                           </div>
                         </div>

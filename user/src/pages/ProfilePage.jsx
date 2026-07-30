@@ -203,7 +203,7 @@ export default function ProfilePage() {
                   background: c.bgInput, border:`1px solid ${c.borderLight}`,
                   color: gold, fontSize:13, fontWeight:600
                 }}>
-                  {p?.account_type === "student" ? `🎓 ${t("طالب", "Student")}` : p?.account_type === "registration_free" ? `🆓 ${t("تسجيل مجاني", "Registration Free")}` : `📝 ${t("تسجيل", "Registration")}`}
+                  {t("عضو", "Member")}
                 </span>
                 <button onClick={() => { logout(); nav("/login"); }}
                   style={{
@@ -226,18 +226,6 @@ export default function ProfilePage() {
               <div className="stat-box"><span>📊 {t("مبيعات الفريق", "Team Sales")}</span><strong>{teamSales}</strong></div>
               <div className="stat-box"><span>📅 {t("تاريخ الانضمام", "Joined")}</span><strong>{(p.created_at || "").slice(0,10) || "—"}</strong></div>
             </div>
-
-            {/* Account Type & Upgrade */}
-            {p.account_type && p.account_type !== "student" && p.account_type !== "registration_free" && (
-              <div style={{marginBottom:16,padding:"14px 18px",borderRadius:14,background:c.goldLight,border:`1px solid ${c.borderLight}`,display:"flex",alignItems:"center",gap:10}}>
-                <span style={{fontSize:14,fontWeight:700,color:c.text}}>
-                  👤 Registration
-                </span>
-                <p style={{fontSize:12,color:c.textMuted,margin:0}}>
-                  {t("قم بالترقية للحصول على جميع مميزات المنصة", "Upgrade to get all platform features")}
-                </p>
-              </div>
-            )}
 
             <div className="referral-box">
               <span>🔗 {t("كود الإحالة", "Referral Code")}</span>

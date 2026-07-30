@@ -163,21 +163,14 @@ export default function RegistrationApprovalsPage() {
             {loadingCards ? (
               <p style={{ color: "#999", textAlign: "center", padding: 20 }}>{t("جارٍ تحميل الصور...", "Loading images...")}</p>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div>
                 {viewCards?.id_card_front ? (
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8 }}>📷 {t("أمامي", "Front")}</p>
-                    <img src={viewCards.id_card_front.startsWith("data:") || viewCards.id_card_front.startsWith("http") ? viewCards.id_card_front : `${BACKEND_URL}${viewCards.id_card_front}`} alt="ID Front" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8 }}>📷 {t("البطاقة أو الباسبور", "ID Card or Passport")}</p>
+                    <img src={viewCards.id_card_front.startsWith("data:") || viewCards.id_card_front.startsWith("http") ? viewCards.id_card_front : `${BACKEND_URL}${viewCards.id_card_front}`} alt="ID" style={{ width: "100%", maxWidth: 400, borderRadius: 12, border: "1px solid #ddd" }} />
                   </div>
-                ) : null}
-                {viewCards?.id_card_back ? (
-                  <div>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8 }}>📷 {t("خلفي", "Back")}</p>
-                    <img src={viewCards.id_card_back.startsWith("data:") || viewCards.id_card_back.startsWith("http") ? viewCards.id_card_back : `${BACKEND_URL}${viewCards.id_card_back}`} alt="ID Back" style={{ width: "100%", borderRadius: 12, border: "1px solid #ddd" }} />
-                  </div>
-                ) : null}
-                {!loadingCards && (!viewCards?.id_card_front && !viewCards?.id_card_back) && (
-                  <p style={{ color: "#999", textAlign: "center", padding: 20, gridColumn: "1 / -1" }}>{t("لا توجد صور بطاقة", "No ID card images")}</p>
+                ) : (
+                  <p style={{ color: "#999", textAlign: "center", padding: 20 }}>{t("لا توجد صور بطاقة", "No ID card images")}</p>
                 )}
               </div>
             )}

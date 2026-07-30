@@ -32,8 +32,8 @@ export default function CreateAccountPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
-  const [idCardFront, setIdCardFront] = useState(null);
-  const [idCardBack, setIdCardBack] = useState(null);
+  const [idCard, setIdCard] = useState(null);
+  const [countryCode, setCountryCode] = useState("+20");
   const [uploadingImg, setUploadingImg] = useState(null);
   const [createdUsers, setCreatedUsers] = useState([]);
   const [profile, setProfile] = useState(null);
@@ -94,9 +94,8 @@ export default function CreateAccountPage() {
       setLoading(false); return;
     }
 
-    const phoneRegex = /^01[0125][0-9]{8}$/;
-    if (!phoneRegex.test(form.phone)) {
-      setErr(t("رقم الهاتف غير صحيح. يجب أن يبدأ بـ 010/011/012/015 و11 رقم.", "Invalid phone. Must be 010/011/012/015 and 11 digits."));
+    if (!form.phone.trim()) {
+      setErr(t("يرجى إدخال رقم الهاتف", "Please enter a phone number"));
       setLoading(false); return;
     }
     if (form.password.length < 8) { setErr(t("كلمة المرور يجب أن تكون 8 أحرف على الأقل.", "Password must be at least 8 characters.")); setLoading(false); return; }
@@ -108,18 +107,19 @@ export default function CreateAccountPage() {
     if (form.country === "مصر" && !form.governorate) { setErr(t("اختر المحافظة", "Select a governorate")); setLoading(false); return; }
 
     try {
+      const fullPhone = countryCode + form.phone;
       const res = await api("/api/users/create-for-others", {
         method: "POST",
         body: JSON.stringify({
-          full_name: form.full_name, email: form.email, phone: form.phone,
+          full_name: form.full_name, email: form.email, phone: fullPhone,
           password: form.password, governorate: form.governorate,
           country: form.country === "other" ? form.custom_country : form.country,
-          id_card_front: idCardFront, id_card_back: idCardBack,
+          id_card: idCard,
         }),
       });
       setSuccess(t(`تم إنشاء الحساب بنجاح! تم خصم ${cost} E-Money`, `Account created! ${cost} E-Money deducted`));
       setForm({ full_name: "", email: "", phone: "", password: "", confirm: "", governorate: "", country: "", custom_country: "" });
-      setIdCardFront(null); setIdCardBack(null);
+      setIdCard(null);
       setProfile(p => ({ ...p, e_money: res.creator_balance }));
       setCreatedUsers(prev => [res.user, ...prev]);
     } catch (e) { setErr(e.message); }
@@ -179,7 +179,26 @@ export default function CreateAccountPage() {
             <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 14, marginBottom: 14 }}>
               <div>
                 <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("رقم الهاتف", "Phone")}</label>
-                <input type="tel" required placeholder="01xxxxxxxxx" value={form.phone} onChange={e => setField("phone", e.target.value)} style={inputS} onFocus={onFocus} onBlur={onBlur} />
+                <div style={{ display: "flex", gap: 6 }}>
+                  <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)}
+                    style={{ ...inputS, width: 100, flexShrink: 0, padding: "12px 8px", fontSize: 13 }}>
+                    <option value="+20">🇪🇬 +20</option>
+                    <option value="+966">🇸🇦 +966</option>
+                    <option value="+971">🇦🇪 +971</option>
+                    <option value="+974">🇶🇦 +974</option>
+                    <option value="+973">🇧🇭 +973</option>
+                    <option value="+968">🇴🇲 +968</option>
+                    <option value="+965">🇰🇼 +965</option>
+                    <option value="+962">🇯🇴 +962</option>
+                    <option value="+1">🇺🇸 +1</option>
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+213">🇩🇿 +213</option>
+                    <option value="+216">🇹🇳 +216</option>
+                    <option value="+212">🇲🇦 +212</option>
+                    <option value="+90">🇹🇷 +90</option>
+                  </select>
+                  <input type="tel" required placeholder="xxxxxxxxxxx" value={form.phone} onChange={e => setField("phone", e.target.value)} style={{ ...inputS, flex: 1 }} onFocus={onFocus} onBlur={onBlur} />
+                </div>
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("البريد الإلكتروني", "Email")}</label>
@@ -247,34 +266,18 @@ export default function CreateAccountPage() {
             </div>
             )}
 
-            {/* ID Card Front */}
+            {/* ID Card / Passport */}
             <div style={{ marginBottom: 14 }}>
-              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("صورة البطاقة (أمامي)", "ID Card (Front)")}</label>
-              {idCardFront ? (
+              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("صورة البطاقة أو الباسبور", "ID Card or Passport")}</label>
+              {idCard ? (
                 <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: `2px solid #22c55e` }}>
-                  <img src={idCardFront} alt="ID Front" style={{ width: "100%", maxHeight: 180, objectFit: "contain", background: "#000", display: "block" }} />
-                  <button type="button" onClick={() => setIdCardFront(null)} style={{ position: "absolute", top: 6, right: 6, width: 26, height: 26, borderRadius: "50%", background: "rgba(239,68,68,.9)", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                  <img src={idCard} alt="ID" style={{ width: "100%", maxHeight: 180, objectFit: "contain", background: "#000", display: "block" }} />
+                  <button type="button" onClick={() => setIdCard(null)} style={{ position: "absolute", top: 6, right: 6, width: 26, height: 26, borderRadius: "50%", background: "rgba(239,68,68,.9)", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
                 </div>
               ) : (
                 <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${c.border}`, color: c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
-                  <input type="file" accept="image/*" hidden onChange={e => handleImageUpload(e.target.files[0], setIdCardFront)} />
-                  {uploadingImg === setIdCardFront ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
-                </label>
-              )}
-            </div>
-
-            {/* ID Card Back */}
-            <div style={{ marginBottom: 14 }}>
-              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("صورة البطاقة (خلفي)", "ID Card (Back)")}</label>
-              {idCardBack ? (
-                <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: `2px solid #22c55e` }}>
-                  <img src={idCardBack} alt="ID Back" style={{ width: "100%", maxHeight: 180, objectFit: "contain", background: "#000", display: "block" }} />
-                  <button type="button" onClick={() => setIdCardBack(null)} style={{ position: "absolute", top: 6, right: 6, width: 26, height: 26, borderRadius: "50%", background: "rgba(239,68,68,.9)", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
-                </div>
-              ) : (
-                <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px", borderRadius: 12, background: c.bgInput, border: `2px dashed ${c.border}`, color: c.textMuted, fontSize: 13, cursor: "pointer", transition: "0.3s" }}>
-                  <input type="file" accept="image/*" hidden onChange={e => handleImageUpload(e.target.files[0], setIdCardBack)} />
-                  {uploadingImg === setIdCardBack ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
+                  <input type="file" accept="image/*" hidden onChange={e => handleImageUpload(e.target.files[0], setIdCard)} />
+                  {uploadingImg === setIdCard ? "⏳" : "📷 " + t("اضغط لرفع الصورة", "Click to upload")}
                 </label>
               )}
             </div>

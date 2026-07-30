@@ -220,22 +220,23 @@ router.put("/:id/approve-registration", async (req, res) => {
     await execute("UPDATE users SET status = 'active', role = ?, account_type = ?, membership_expires_at = ?, updated_at = datetime('now','localtime') WHERE id = ?", [role, accountType, expiresStr, req.params.id]);
     console.log("[approve-registration] Updated:", req.params.id, "role:", role, "account_type:", accountType);
 
+    // Get commission amount from settings
+    const commRow = await queryOne("SELECT value FROM settings WHERE key = 'referral_commission'");
+    const COMMISSION = parseInt(commRow?.value) || 1000;
+
     // If approved as student AND has a sponsor → pay commission to direct referrer ONLY (Level 1)
     if (accountType === "student" && user.referred_by) {
       const directReferrer = await queryOne("SELECT id, account_type FROM users WHERE id = ?", [user.referred_by]);
       if (directReferrer && directReferrer.account_type === "student") {
-        // Prevent double commission
         const existingCommission = await queryOne("SELECT id FROM commissions WHERE from_user_id = ? AND level = 1", [req.params.id]);
         if (!existingCommission) {
           const comId = uuidv4();
-          await execute("INSERT INTO commissions (id, from_user_id, to_user_id, level, amount) VALUES (?, ?, ?, 1, 1000)",
-            [comId, req.params.id, directReferrer.id]);
-          await execute("UPDATE users SET e_money = e_money + 1000 WHERE id = ?", [directReferrer.id]);
+          await execute("INSERT INTO commissions (id, from_user_id, to_user_id, level, amount) VALUES (?, ?, ?, 1, ?)",
+            [comId, req.params.id, directReferrer.id, COMMISSION]);
+          await execute("UPDATE users SET e_money = e_money + ? WHERE id = ?", [COMMISSION, directReferrer.id]);
           await execute("UPDATE users SET direct_count = direct_count + 1 WHERE id = ?", [directReferrer.id]);
-          const nid2 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'commission')", [nid2, directReferrer.id, "💰 عمولة جديدة", `ربحت 1000 E-Money كمكافأة عن تسجيل عضو جديد`]);
+          const nid2 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'commission')", [nid2, directReferrer.id, "💰 عمولة جديدة", `ربحت ${COMMISSION} E-Money كمكافأة عن تسجيل عضو جديد`]);
         }
-        // Advance referrer rank now so rank bonus is paid at approval time
-        // rank_bonuses dedup table prevents incrementTeamSales from paying a second bonus later
         try {
           const rankResult = await advanceUserRank(directReferrer.id);
           if (rankResult && rankResult.promoted) {
@@ -254,17 +255,14 @@ router.put("/:id/approve-registration", async (req, res) => {
         const existingCreatorComm = await queryOne("SELECT id FROM commissions WHERE from_user_id = ? AND description LIKE 'create-account%'", [req.params.id]);
         if (!existingCreatorComm) {
           const comId = uuidv4();
-          await execute("INSERT INTO commissions (id, from_user_id, to_user_id, level, amount, description) VALUES (?, ?, ?, 1, 1000, 'create-account')", [comId, req.params.id, creatorUser.id]);
-          await execute("UPDATE users SET e_money = e_money + 1000 WHERE id = ?", [creatorUser.id]);
+          await execute("INSERT INTO commissions (id, from_user_id, to_user_id, level, amount, description) VALUES (?, ?, ?, 1, ?, 'create-account')", [comId, req.params.id, creatorUser.id, COMMISSION]);
+          await execute("UPDATE users SET e_money = e_money + ? WHERE id = ?", [COMMISSION, creatorUser.id]);
           await execute("UPDATE users SET direct_count = direct_count + 1 WHERE id = ?", [creatorUser.id]);
-          const nid3 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'commission')", [nid3, creatorUser.id, "💰 عمولة إنشاء حساب", `ربحت 1000 E-Money كمكافأة عن تفعيل حساب أنشأته لـ ${user.full_name}`]);
+          const nid3 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'commission')", [nid3, creatorUser.id, "💰 عمولة إنشاء حساب", `ربحت ${COMMISSION} E-Money كمكافأة عن تفعيل حساب أنشأته لـ ${user.full_name}`]);
         }
       }
     }
 
-    const typeLabel = accountType === "student" ? "Student" : accountType === "registration_free" ? "Registration Free" : "Registration";
-    const roleMsg = accountType === "student" ? `ترقيتك إلى Student! العضوية مفعلة لمدة ${days} يوم.` : `تم تفعيل حسابك كـ ${typeLabel}! العضوية مفعلة لمدة ${days} يوم.`;
-    const nid = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'success')", [nid, req.params.id, "✅ تم تفعيل الحساب والعضوية", roleMsg]);
     await logAdminAction(req, `approve as ${accountType} (membership ${days}d)`, req.params.id, user.full_name, null);
     res.json({ success: true, account_type: accountType, role, membership_expires_at: expiresStr, days });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -273,8 +271,21 @@ router.put("/:id/approve-registration", async (req, res) => {
 router.put("/:id/reject-registration", async (req, res) => {
   try {
     const { reason } = req.body;
-    const user = await queryOne("SELECT id, full_name, email FROM users WHERE id = ?", [req.params.id]);
+    const user = await queryOne("SELECT id, full_name, email, created_by_user FROM users WHERE id = ?", [req.params.id]);
     if (!user) return res.status(404).json({ error: "User not found" });
+
+    // Refund E-Money to the creator if this was a created account
+    if (user.created_by_user) {
+      const costRow = await queryOne("SELECT value FROM settings WHERE key = 'create_account_cost'");
+      const COST = parseInt(costRow?.value) || 5500;
+      await execute("UPDATE users SET e_money = e_money + ? WHERE id = ?", [COST, user.created_by_user]);
+      const tid = uuidv4();
+      await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, ?, ?, 'completed')",
+        [tid, user.created_by_user, COST, "refund", `استرداد مصاريف إنشاء حساب ${user.full_name} (تم الرفض)`]);
+      const nid = uuidv4();
+      await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'wallet')",
+        [nid, user.created_by_user, "💰 استرداد", `تم استرداد ${COST} E-Money بسبب رفض حساب ${user.full_name}`]);
+    }
 
     // Send rejection email before deleting
     if (reason) {
@@ -403,7 +414,8 @@ router.post("/create-for-others", async (req, res) => {
       return res.status(400).json({ error: `Insufficient E-Money. Required: ${COST}, Available: ${creator.e_money || 0}`, error_ar: `رصيد E-Money غير كافٍ. المطلوب: ${COST}، المتاح: ${creator.e_money || 0}` });
     }
 
-    const { full_name, email, phone, password, governorate, country, address, id_card_front, id_card_back } = req.body;
+    const { full_name, email, phone, password, governorate, country, address, id_card, id_card_front, id_card_back } = req.body;
+    const singleIdCard = id_card || id_card_front || null;
     if (!full_name || !email || !phone || !password) {
       return res.status(400).json({ error: "Full name, email, phone and password are required" });
     }
@@ -413,12 +425,6 @@ router.post("/create-for-others", async (req, res) => {
     const existingPhone = await queryOne("SELECT id FROM users WHERE phone = ? AND status != 'rejected'", [phone]);
     if (existingPhone) return res.status(400).json({ error: "Phone number is already registered", error_ar: "رقم الهاتف مسجل بالفعل" });
 
-    // Validate phone
-    const phoneRegex = /^01[0125][0-9]{8}$/;
-    if (!phoneRegex.test(phone)) {
-      return res.status(400).json({ error: "Invalid phone number" });
-    }
-
     const id = await generateUserId();
     const code = "EVR-" + id.slice(0, 6);
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -426,7 +432,7 @@ router.post("/create-for-others", async (req, res) => {
     // Create user as pending — creator is the referrer
     await execute(
       "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, referred_by, status, role, account_type, rank, governorate, country, id_card_front, id_card_back, created_by_user, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?, 0)",
-      [id, full_name, email, phone, address || null, hashedPassword, code, userId, governorate || null, country || null, id_card_front || null, id_card_back || null, userId]
+      [id, full_name, email, phone, address || null, hashedPassword, code, userId, governorate || null, country || null, singleIdCard, singleIdCard, userId]
     );
 
     // Populate closure table
