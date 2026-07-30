@@ -98,6 +98,15 @@ export default function CreateAccountPage() {
       setErr(t("يرجى إدخال رقم الهاتف", "Please enter a phone number"));
       setLoading(false); return;
     }
+    const cleanedPhone = form.phone.replace(/\D/g, "");
+    if (countryCode === "+20" && (!/^01\d{9}$/.test(cleanedPhone))) {
+      setErr(t("رقم الهاتف غير صحيح لمصر. يجب أن يبدأ بـ 01 ويتكون من 11 رقمًا", "Invalid Egyptian phone number. Must start with 01 and be 11 digits"));
+      setLoading(false); return;
+    }
+    if (cleanedPhone.length < 7) {
+      setErr(t("رقم الهاتف قصير جدًا", "Phone number is too short"));
+      setLoading(false); return;
+    }
     if (form.password.length < 8) { setErr(t("كلمة المرور يجب أن تكون 8 أحرف على الأقل.", "Password must be at least 8 characters.")); setLoading(false); return; }
     if (!/[A-Z]/.test(form.password)) { setErr(t("كلمة المرور يجب أن تحتوي على حرف كبير.", "Password must contain an uppercase letter.")); setLoading(false); return; }
     if (!/[a-z]/.test(form.password)) { setErr(t("كلمة المرور يجب أن تحتوي على حرف صغير.", "Password must contain a lowercase letter.")); setLoading(false); return; }
@@ -255,13 +264,16 @@ export default function CreateAccountPage() {
               )}
             </div>
 
-            {/* City / Region */}
+            {/* Governorate (Egypt only) */}
+            {form.country === "مصر" && (
             <div style={{ marginBottom: 14 }}>
-              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("المدينة / المنطقة", "City / Region")}</label>
-              <input type="text" placeholder={t("أدخل المدينة أو المنطقة", "Enter city or region")}
-                value={form.governorate} onChange={e => setField("governorate", e.target.value)}
-                style={{ ...inputS }} onFocus={onFocus} onBlur={onBlur} />
+              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("المحافظة", "Governorate")}</label>
+              <select required value={form.governorate} onChange={e => setField("governorate", e.target.value)} style={{ ...inputS, cursor: "pointer" }} onFocus={onFocus} onBlur={onBlur}>
+                <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
+                {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
             </div>
+            )}
 
             {/* ID Card / Passport */}
             <div style={{ marginBottom: 14 }}>

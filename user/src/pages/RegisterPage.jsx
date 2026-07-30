@@ -83,6 +83,15 @@ export default function RegisterPage() {
       setErr(t("يرجى إدخال رقم الهاتف", "Please enter a phone number"));
       setLoading(false); return;
     }
+    const cleanedPhone = form.phone.replace(/\D/g, "");
+    if (countryCode === "+20" && (!/^01\d{9}$/.test(cleanedPhone))) {
+      setErr(t("رقم الهاتف غير صحيح لمصر. يجب أن يبدأ بـ 01 ويتكون من 11 رقمًا", "Invalid Egyptian phone number. Must start with 01 and be 11 digits"));
+      setLoading(false); return;
+    }
+    if (cleanedPhone.length < 7) {
+      setErr(t("رقم الهاتف قصير جدًا", "Phone number is too short"));
+      setLoading(false); return;
+    }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -372,16 +381,20 @@ export default function RegisterPage() {
               )}
             </div>
 
-            {/* City / Region */}
+            {/* Governorate (Egypt only) */}
+            {form.country === "مصر" && (
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
-                {t("المدينة / المنطقة", "City / Region")}
+                {t("المحافظة", "Governorate")}
               </label>
-              <input type="text" placeholder={t("أدخل المدينة أو المنطقة", "Enter city or region")}
-                value={form.governorate} onChange={(e) => setField("governorate", e.target.value)}
-                style={{ width: "100%", padding: "13px 14px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 14, outline: "none", transition: "0.3s", boxSizing: "border-box" }}
-                onFocus={onFocus} onBlur={onBlur} />
+              <select required value={form.governorate} onChange={(e) => setField("governorate", e.target.value)}
+                style={{ width: "100%", padding: "13px 14px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 14, outline: "none", transition: "0.3s", boxSizing: "border-box", cursor: "pointer" }}
+                onFocus={onFocus} onBlur={onBlur}>
+                <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
+                {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
             </div>
+            )}
 
             {/* ID Card / Passport */}
             <div style={{ marginBottom: 14 }}>
@@ -685,15 +698,18 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              {/* City / Region */}
+              {/* Governorate (Egypt only) */}
+              {form.country === "مصر" && (
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
-                  {t("المدينة / المنطقة", "City / Region")}
+                  {t("المحافظة", "Governorate")}
                 </label>
-                <input type="text" placeholder={t("أدخل المدينة أو المنطقة", "Enter city or region")}
-                  value={form.governorate} onChange={(e) => setField("governorate", e.target.value)}
-                  style={{ ...inputStyle(c) }} onFocus={onFocus} onBlur={onBlur} />
+                <select required value={form.governorate} onChange={(e) => setField("governorate", e.target.value)} style={{ ...inputStyle(c), cursor: "pointer" }} onFocus={onFocus} onBlur={onBlur}>
+                  <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
+                  {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
               </div>
+              )}
 
               {/* ID Card / Passport */}
               <div style={{ marginBottom: 14 }}>
