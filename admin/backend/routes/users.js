@@ -429,10 +429,10 @@ router.post("/create-for-others", async (req, res) => {
     const code = "EVR-" + id.slice(0, 6);
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user as pending — creator is the referrer
+    // Create user as pending — creator is tracked via created_by_user, NOT referred_by (prevents double commission)
     await execute(
       "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, referred_by, status, role, account_type, rank, governorate, country, id_card_front, id_card_back, created_by_user, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?, 0)",
-      [id, full_name, email, phone, address || null, hashedPassword, code, userId, governorate || null, country || null, singleIdCard, singleIdCard, userId]
+      [id, full_name, email, phone, address || null, hashedPassword, code, null, governorate || null, country || null, singleIdCard, singleIdCard, userId]
     );
 
     // Populate closure table
