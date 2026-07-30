@@ -198,13 +198,6 @@ export default function ProfilePage() {
                   <span style={{fontSize:14}}>{lang === "ar" ? "🇺🇸" : "🇸🇦"}</span>
                   {lang === "ar" ? "English" : "العربية"}
                 </button>
-                <span style={{
-                  padding:"6px 16px", borderRadius:999,
-                  background: c.bgInput, border:`1px solid ${c.borderLight}`,
-                  color: gold, fontSize:13, fontWeight:600
-                }}>
-                  {t("عضو", "Member")}
-                </span>
                 <button onClick={() => { logout(); nav("/login"); }}
                   style={{
                     padding:"7px 18px", borderRadius:10, fontSize:13, fontWeight:600,

@@ -114,7 +114,7 @@ export default function RegisterPage() {
     }
 
     if (form.password !== form.confirm) { setErr(t("كلمات المرور غير متطابقة!", "Passwords do not match!")); setLoading(false); return; }
-    if (form.country === "مصر" && !form.governorate) { setErr(t("اختر المحافظة", "Select a governorate")); setLoading(false); return; }
+
     if (!idCard) { setErr(t("يرجى رفع صورة البطاقة أو الباسبور", "Please upload your ID or passport image")); setLoading(false); return; }
     try {
       const country = form.country === "other" ? form.custom_country : form.country;
@@ -372,20 +372,16 @@ export default function RegisterPage() {
               )}
             </div>
 
-            {/* Governorate (Egypt only) */}
-            {form.country === "مصر" && (
+            {/* City / Region */}
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>
-                {t("المحافظة", "Governorate")}
+                {t("المدينة / المنطقة", "City / Region")}
               </label>
-              <select required value={form.governorate} onChange={(e) => setField("governorate", e.target.value)}
+              <input type="text" placeholder={t("أدخل المدينة أو المنطقة", "Enter city or region")}
+                value={form.governorate} onChange={(e) => setField("governorate", e.target.value)}
                 style={{ width: "100%", padding: "13px 14px", borderRadius: 12, background: c.bgInput, border: `2px solid ${c.border}`, color: c.text, fontSize: 14, outline: "none", transition: "0.3s", boxSizing: "border-box" }}
-                onFocus={onFocus} onBlur={onBlur}>
-                <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
-                {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
+                onFocus={onFocus} onBlur={onBlur} />
             </div>
-            )}
 
             {/* ID Card / Passport */}
             <div style={{ marginBottom: 14 }}>
@@ -689,18 +685,15 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              {/* Governorate (Egypt only) */}
-              {form.country === "مصر" && (
+              {/* City / Region */}
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", marginBottom: 6, fontSize: 12, fontWeight: 700, color: c.text }}>
-                  {t("المحافظة", "Governorate")}
+                  {t("المدينة / المنطقة", "City / Region")}
                 </label>
-                <select required value={form.governorate} onChange={(e) => setField("governorate", e.target.value)} style={{ ...inputStyle(c), cursor: "pointer" }} onFocus={onFocus} onBlur={onBlur}>
-                  <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
-                  {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
+                <input type="text" placeholder={t("أدخل المدينة أو المنطقة", "Enter city or region")}
+                  value={form.governorate} onChange={(e) => setField("governorate", e.target.value)}
+                  style={{ ...inputStyle(c) }} onFocus={onFocus} onBlur={onBlur} />
               </div>
-              )}
 
               {/* ID Card / Passport */}
               <div style={{ marginBottom: 14 }}>

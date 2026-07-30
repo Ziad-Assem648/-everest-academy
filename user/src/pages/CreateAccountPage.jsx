@@ -104,7 +104,7 @@ export default function CreateAccountPage() {
     if (!/[0-9]/.test(form.password)) { setErr(t("كلمة المرور يجب أن تحتوي على رقم.", "Password must contain a number.")); setLoading(false); return; }
     if (!/[!@#$%^&*(),.?\":{}|<>_\-+=\[\]\\\/~`]/.test(form.password)) { setErr(t("كلمة المرور يجب أن تحتوي على رمز خاص.", "Password must contain a special character.")); setLoading(false); return; }
     if (form.password !== form.confirm) { setErr(t("كلمات المرور غير متطابقة!", "Passwords do not match!")); setLoading(false); return; }
-    if (form.country === "مصر" && !form.governorate) { setErr(t("اختر المحافظة", "Select a governorate")); setLoading(false); return; }
+
 
     try {
       const fullPhone = countryCode + form.phone;
@@ -255,16 +255,13 @@ export default function CreateAccountPage() {
               )}
             </div>
 
-            {/* Governorate (Egypt only) */}
-            {form.country === "مصر" && (
+            {/* City / Region */}
             <div style={{ marginBottom: 14 }}>
-              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("المحافظة", "Governorate")}</label>
-              <select required value={form.governorate} onChange={e => setField("governorate", e.target.value)} style={{ ...inputS, cursor: "pointer" }} onFocus={onFocus} onBlur={onBlur}>
-                <option value="">{t("اختر المحافظة", "Select Governorate")}</option>
-                {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
+              <label style={{ display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: c.text }}>{t("المدينة / المنطقة", "City / Region")}</label>
+              <input type="text" placeholder={t("أدخل المدينة أو المنطقة", "Enter city or region")}
+                value={form.governorate} onChange={e => setField("governorate", e.target.value)}
+                style={{ ...inputS }} onFocus={onFocus} onBlur={onBlur} />
             </div>
-            )}
 
             {/* ID Card / Passport */}
             <div style={{ marginBottom: 14 }}>
