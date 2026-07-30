@@ -491,7 +491,7 @@ router.get("/commissions", async (req, res) => {
   let commissions;
   if (userId) {
     commissions = await query(`
-      SELECT c.*, u1.full_name as from_name, u2.full_name as to_name
+      SELECT c.*, u1.full_name as from_name, u1.email as from_email, u2.full_name as to_name
       FROM commissions c
       JOIN users u1 ON c.from_user_id = u1.id
       JOIN users u2 ON c.to_user_id = u2.id
@@ -500,7 +500,7 @@ router.get("/commissions", async (req, res) => {
     `, [userId]);
   } else {
     commissions = await query(`
-      SELECT c.*, u1.full_name as from_name, u2.full_name as to_name
+      SELECT c.*, u1.full_name as from_name, u1.email as from_email, u2.full_name as to_name
       FROM commissions c
       JOIN users u1 ON c.from_user_id = u1.id
       JOIN users u2 ON c.to_user_id = u2.id

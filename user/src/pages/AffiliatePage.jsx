@@ -559,9 +559,12 @@ export default function AffiliatePage() {
                       </div>
                       <div>
                         <p style={{ fontWeight: 600, fontSize: 13, margin: 0, color: c.text }}>
-                          {t("عمولة المستوى", "Level")} {item.level}
+                          {item.from_name}
                         </p>
                         <p style={{ fontSize: 11, color: c.textMuted, margin: 0 }}>
+                          {item.from_email}
+                        </p>
+                        <p style={{ fontSize: 11, color: c.textMuted, marginTop: 2, margin: 0 }}>
                           {item.created_at?.slice(0, 16) || "—"}
                         </p>
                       </div>
