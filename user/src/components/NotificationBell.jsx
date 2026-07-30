@@ -75,7 +75,7 @@ export default function NotificationBell({ userId }) {
       </button>
 
       {open && (
-        <div style={{ position: "absolute", top: 56, [dir === "rtl" ? "left" : "right"]: 0, width: 360, maxHeight: 420, background: c.bgCard, borderRadius: 20, boxShadow: "0 20px 60px rgba(0,0,0,0.15)", border: `1px solid ${c.border}`, overflow: "hidden", zIndex: 9999 }}>
+        <div style={{ position: "absolute", top: 56, [dir === "rtl" ? "left" : "right"]: 0, maxHeight: 420, background: c.bgCard, borderRadius: 20, boxShadow: "0 20px 60px rgba(0,0,0,0.15)", border: `1px solid ${c.border}`, overflow: "hidden", zIndex: 9999, width: Math.min(360, (typeof window !== "undefined" ? window.innerWidth - 24 : 360)) }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 18px", borderBottom: `1px solid ${c.border}` }}>
             <h4 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>{t("الإشعارات", "Notifications")}</h4>
             {unreadCount > 0 && (
