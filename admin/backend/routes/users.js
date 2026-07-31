@@ -43,9 +43,11 @@ router.get("/pending-registrations", async (req, res) => {
     const users = await query(`
       SELECT u.id, u.full_name, u.email, u.phone, u.role, u.referral_code, u.referred_by, u.created_by_user, u.created_at,
              u.governorate, u.country,
-             c.full_name as creator_name, c.email as creator_email
+             c.full_name as creator_name, c.email as creator_email,
+             r.full_name as referrer_name, r.email as referrer_email
       FROM users u
       LEFT JOIN users c ON u.created_by_user = c.id
+      LEFT JOIN users r ON u.referred_by = r.id
       WHERE u.status = 'pending'
       ORDER BY u.created_at DESC
     `);

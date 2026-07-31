@@ -103,6 +103,10 @@ export default function RegistrationApprovalsPage() {
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 font-medium" title={u.creator_email}>
                         👤 {u.creator_name || u.creator_email || u.created_by_user}
                       </span>
+                    ) : u.referred_by ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-medium" title={u.referrer_email}>
+                        👥 {u.referrer_name || u.referrer_email || u.referred_by}
+                      </span>
                     ) : (
                       <span className="text-gray-400">—</span>
                     )}
