@@ -745,7 +745,7 @@ export default function AffiliatePage() {
                       setTransferAmount("");
                       setTransferTo("");
                       const u = await api(`/api/users/${user.id}`);
-                      if (u) login(u);
+                      if (u) login({ ...u, session_token: user.session_token });
                       api(`/api/mlm/transfers/${user.id}`).then(setTransferHistory).catch(() => {});
                       setTransferMsg(
                         t(

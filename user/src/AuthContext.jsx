@@ -39,7 +39,7 @@ export function AuthProvider({ children }) {
     const sendHeartbeat = () => {
       fetch(`${API}/auth/heartbeat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-user-id": user.id, "x-session-token": user.session_token },
         body: JSON.stringify({ user_id: user.id }),
       }).then(res => {
         failedCount = 0;
@@ -67,10 +67,12 @@ export function AuthProvider({ children }) {
   }, [user?.id, user?.session_token]);
 
   const login = (u, sessionToken) => {
-    const userData = { ...u, session_token: sessionToken || u.session_token };
+    const prevToken = localStorage.getItem("everest_session_token");
+    const token = sessionToken || u.session_token || prevToken;
+    const userData = { ...u, session_token: token };
     setUser(userData);
     localStorage.setItem("everest_user", JSON.stringify(userData));
-    localStorage.setItem("everest_session_token", userData.session_token);
+    if (token) localStorage.setItem("everest_session_token", token);
   };
 
   const logout = () => {
