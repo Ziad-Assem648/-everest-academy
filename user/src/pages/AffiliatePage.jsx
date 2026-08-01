@@ -382,6 +382,7 @@ export default function AffiliatePage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontWeight: 700, fontSize: 14, margin: 0, color: c.text }}>{upline.full_name}</p>
+                      <p style={{ fontSize: 10, color: c.textMuted, margin: "1px 0 0", direction: "ltr" }}>ID: {upline.id}</p>
                       <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
                         <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 7px", borderRadius: 6, background: `${GOLD}15`, color: GOLD }}>
                           {(() => { const rk = (dbRanks || []).find(r => r.name === upline.rank); return rk?.image ? <img src={rk.image} alt="" style={{width:12,height:12,borderRadius:3,objectFit:"cover",verticalAlign:"middle",marginRight:3}} /> : (rankIcons[upline.rank] || "⭐"); })()} {upline.rank || "Star"}
