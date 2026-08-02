@@ -41,9 +41,9 @@ export async function uploadApi(formData) {
   return r.json();
 }
 
-const BUNNY_LIBRARY_ID = "718583";
-const BUNNY_API_KEY = "a61113a8-d26d-4c6e-898e50577615-2a85-4b1b";
-const BUNNY_CDN_HOST = "vz-7d98b775-100.b-cdn.net";
+const BUNNY_LIBRARY_ID = "706401";
+const BUNNY_API_KEY = "6e7edf56-4918-4a5b-9f8060488a19-7765-415b";
+const BUNNY_CDN_HOST = "vz-c77ef25f-4d4.b-cdn.net";
 
 export async function uploadVideoToBunny(file, onProgress) {
   const h = getAdminHeaders();
