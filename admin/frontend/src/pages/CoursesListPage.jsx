@@ -430,7 +430,7 @@ export default function CoursesListPage() {
                                 setDetail((prev) => ({ ...prev, topics: prev.topics.map((t) => t.id === topic.id
                                   ? { ...t, lessons: t.lessons.map((l) => l.id === lesson.id ? upd : l) } : t) }));
                                 await updateLesson(topic.id, { ...lesson, video_url: url });
-                              } catch (err) { alert(t("فشل رفع الفيديو: ", "Video upload failed: ") + err.message); }
+                                } catch (err) { alert(t("فشل رفع الفيديو: ", "Video upload failed: ") + err.message + t("\nاضغط رفع فيديو مرة أخرى بنفس الملف للمتابعة من حيث توقف.", "\nClick Upload again with the same file to resume.")); }
                               setUploadingLessonId(null);
                               setVideoUploadPct(null);
                             }} />
@@ -503,7 +503,7 @@ export default function CoursesListPage() {
                                   setVideoUploadPct(0);
                                   const url = await uploadVideoToBunny(file, (pct) => setVideoUploadPct(pct));
                                   setNewLessonVideo(url);
-                                } catch (err) { alert(t("فشل رفع الفيديو: ", "Video upload failed: ") + err.message); }
+                              } catch (err) { alert(t("فشل رفع الفيديو: ", "Video upload failed: ") + err.message + t("\nاضغط رفع فيديو مرة أخرى بنفس الملف للمتابعة من حيث توقف.", "\nClick Upload again with the same file to resume.")); }
                                 setVideoUploadPct(null);
                               }} />
                             </label>
