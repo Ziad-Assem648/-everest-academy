@@ -66,7 +66,7 @@ export async function uploadVideoToBunny(file, onProgress) {
       endpoint: cred.uploadEndpoint,
       retryDelays: [0, 3000, 5000, 10000, 20000, 60000],
       chunkSize: 5 * 1024 * 1024,
-      fingerprint: () => `everest-bunny-${videoId}-${file.name}-${file.size}`,
+      fingerprint: (f) => Promise.resolve(`everest-bunny-${videoId}-${f.name}-${f.size}`),
       headers: {
         AuthorizationSignature: cred.signature,
         AuthorizationExpire: cred.expirationTime,
