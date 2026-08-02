@@ -10,6 +10,35 @@ export default function GeminiKeysPage() {
   const [input, setInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const [groqInput, setGroqInput] = useState("");
+  const [groqHasKey, setGroqHasKey] = useState(false);
+  const [groqMasked, setGroqMasked] = useState("");
+  const [groqSaving, setGroqSaving] = useState(false);
+  const [groqMsg, setGroqMsg] = useState("");
+
+  const loadGroq = async () => {
+    try {
+      const data = await api("/api/chat/keys-status");
+      setGroqHasKey(!!data.hasKey);
+      setGroqMasked(data.key || "");
+    } catch {}
+  };
+  useEffect(() => { loadGroq(); }, []);
+
+  const saveGroq = async () => {
+    setGroqSaving(true); setGroqMsg("");
+    try {
+      await api("/api/chat/groq-key", {
+        method: "PUT",
+        body: JSON.stringify({ key: groqInput.trim() }),
+      });
+      setGroqMsg(t("✅ تم حفظ المفتاح وتفعيل الشات بوت!", "✅ Key saved, chatbot activated!"));
+      loadGroq();
+    } catch (e) {
+      setGroqMsg(t("❌ فشل الحفظ: " + (e.message || ""), "❌ Save failed: " + (e.message || "")));
+    }
+    setGroqSaving(false);
+  };
 
   const load = async () => {
     try {
@@ -108,6 +137,42 @@ export default function GeminiKeysPage() {
           </div>
         </div>
       )}
+
+      {/* Chatbot (Groq) Key */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+        <h3 className="font-bold text-gray-900 mb-1">{t("🤖 مفتاح الشات بوت (Groq)", "🤖 Chatbot Key (Groq)")}</h3>
+        <p className="text-sm text-gray-500 mb-3">{t(
+          "المفتاح يُخزّن في قاعدة البيانات ويُفعّل الشات بوت فوراً.",
+          "Stored in the DB and activates the chatbot immediately."
+        )}</p>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-lg">{t("الحالة:", "Status:")}</span>
+          {groqHasKey ? (
+            <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">✅ {t("مفعّل", "Active")}</span>
+          ) : (
+            <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">⛔ {t("غير مفعّل", "Not configured")}</span>
+          )}
+          {groqMasked && <span className="font-mono text-xs text-gray-400">({groqMasked})</span>}
+        </div>
+        <input
+          type="text"
+          value={groqInput}
+          onChange={(e) => setGroqInput(e.target.value)}
+          placeholder="gsk_..."
+          className="w-full px-4 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono"
+        />
+        {groqMsg && (
+          <p className={`mt-2 text-sm font-medium ${groqMsg.startsWith("✅") ? "text-green-600" : "text-red-600"}`}>{groqMsg}</p>
+        )}
+        <div className="flex gap-3 mt-3">
+          <button onClick={loadGroq} className="px-4 py-2.5 bg-gray-100 rounded-xl font-medium text-sm hover:bg-gray-200 transition">
+            {t("إعادة تحميل", "Reload")}
+          </button>
+          <button onClick={saveGroq} disabled={groqSaving} className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-medium text-sm hover:bg-blue-700 transition disabled:opacity-50">
+            {groqSaving ? t("جاري الحفظ...", "Saving...") : t("💾 حفظ مفتاح الشات بوت", "💾 Save Chatbot Key")}
+          </button>
+        </div>
+      </div>
 
       {/* Edit Keys */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">

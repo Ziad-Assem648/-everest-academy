@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { query, queryOne } from "../db.js";
+import { query, queryOne, execute } from "../db.js";
+import { adminAuth } from "../middleware/sessionAuth.js";
 
 const router = Router();
 
@@ -120,7 +121,20 @@ router.get("/keys-status", (req, res) => {
     provider: "Groq",
     model: GROQ_MODEL,
     hasKey: !!GROQ_API_KEY,
+    key: GROQ_API_KEY ? GROQ_API_KEY.slice(0, 7) + "..." + GROQ_API_KEY.slice(-4) : "",
   });
+});
+
+// ─── Admin: update Groq API key (chatbot) ───
+router.put("/groq-key", adminAuth, async (req, res) => {
+  try {
+    const { key } = req.body;
+    if (typeof key !== "string" || !key.trim()) return res.status(400).json({ error: "key is required" });
+    await execute("INSERT INTO settings (key, value) VALUES ('groq_api_key', ?) ON CONFLICT(key) DO UPDATE SET value = ?", [key.trim(), key.trim()]);
+    GROQ_API_KEY = key.trim();
+    process.env.GROQ_API_KEY = key.trim();
+    res.json({ success: true, hasKey: !!GROQ_API_KEY });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ─── Debug: test Groq API call ───
