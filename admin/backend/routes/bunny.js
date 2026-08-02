@@ -1,5 +1,6 @@
 import express from "express";
 import multer from "multer";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import fs from "fs";
@@ -75,6 +76,23 @@ router.post("/upload/:videoId", upload.single("file"), async (req, res) => {
     const url = await streamUploadToBunny(req.file.path, videoId);
     res.json({ url, videoId });
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// TUS direct upload credentials — client uploads straight to Bunny (no server relay)
+router.get("/tus-credentials/:videoId", async (req, res) => {
+  const { videoId } = req.params;
+  if (!videoId) return res.status(400).json({ error: "videoId required" });
+  const expirationTime = Math.floor(Date.now() / 1000) + 86400;
+  const signature = crypto.createHash("sha256")
+    .update(`${BUNNY_LIBRARY_ID}${BUNNY_API_KEY}${expirationTime}${videoId}`)
+    .digest("hex");
+  res.json({
+    videoId,
+    libraryId: BUNNY_LIBRARY_ID,
+    expirationTime: String(expirationTime),
+    signature,
+    uploadEndpoint: "https://video.bunnycdn.com/tusupload",
+  });
 });
 
 export default router;

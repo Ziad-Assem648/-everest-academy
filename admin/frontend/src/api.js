@@ -55,19 +55,35 @@ export async function uploadVideoToBunny(file, onProgress) {
   if (!createRes.ok) throw new Error("Failed to create video entry");
   const { videoId } = await createRes.json();
 
-  const formData = new FormData();
-  formData.append("file", file);
+  const credRes = await fetch(`${BACKEND_URL}/api/bunny/tus-credentials/${videoId}`, { headers: h });
+  if (!credRes.ok) throw new Error("Failed to get upload credentials");
+  const cred = await credRes.json();
 
+  // Upload directly to Bunny Stream (TUS resumable) — bypasses the backend server entirely
+  const { Upload } = await import("tus-js-client");
   await new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.upload.addEventListener("progress", (e) => {
-      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
+    const upload = new Upload(file, {
+      endpoint: cred.uploadEndpoint,
+      retryDelays: [0, 3000, 5000, 10000, 20000, 60000],
+      chunkSize: 5 * 1024 * 1024,
+      fingerprint: () => `everest-bunny-${videoId}-${file.name}-${file.size}`,
+      headers: {
+        AuthorizationSignature: cred.signature,
+        AuthorizationExpire: cred.expirationTime,
+        VideoId: cred.videoId,
+        LibraryId: cred.libraryId,
+      },
+      metadata: { filetype: file.type, title: file.name },
+      onError: reject,
+      onProgress: (bytesUploaded, bytesTotal) => {
+        if (bytesTotal && onProgress) onProgress(Math.round((bytesUploaded / bytesTotal) * 100));
+      },
+      onSuccess: resolve,
     });
-    xhr.addEventListener("load", () => { if (xhr.status >= 200 && xhr.status < 300) resolve(); else reject(new Error("Upload failed")); });
-    xhr.addEventListener("error", () => reject(new Error("Upload failed")));
-    xhr.open("POST", `${BACKEND_URL}/api/bunny/upload/${videoId}`);
-    Object.entries(h).forEach(([k, v]) => { if (k !== "Content-Type") xhr.setRequestHeader(k, v); });
-    xhr.send(formData);
+    upload.findPreviousUploads().then((prev) => {
+      if (prev.length) upload.resumeFromPreviousUpload(prev[0]);
+      upload.start();
+    }).catch(() => upload.start());
   });
 
   return `https://${BUNNY_CDN_HOST}/${videoId}/playlist.m3u8`;
