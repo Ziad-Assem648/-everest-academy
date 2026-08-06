@@ -7,6 +7,14 @@ const router = express.Router();
 const sReq = (r) => r.sales_required !== undefined ? r.sales_required : r.min_direct;
 const bVal = (r) => r.bonus !== undefined ? r.bonus : r.weekly_bonus;
 
+async function resolveUserId(identifier) {
+  if (!identifier) return null;
+  const byId = await queryOne("SELECT id FROM users WHERE id = ?", [identifier]);
+  if (byId) return byId.id;
+  const byRef = await queryOne("SELECT id FROM users WHERE referral_code = ?", [identifier]);
+  return byRef ? byRef.id : null;
+}
+
 // ─── Team tree using Closure Table ───
 router.get("/tree", async (req, res) => {
   try {
@@ -72,13 +80,16 @@ router.get("/upline/:userId", async (req, res) => {
 router.get("/transfer/validate", async (req, res) => {
   const { from, to } = req.query;
   if (!from || !to) return res.status(400).json({ error: "from and to query params required" });
-  if (from === to) return res.json({ allowed: false, reason: "same_user" });
+  const fromId = await resolveUserId(from);
+  const toId = await resolveUserId(to);
+  if (!fromId || !toId) return res.json({ allowed: false, reason: "user_not_found" });
+  if (fromId === toId) return res.json({ allowed: false, reason: "same_user" });
   const relation = await queryOne(`
     SELECT id FROM users
     WHERE ((referred_by = ? OR created_by_user = ?) AND id = ?) OR ((referred_by = ? OR created_by_user = ?) AND id = ?)
-  `, [to, to, from, from, from, to]);
+  `, [toId, toId, fromId, fromId, fromId, toId]);
   if (!relation) return res.json({ allowed: false, reason: "not_directly_connected" });
-  const fromUser = await queryOne("SELECT e_money, negative_allowed FROM users WHERE id = ?", [from]);
+  const fromUser = await queryOne("SELECT e_money, negative_allowed FROM users WHERE id = ?", [fromId]);
   if (!fromUser) return res.json({ allowed: false, reason: "sender_not_found" });
   res.json({ allowed: true, balance: fromUser.e_money, negative_allowed: !!fromUser.negative_allowed });
 });
@@ -87,30 +98,34 @@ router.post("/transfer", async (req, res) => {
   try {
     const { from_user_id, to_user_id, amount } = req.body;
     if (!from_user_id || !to_user_id || !amount) return res.status(400).json({ error: "from_user_id, to_user_id, and amount required" });
-    if (from_user_id === to_user_id) return res.status(400).json({ error: "Cannot transfer to yourself" });
+    const fromUserId = await resolveUserId(from_user_id);
+    const toUserId = await resolveUserId(to_user_id);
+    if (!fromUserId) return res.status(404).json({ error: "Sender not found" });
+    if (!toUserId) return res.status(404).json({ error: "Receiver not found" });
+    if (fromUserId === toUserId) return res.status(400).json({ error: "Cannot transfer to yourself" });
     if (amount <= 0) return res.status(400).json({ error: "Amount must be positive" });
     const relation = await queryOne(`
       SELECT id FROM users
       WHERE ((referred_by = ? OR created_by_user = ?) AND id = ?) OR ((referred_by = ? OR created_by_user = ?) AND id = ?)
-    `, [to_user_id, to_user_id, from_user_id, from_user_id, from_user_id, to_user_id]);
+    `, [toUserId, toUserId, fromUserId, fromUserId, fromUserId, toUserId]);
     if (!relation) return res.status(403).json({ error: "Transfer allowed only between direct upline/downline" });
-    const fromUser = await queryOne("SELECT e_money, negative_allowed, full_name FROM users WHERE id = ?", [from_user_id]);
+    const fromUser = await queryOne("SELECT e_money, negative_allowed, full_name FROM users WHERE id = ?", [fromUserId]);
     if (!fromUser) return res.status(404).json({ error: "Sender not found" });
     if (fromUser.e_money < amount && !fromUser.negative_allowed) return res.status(400).json({ error: `Insufficient balance. Available: ${fromUser.e_money}, required: ${amount}` });
-    const toUser = await queryOne("SELECT id, full_name FROM users WHERE id = ?", [to_user_id]);
+    const toUser = await queryOne("SELECT id, full_name FROM users WHERE id = ?", [toUserId]);
     if (!toUser) return res.status(404).json({ error: "Receiver not found" });
     const tid = uuidv4();
-    await execute("UPDATE users SET e_money = e_money - ? WHERE id = ?", [amount, from_user_id]);
-    await execute("UPDATE users SET e_money = e_money + ? WHERE id = ?", [amount, to_user_id]);
-    await execute("INSERT INTO transfers (id, from_user_id, to_user_id, amount, status) VALUES (?, ?, ?, ?, 'completed')", [tid, from_user_id, to_user_id, amount]);
+    await execute("UPDATE users SET e_money = e_money - ? WHERE id = ?", [amount, fromUserId]);
+    await execute("UPDATE users SET e_money = e_money + ? WHERE id = ?", [amount, toUserId]);
+    await execute("INSERT INTO transfers (id, from_user_id, to_user_id, amount, status) VALUES (?, ?, ?, ?, 'completed')", [tid, fromUserId, toUserId, amount]);
     const txFromId = uuidv4();
-    await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, ?, ?, 'completed')", [txFromId, from_user_id, amount, "debit", `تحويل إلى ${toUser.full_name}`]);
+    await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, ?, ?, 'completed')", [txFromId, fromUserId, amount, "debit", `تحويل إلى ${toUser.full_name}`]);
     const txToId = uuidv4();
-    await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, ?, ?, 'completed')", [txToId, to_user_id, amount, "credit", `تحويل من ${fromUser.full_name}`]);
-    const nid1 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'transfer')", [nid1, from_user_id, "💰 تحويل صادر", `تم تحويل ${amount} E-Money إلى ${toUser.full_name}`]);
-    const nid2 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'transfer')", [nid2, to_user_id, "💰 تحويل وارد", `استلمت ${amount} E-Money من ${fromUser.full_name}`]);
-    const updatedFrom = await queryOne("SELECT e_money FROM users WHERE id = ?", [from_user_id]);
-    const updatedTo = await queryOne("SELECT e_money FROM users WHERE id = ?", [to_user_id]);
+    await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, ?, ?, 'completed')", [txToId, toUserId, amount, "credit", `تحويل من ${fromUser.full_name}`]);
+    const nid1 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'transfer')", [nid1, fromUserId, "💰 تحويل صادر", `تم تحويل ${amount} E-Money إلى ${toUser.full_name}`]);
+    const nid2 = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'transfer')", [nid2, toUserId, "💰 تحويل وارد", `استلمت ${amount} E-Money من ${fromUser.full_name}`]);
+    const updatedFrom = await queryOne("SELECT e_money FROM users WHERE id = ?", [fromUserId]);
+    const updatedTo = await queryOne("SELECT e_money FROM users WHERE id = ?", [toUserId]);
     res.json({ success: true, transfer_id: tid, from_balance: updatedFrom.e_money, to_balance: updatedTo.e_money });
   } catch (err) {
     console.error("Transfer error:", err);
