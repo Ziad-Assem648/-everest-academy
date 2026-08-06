@@ -13,6 +13,9 @@ export default function RegistrationApprovalsPage() {
   const [rejectUser, setRejectUser] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
   const [rejecting, setRejecting] = useState(false);
+  const [viewProfile, setViewProfile] = useState(null);
+  const [viewProfileData, setViewProfileData] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -60,6 +63,17 @@ export default function RegistrationApprovalsPage() {
     setLoadingCards(false);
   };
 
+  const openViewProfile = async (userId, name, email) => {
+    setViewProfile({ id: userId, full_name: name, email });
+    setViewProfileData(null);
+    setLoadingProfile(true);
+    try {
+      const data = await api(`/api/users/${userId}`);
+      setViewProfileData(data);
+    } catch (e) { console.error(e); }
+    setLoadingProfile(false);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -100,13 +114,15 @@ export default function RegistrationApprovalsPage() {
                   <td data-label={t("المحافظة", "Governorate")} className="text-gray-500 text-xs">{u.governorate || "—"}</td>
                   <td data-label={t("أنشأه", "Created By")} className="text-xs">
                     {u.created_by_user ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 font-medium" title={u.creator_email}>
+                      <button onClick={() => openViewProfile(u.created_by_user, u.creator_name, u.creator_email)}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 font-medium hover:bg-purple-100 cursor-pointer transition" title={u.creator_email}>
                         👤 {u.creator_name || u.creator_email || u.created_by_user}
-                      </span>
+                      </button>
                     ) : u.referred_by ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-medium" title={u.referrer_email}>
+                      <button onClick={() => openViewProfile(u.referred_by, u.referrer_name, u.referrer_email)}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 cursor-pointer transition" title={u.referrer_email}>
                         👥 {u.referrer_name || u.referrer_email || u.referred_by}
-                      </span>
+                      </button>
                     ) : (
                       <span className="text-gray-400">—</span>
                     )}
@@ -215,6 +231,65 @@ export default function RegistrationApprovalsPage() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Creator / Referrer Profile Modal */}
+      {viewProfile && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          onClick={() => { setViewProfile(null); setViewProfileData(null); }}>
+          <div style={{ background: "#fff", borderRadius: 16, padding: 24, maxWidth: 560, width: "100%", maxHeight: "90vh", overflow: "auto" }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{t("بيانات المستخدم", "User Details")}</h3>
+              <button onClick={() => { setViewProfile(null); setViewProfileData(null); }} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#666" }}>✕</button>
+            </div>
+
+            {loadingProfile ? (
+              <p style={{ color: "#999", textAlign: "center", padding: 20 }}>{t("جارٍ التحميل...", "Loading...")}</p>
+            ) : (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #f0f0f0" }}>
+                  <div style={{ width: 48, height: 48, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 18,
+                    background: (viewProfileData?.account_type || "student") === "student" ? "#22c55e" : "#a855f7" }}>
+                    {(viewProfileData?.full_name || viewProfile.full_name || "?")[0]}
+                  </div>
+                  <div>
+                    <p style={{ fontWeight: 700, margin: 0 }}>{viewProfileData?.full_name || viewProfile.full_name}</p>
+                    <p style={{ fontSize: 12, color: "#888", margin: "2px 0 0" }}>{viewProfileData?.email || viewProfile.email}</p>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 14 }}>
+                  {[
+                    { label: "ID", value: viewProfileData?.id || viewProfile.id },
+                    { label: t("الاسم", "Name"), value: viewProfileData?.full_name || viewProfile.full_name },
+                    { label: t("البريد", "Email"), value: viewProfileData?.email || viewProfile.email },
+                    { label: t("الهاتف", "Phone"), value: viewProfileData?.phone || "—" },
+                    { label: t("المحافظة", "Governorate"), value: viewProfileData?.governorate || "—" },
+                    { label: t("الدولة", "Country"), value: viewProfileData?.country || "—" },
+                    { label: t("العنوان", "Address"), value: viewProfileData?.address || "—" },
+                    { label: t("الدور", "Role"), value: viewProfileData?.role || "—" },
+                    { label: t("نوع الحساب", "Account Type"), value: viewProfileData?.account_type || "—" },
+                    { label: t("الرتبة", "Rank"), value: viewProfileData?.rank || "—" },
+                    { label: t("الرصيد", "E-Money"), value: viewProfileData?.e_money ?? "—" },
+                    { label: t("الحالة", "Status"), value: viewProfileData?.status || "—" },
+                    { label: t("المحظور", "Blocked"), value: viewProfileData?.blocked ? t("نعم", "Yes") : t("لا", "No") },
+                    { label: t("كود الإحالة", "Referral Code"), value: viewProfileData?.referral_code || "—" },
+                    { label: t("احالة من", "Referred By"), value: viewProfileData?.referred_by || "—" },
+                    { label: t("مبيعات الفريق", "Team Sales"), value: viewProfileData?.total_team_sales ?? 0 },
+                    { label: t("الأعضاء المباشرين", "Direct Count"), value: viewProfileData?.direct_count ?? 0 },
+                    { label: t("تاريخ التسجيل", "Joined"), value: viewProfileData?.created_at ? new Date(viewProfileData.created_at).toLocaleDateString("ar-EG") : "—" },
+                  ].map((item, i) => (
+                    <div key={i} style={{ background: "#f9f9fb", borderRadius: 10, padding: "10px 12px" }}>
+                      <p style={{ fontSize: 10, color: "#999", margin: "0 0 3px" }}>{item.label}</p>
+                      <p style={{ fontSize: 13, fontWeight: 500, margin: 0, wordBreak: "break-all" }}>{String(item.value ?? "—")}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
