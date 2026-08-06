@@ -75,7 +75,7 @@ function StatsTab() {
   const cards = [
     { label: t("إجمالي المستخدمين","Total Users"), value: stats.totalUsers, icon: "📊", color: "#2563ff" },
     { label: t("إجمالي الطلاب","Total Students"), value: stats.totalStudents, icon: "🎓", color: "#22c55e" },
-    { label: t("حسابات تسجيل","Registration Accounts"), value: stats.totalRegistration, icon: "📝", color: "#a855f7" },
+    { label: t("حسابات تسجيل مجاني","Reg Free Accounts"), value: stats.totalRegistration, icon: "🆓", color: "#a855f7" },
     { label: t("الكورسات","Courses"), value: stats.totalCourses, icon: "📚", color: "#f59e0b" },
     { label: t("في انتظار الموافقة","Pending Approvals"), value: stats.pendingApprovals, icon: "⏳", color: "#B88BFF" },
     { label: t("شحن قيد الانتظار","Pending Top-ups"), value: stats.topUpPending, icon: "💰", color: "#06b6d4" },
@@ -158,7 +158,6 @@ function PermissionsTab() {
       </select>
       <select value={actionRole} onChange={(e) => setActionRole(e.target.value)} style={{padding:"10px 16px",borderRadius:10,border:`1px solid ${c.border}`,background:"rgba(20,16,36,.8)",color:c.text,fontSize:13}}>
         <option value="student" style={{background:"#1a1530"}}>{t("طالب","Student")}</option>
-        <option value="registration" style={{background:"#1a1530"}}>{t("تسجيل","Registration")}</option>
         <option value="admin" style={{background:"#1a1530"}}>{t("مدير","Admin")}</option>
       </select>
       <button onClick={changeRole} style={{padding:"10px 22px",background:"#B88BFF",border:"none",borderRadius:10,color:"#FFFFFF",fontWeight:700,cursor:"pointer",fontSize:13}}>{t("تغيير الصلاحية","Change Role")}</button>

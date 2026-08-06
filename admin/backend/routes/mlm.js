@@ -166,10 +166,10 @@ router.get("/transfers/:userId", async (req, res) => {
 
 // ─── WEEKLY COMMISSION PROCESSING ───
 // Business rules:
-// 1. Direct Sale = any user who registered via referral code (Student OR Registration, must be Active)
+// 1. Direct Sale = any user who registered via referral code (Student OR Reg Free, must be Active)
 // 2. Minimum 2 Direct Sales required for commission eligibility
 // 3. Commission is calculated from Student accounts only
-// 4. Registration accounts count toward rank but never generate commission
+// 4. Reg Free accounts count toward rank but never generate commission
 // 5. Members with higher rank than current user are excluded from qualified network
 // 6. Every calculation is stored in weekly_history
 router.post("/weekly-commission", async (req, res) => {
@@ -189,7 +189,7 @@ router.post("/weekly-commission", async (req, res) => {
     const existing = await queryOne("SELECT id FROM weekly_commissions WHERE week_start = ? LIMIT 1", [weekStart]);
     if (existing) return res.status(400).json({ error: `Weekly commission already calculated for week ${weekStart} - ${weekEnd}` });
 
-    // All active users (both student and registration)
+    // All active users (both student and reg free)
     const users = await query(
       "SELECT id, full_name, email, rank, direct_count, e_money, account_type FROM users WHERE role IN ('student','registration') AND status = 'active'"
     );
@@ -204,7 +204,7 @@ router.post("/weekly-commission", async (req, res) => {
     for (const user of users) {
       const userRank = rankMap[user.rank];
 
-      // STEP 1: Count all Direct Sales (Level 1 only — both Student + Registration, active only)
+      // STEP 1: Count all Direct Sales (Level 1 only — both Student + Reg Free, active only)
       const directs = await query(
         "SELECT u.id, u.account_type, u.status FROM users u WHERE u.referred_by = ?",
         [user.id]
@@ -212,7 +212,7 @@ router.post("/weekly-commission", async (req, res) => {
       const activeDirects = directs.filter(d => d.status === 'active');
       const totalDirectSales = activeDirects.length;
       const studentDirectSales = activeDirects.filter(d => d.account_type === 'student').length;
-      const registrationDirectSales = activeDirects.filter(d => d.account_type === 'registration').length;
+      const registrationDirectSales = activeDirects.filter(d => d.account_type === 'registration_free').length;
 
       // STEP 2: Determine Qualified Direct Sales (= total active directs for eligibility)
       const qualifiedDirectSales = totalDirectSales;
@@ -235,7 +235,7 @@ router.post("/weekly-commission", async (req, res) => {
 
       // STEP 4: Recalculate qualified network (exclude higher-ranked members)
       const allTeamMembers = await query(
-        "SELECT u.id, u.rank, u.status, u.account_type FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type IN ('student','registration')",
+        "SELECT u.id, u.rank, u.status, u.account_type FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type IN ('student','registration_free')",
         [user.id, user.id]
       );
 
@@ -465,12 +465,12 @@ router.get("/rank-progress/:userId", async (req, res) => {
     const activeDirects = directs.filter(d => d.status === 'active');
     const totalDirectSales = activeDirects.length;
     const studentDirectSales = activeDirects.filter(d => d.account_type === 'student').length;
-    const registrationDirectSales = activeDirects.filter(d => d.account_type === 'registration').length;
+    const registrationDirectSales = activeDirects.filter(d => d.account_type === 'registration_free').length;
     const qualifiedDirectSales = totalDirectSales;
 
     // Qualified team
     const allTeam = await query(
-      "SELECT u.rank, u.status, u.account_type FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type IN ('student','registration')",
+      "SELECT u.rank, u.status, u.account_type FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type IN ('student','registration_free')",
       [user.id, user.id]
     );
 
@@ -552,7 +552,7 @@ router.get("/leaderboard", async (req, res) => {
              COALESCE(r.weekly_bonus, 0) as weekly_bonus, COALESCE(r.sort_order, 0) as rank_order
       FROM users u
       LEFT JOIN ranks r ON u.rank = r.name
-      WHERE u.role != 'admin' AND u.account_type IN ('student','registration')
+      WHERE u.role != 'admin' AND u.account_type IN ('student','registration_free')
       ORDER BY r.sort_order DESC, u.total_team_sales DESC
       LIMIT 10
     `);
@@ -572,7 +572,7 @@ router.get("/leaderboard/all", async (req, res) => {
              COALESCE(r.weekly_bonus, 0) as weekly_bonus, COALESCE(r.sort_order, 0) as rank_order
       FROM users u
       LEFT JOIN ranks r ON u.rank = r.name
-      WHERE u.role != 'admin' AND u.account_type IN ('student','registration')
+      WHERE u.role != 'admin' AND u.account_type IN ('student','registration_free')
       ORDER BY r.sort_order DESC, u.total_team_sales DESC
     `);
     res.json(users);

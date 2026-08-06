@@ -210,7 +210,7 @@ router.put("/:id/approve-registration", async (req, res) => {
     if (user.status !== 'pending') return res.status(400).json({ error: "User is not pending" });
     const accountType = req.body.account_type || "student";
     console.log("[approve-registration] userId:", req.params.id, "body:", JSON.stringify(req.body), "accountType:", accountType);
-    if (!["student","registration","registration_free"].includes(accountType)) return res.status(400).json({ error: "Invalid account_type" });
+    if (!["student","registration_free"].includes(accountType)) return res.status(400).json({ error: "Invalid account_type" });
 
     // Determine role from account_type
     const role = accountType === "student" ? "student" : "registration";
@@ -376,10 +376,10 @@ router.put("/:id/account-type", async (req, res) => {
     const user = await queryOne("SELECT * FROM users WHERE id = ?", [req.params.id]);
     if (!user) return res.status(404).json({ error: "User not found" });
     const { account_type } = req.body;
-    if (!["student","registration","registration_free"].includes(account_type)) return res.status(400).json({ error: "Invalid account_type" });
+    if (!["student","registration_free"].includes(account_type)) return res.status(400).json({ error: "Invalid account_type" });
     const role = account_type === "student" ? "student" : "registration";
     await execute("UPDATE users SET role = ?, account_type = ?, updated_at = datetime('now','localtime') WHERE id = ?", [role, account_type, req.params.id]);
-    const typeLabel = account_type === "student" ? "Student" : account_type === "registration_free" ? "Registration Free" : "Registration";
+    const typeLabel = account_type === "student" ? "Student" : "Registration Free";
     // No notification sent when admin changes account type
     await logAdminAction(req, `change account_type to ${account_type}`, req.params.id, user.full_name, JSON.stringify({ from: user.account_type, to: account_type }));
 
@@ -437,7 +437,7 @@ router.post("/create-for-others", async (req, res) => {
 
     // Create user as pending — creator is tracked via created_by_user, NOT referred_by (prevents double commission)
     await execute(
-      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, referred_by, status, role, account_type, rank, governorate, country, id_card_front, id_card_back, created_by_user, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration', '', ?, ?, ?, ?, ?, 0)",
+      "INSERT INTO users (id, full_name, email, phone, address, password, referral_code, referred_by, status, role, account_type, rank, governorate, country, id_card_front, id_card_back, created_by_user, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'registration', 'registration_free', '', ?, ?, ?, ?, ?, 0)",
       [id, full_name, email, phone, address || null, hashedPassword, code, null, governorate || null, country || null, singleIdCard, singleIdCard, userId]
     );
 

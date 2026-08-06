@@ -274,7 +274,7 @@ export default function RankingsPage() {
                   <div style={miniSub}>{t("يولّدون عمولة", "Generate commission")}</div>
                 </div>
                 <div style={statCard(c)}>
-                  <div style={miniLabel}>📋 {t("مبيعات تسجيل", "Registration Sales")}</div>
+                  <div style={miniLabel}>🆓 {t("مبيعات تسجيل مجاني", "Reg Free Sales")}</div>
                   <div style={{ ...miniVal(c), color: "#f59e0b" }}>{registrationDirectSales}</div>
                   <div style={miniSub}>{t("لا يولّدون عمولة", "No commission")}</div>
                 </div>
@@ -315,7 +315,7 @@ export default function RankingsPage() {
                                 background: d.account_type === 'student' || d.account_type === 'registration_free' ? "rgba(34,197,94,.1)" : "rgba(245,158,11,.1)",
                                 color: d.account_type === 'student' || d.account_type === 'registration_free' ? "#22c55e" : "#f59e0b"
                               }}>
-                                {d.account_type === 'student' ? 'Student' : d.account_type === 'registration_free' ? 'Reg Free' : 'REG'}
+                                    {d.account_type === 'student' ? 'Student' : 'Reg Free'}
                               </span>
                             </p>
                             <p style={{ fontSize: 11, color: c.textMuted, margin: "2px 0 0" }}>{d.email}</p>
@@ -373,7 +373,7 @@ export default function RankingsPage() {
                   <div style={miniSub}>{t("يولّدون عمولة", "Generate commission")}</div>
                 </div>
                 <div style={statCard(c)}>
-                  <div style={miniLabel}>📋 {t("أعضاء تسجيل", "Registration Members")}</div>
+                  <div style={miniLabel}>🆓 {t("أعضاء تسجيل مجاني", "Reg Free Members")}</div>
                   <div style={{ ...miniVal(c), color: "#f59e0b" }}>{registrationMembers}</div>
                   <div style={miniSub}>{t("حسبون للترتبة لا للعمولة", "Count for rank, not commission")}</div>
                 </div>
@@ -415,7 +415,7 @@ export default function RankingsPage() {
                                     background: d.account_type === 'student' || d.account_type === 'registration_free' ? "rgba(34,197,94,.1)" : "rgba(245,158,11,.1)",
                                     color: d.account_type === 'student' || d.account_type === 'registration_free' ? "#22c55e" : "#f59e0b"
                                   }}>
-                                    {d.account_type === 'student' ? 'Student' : d.account_type === 'registration_free' ? 'Reg Free' : 'REG'}
+                                    {d.account_type === 'student' ? 'Student' : 'Reg Free'}
                                   </span>
                                 </p>
                                 <p style={{ fontSize: 11, color: c.textMuted, margin: "2px 0 0" }}>{d.email}</p>
@@ -458,7 +458,7 @@ export default function RankingsPage() {
               <ul style={{ fontSize: 12, color: c.textMuted, margin: "8px 0 0 16px", lineHeight: 1.8 }}>
                 <li>{t("الأعضاء النشطون فقط (status = active)", "Only active members (status = active)")}</li>
                 <li>{t("رتبة العضو ≤ رتبتك الحالية", "Member's rank ≤ your current rank")}</li>
-                <li>{t("كلتا الحسابين (طالب + تسجيل) تُحسب", "Both Student and Registration accounts count")}</li>
+                <li>{t("كلتا الحسابين (طالب + تسجيل مجاني) تُحسب", "Both Student and Reg Free accounts count")}</li>
                 <li>{t("الأعضاء بترتبة أعلى منك مستبعدون", "Members with higher rank than you are excluded")}</li>
               </ul>
             </div>
@@ -527,12 +527,12 @@ export default function RankingsPage() {
                             {[
                               [t("مبيعات مباشرة", "Direct Sales"), wh.total_direct_sales],
                               [t("طلاب", "Students"), wh.student_direct_sales],
-                              [t("تسجيل", "Registration"), wh.registration_direct_sales],
+                              [t("تسجيل مجاني", "Reg Free"), wh.registration_direct_sales],
                               [t("مؤهلة", "Qualified"), wh.qualified_direct_sales],
                               [t("فريق مؤهل", "Qualified Team"), wh.qualified_team_count],
                               [t("شبكة مؤهلة", "Qualified Network"), wh.qualified_network_count],
                               [t("أعضاء طلاب", "Student Members"), wh.student_members],
-                              [t("أعضاء تسجيل", "Registration Members"), wh.registration_members],
+                              [t("أعضاء تسجيل مجاني", "Reg Free Members"), wh.registration_members],
                               [t("مستبعدون (رتبة أعلى)", "Excluded (Higher Rank)"), wh.higher_rank_excluded],
                               [t("مستبعدون (غير نشط)", "Excluded (Inactive)"), wh.inactive_excluded],
                             ].map(([label, val], i) => (

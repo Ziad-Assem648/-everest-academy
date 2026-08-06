@@ -234,7 +234,7 @@ export default function UsersPage() {
                 <td data-label={t("نوع الحساب", "Account Type")}>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                     u.account_type === "student" ? "bg-green-100 text-green-700" :
-                    u.account_type === "registration" ? "bg-emerald-100 text-emerald-700" :
+                    u.account_type === "registration_free" ? "bg-purple-100 text-purple-700" :
                     "bg-gray-100 text-gray-600"
                   }`}>{u.account_type || "student"}</span>
                 </td>
@@ -357,9 +357,8 @@ export default function UsersPage() {
                     <div>
                       <label className="text-xs text-gray-500 mb-1 block">{t("الدور", "Role")}</label>
                       <select value={editForm.role} onChange={e => setEditForm({...editForm, role: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm">
-                        <option value="registration">registration</option>
+                        <option value="registration">registration (Reg Free)</option>
                         <option value="student">student</option>
-                        <option value="registration_free">registration_free</option>
                       </select>
                     </div>
                     <div>
@@ -367,7 +366,6 @@ export default function UsersPage() {
                       <select value={editForm.account_type} onChange={e => setEditForm({...editForm, account_type: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm">
                         <option value="student">🎓 Student</option>
                         <option value="registration_free">🆓 Registration Free</option>
-                        <option value="registration">👤 Registration</option>
                       </select>
                     </div>
                   </div>
@@ -446,10 +444,9 @@ export default function UsersPage() {
                           <div className="flex items-center gap-3">
                             <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                               selectedUser.account_type === "student" ? "bg-green-100 text-green-700" :
-                              selectedUser.account_type === "registration_free" ? "bg-purple-100 text-purple-700" :
-                              "bg-emerald-100 text-emerald-700"
-                            }`}>{selectedUser.account_type === "registration_free" ? "🆓 Reg Free" : (selectedUser.account_type || "student")}</span>
-                            {["student", "registration", "registration_free"].filter(t => t !== (selectedUser.account_type || "student")).map(newType => (
+                              "bg-purple-100 text-purple-700"
+                            }`}>{selectedUser.account_type === "student" ? "🎓 Student" : "🆓 Reg Free"}</span>
+                            {["student", "registration_free"].filter(t => t !== (selectedUser.account_type || "student")).map(newType => (
                               <button key={newType} onClick={async () => {
                                 try {
                                   await api(`/api/users/${selectedUser.id}/account-type`, { method: "PUT", body: JSON.stringify({ account_type: newType }) });
@@ -458,7 +455,7 @@ export default function UsersPage() {
                                   loadUsers();
                                 } catch (e) { alert(e.message); }
                               }} className="px-3 py-1 text-xs font-medium bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-                                → {newType === "student" ? "🎓 Student" : newType === "registration_free" ? "🆓 Reg Free" : "👤 Registration"}
+                                → {newType === "student" ? "🎓 Student" : "🆓 Reg Free"}
                               </button>
                             ))}
                           </div>
@@ -598,7 +595,7 @@ export default function UsersPage() {
                           {[
                             { label: t("إجمالي المبيعات", "Total Direct Sales"), value: rankProgress?.totalDirectSales ?? 0, color: "text-blue-700" },
                             { label: t("🎓 مبيعات طلاب", "🎓 Student Sales"), value: rankProgress?.studentDirectSales ?? 0, color: "text-green-600" },
-                            { label: t("📋 مبيعات تسجيل", "📋 Registration Sales"), value: rankProgress?.registrationDirectSales ?? 0, color: "text-yellow-600" },
+                            { label: t("🆓 مبيعات تسجيل مجاني", "🆓 Reg Free Sales"), value: rankProgress?.registrationDirectSales ?? 0, color: "text-yellow-600" },
                             { label: t("المبيعات المؤهلة", "Qualified Sales"), value: rankProgress?.qualifiedDirectSales ?? 0, color: rankProgress?.meetsMinDirects ? "text-green-600" : "text-red-500" },
                           ].map((s, i) => (
                             <div key={i} className="bg-white rounded-lg p-3 border">
@@ -672,7 +669,7 @@ export default function UsersPage() {
                           {[
                             { label: t("أعضاء الفريق المؤهلين", "Qualified Team"), value: rankProgress?.qualifiedDirects ?? 0, color: "text-blue-700" },
                             { label: t("🎓 أعضاء طلاب", "🎓 Student Members"), value: rankProgress?.studentMembers ?? 0, color: "text-green-600" },
-                            { label: t("📋 أعضاء تسجيل", "📋 Registration Members"), value: rankProgress?.registrationMembers ?? 0, color: "text-yellow-600" },
+                            { label: t("🆓 أعضاء تسجيل مجاني", "🆓 Reg Free Members"), value: rankProgress?.registrationMembers ?? 0, color: "text-yellow-600" },
                           ].map((s, i) => (
                             <div key={i} className="bg-white rounded-lg p-3 border text-center">
                               <p className="text-xs text-gray-400">{s.label}</p>
@@ -738,7 +735,7 @@ export default function UsersPage() {
                         <ul className="text-xs text-gray-500 space-y-1 ml-4 list-disc">
                           <li>{t("الأعضاء النشطون فقط (status = active)", "Only active members (status = active)")}</li>
                           <li>{t("رتبة العضو ≤ رتبة المستخدم", "Member's rank ≤ user's rank")}</li>
-                          <li>{t("كلتا الحسابين (طالب + تسجيل) تُحسب", "Both Student and Registration count")}</li>
+                          <li>{t("كلتا الحسابين (طالب + تسجيل مجاني) تُحسب", "Both Student and Reg Free count")}</li>
                           <li>{t("الأعضاء بترتبة أعلى مستبعدون", "Members with higher rank are excluded")}</li>
                         </ul>
                       </div>
@@ -790,12 +787,12 @@ export default function UsersPage() {
                                     {[
                                       [t("مبيعات مباشرة", "Direct Sales"), wh.total_direct_sales],
                                       [t("طلاب", "Students"), wh.student_direct_sales],
-                                      [t("تسجيل", "Registration"), wh.registration_direct_sales],
+                                      [t("تسجيل مجاني", "Reg Free"), wh.registration_direct_sales],
                                       [t("مؤهلة", "Qualified"), wh.qualified_direct_sales],
                                       [t("فريق مؤهل", "Qualified Team"), wh.qualified_team_count],
                                       [t("شبكة مؤهلة", "Qualified Network"), wh.qualified_network_count],
                                       [t("أعضاء طلاب", "Student Members"), wh.student_members],
-                                      [t("أعضاء تسجيل", "Registration Members"), wh.registration_members],
+                                      [t("أعضاء تسجيل مجاني", "Reg Free Members"), wh.registration_members],
                                       [t("مستبعدون (رتبة أعلى)", "Excluded (Higher Rank)"), wh.higher_rank_excluded],
                                       [t("مستبعدون (غير نشط)", "Excluded (Inactive)"), wh.inactive_excluded],
                                     ].map(([label, val], i) => (
@@ -839,7 +836,7 @@ export default function UsersPage() {
                                     <p className="text-sm font-bold">
                                       {u.full_name}
                                       {isCurrentUser && <span className="text-xs text-blue-500 ml-1">({t("هذا المستخدم", "This User")})</span>}
-                                      {u.account_type === 'registration' && <span className="text-xs text-yellow-600 ml-1 px-1.5 py-0.5 bg-yellow-100 rounded">REG</span>}
+                                      {u.account_type === 'registration_free' && <span className="text-xs text-yellow-600 ml-1 px-1.5 py-0.5 bg-yellow-100 rounded">REG</span>}
                                     </p>
                                     <p className="text-xs text-gray-400">
                                       {rk?.image && <img src={rk.image} alt="" className="w-4 h-4 rounded inline mr-1 object-cover" />}

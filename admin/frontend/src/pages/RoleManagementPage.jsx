@@ -6,22 +6,19 @@ export default function RoleManagementPage() {
   const { lang, t: tFn } = useLang();
   const t = (ar, en) => tFn(ar, en);
   const [pending, setPending] = useState([]);
-  const [registration, setRegistration] = useState([]);
   const [registrationFree, setRegistrationFree] = useState([]);
   const [students, setStudents] = useState([]);
   const [changing, setChanging] = useState(null);
   const [viewUser, setViewUser] = useState(null);
   const [viewUserData, setViewUserData] = useState(null);
   const [searchStudent, setSearchStudent] = useState("");
-  const [searchReg, setSearchReg] = useState("");
   const [searchRegFree, setSearchRegFree] = useState("");
   const [searchPending, setSearchPending] = useState("");
 
   const loadData = async () => {
     const all = await api("/api/users");
-    const getType = (u) => u.account_type || (u.role === "registration" ? "registration" : "student");
+    const getType = (u) => u.account_type || (u.role === "registration" ? "registration_free" : "student");
     setPending(all.filter((u) => u.status === "pending" && u.role !== "admin"));
-    setRegistration(all.filter((u) => getType(u) === "registration" && u.status === "active" && u.role !== "admin"));
     setRegistrationFree(all.filter((u) => getType(u) === "registration_free" && u.status === "active" && u.role !== "admin"));
     setStudents(all.filter((u) => getType(u) === "student" && u.role !== "admin" && u.status === "active"));
   };
@@ -82,14 +79,13 @@ export default function RoleManagementPage() {
     const types = [
       { key: "student", label: "🎓 Student" },
       { key: "registration_free", label: "🆓 Reg Free" },
-      { key: "registration", label: "👤 Registration" },
     ];
     const others = types.filter(tp => tp.key !== currentType);
 
     return (
       <div className="flex items-center gap-2 p-2.5 rounded-lg border bg-gray-50/50">
         <div className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
-          style={{background: currentType === "student" ? "#22c55e" : currentType === "registration_free" ? "#a855f7" : "#3b82f6"}}>
+          style={{background: currentType === "student" ? "#22c55e" : "#a855f7"}}>
           {user.full_name?.[0] || "?"}
         </div>
         <div className="flex-1 min-w-0">
@@ -114,7 +110,7 @@ export default function RoleManagementPage() {
     <div>
       <h2 className="text-2xl font-bold mb-6">{t("🔐 إدارة صلاحيات المستخدمين", "🔐 User Role Management")}</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Column title={t("طالب (Student)", "Student")} emoji="🎓" bgColor="bg-green-100 text-green-700"
           count={students.length} search={searchStudent} setSearch={setSearchStudent}>
           {students.filter(u => matchSearch(u, searchStudent)).map((u) => (
@@ -129,14 +125,6 @@ export default function RoleManagementPage() {
             <UserCard key={u.id} user={u} currentType="registration_free" />
           ))}
           {registrationFree.filter(u => matchSearch(u, searchRegFree)).length === 0 && <p className="text-center text-gray-400 py-4 text-sm">{t("لا توجد حسابات تسجيل مجاني", "No reg free accounts")}</p>}
-        </Column>
-
-        <Column title={t("تسجيل (Registration)", "Registration")} emoji="👤" bgColor="bg-blue-100 text-blue-700"
-          count={registration.length} search={searchReg} setSearch={setSearchReg}>
-          {registration.filter(u => matchSearch(u, searchReg)).map((u) => (
-            <UserCard key={u.id} user={u} currentType="registration" />
-          ))}
-          {registration.filter(u => matchSearch(u, searchReg)).length === 0 && <p className="text-center text-gray-400 py-4 text-sm">{t("لا توجد حسابات تسجيل", "No registration accounts")}</p>}
         </Column>
       </div>
 

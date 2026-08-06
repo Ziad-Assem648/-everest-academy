@@ -240,7 +240,7 @@ function DashboardPage({ stats }) {
 
   const breakdownCards = [
     { label: t("الحسابات المحظورة", "Blocked Accounts"), value: stats.totalBlocked, icon: "🚫", color: "#ef4444", desc: t("محظورين من المنصة", "Blocked from platform"), type: "blocked" },
-    { label: t("حسابات التسجيل", "Registration Accounts"), value: stats.totalRegistration, icon: "📝", color: "#f59e0b", desc: t("حسابات غير مفعلة كطلاب", "Not activated as students"), type: "registration" },
+    { label: t("حسابات التسجيل المجاني", "Reg Free Accounts"), value: stats.totalRegistration, icon: "🆓", color: "#a855f7", desc: t("حسابات غير مفعلة كطلاب", "Not activated as students"), type: "registration" },
     { label: t("العمولات المدفوعة", "Commissions Paid"), value: stats.totalCommissions, icon: "💎", color: "#10b981", desc: "EM " + t("إجمالي", "total"), type: "commissions" },
     { label: t("اختبارات ناجحة", "Quizzes Passed"), value: stats.passedQuizzes, icon: "📋", color: "#8b5cf6", desc: `${stats.totalQuizAttempts || 0} ${t("إجمالي محاولات", "total attempts")}`, type: "quizzes-passed" },
   ];
@@ -264,7 +264,7 @@ function DashboardPage({ stats }) {
     "pending-topup": t("طلبات الشحن المعلقة", "Pending Top-ups"),
     "upgrade-requests": t("طلبات الترقية", "Upgrade Requests"),
     "blocked": t("الحسابات المحظورة", "Blocked Accounts"),
-    "registration": t("حسابات التسجيل", "Registration Accounts"),
+    "registration": t("حسابات التسجيل المجاني", "Reg Free Accounts"),
     "commissions": t("العمولات المدفوعة", "Commissions Paid"),
     "quizzes-passed": t("اختبارات ناجحة", "Quizzes Passed"),
     "total-enrollments": t("جميع الاشتراكات", "All Enrollments"),

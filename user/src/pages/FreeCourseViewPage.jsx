@@ -103,21 +103,6 @@ export default function FreeCourseViewPage() {
           </div>
         </div>
 
-        {/* Registration account block */}
-        {user && user.account_type === "registration" && (
-          <div style={{background:card,border:`1px solid ${border}`,borderRadius:20,padding:m?"32px 20px":"48px 40px",textAlign:"center",marginBottom:20}}>
-            <div style={{width:72,height:72,borderRadius:"50%",background:`${accent}15`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 24px"}}>
-              <i className="fa-solid fa-lock" style={{fontSize:28,color:accent}}></i>
-            </div>
-            <h2 style={{fontSize:m?"1.2rem":"1.5rem",fontWeight:800,color:text,margin:"0 0 12px"}}>
-              {t("الكورسات متاحة للطلاب فقط", "Courses Available for Students Only")}
-            </h2>
-            <p style={{color:muted,fontSize:m?13:15,lineHeight:1.8,maxWidth:500,margin:"0 auto 0"}}>
-              {t("حسابك من نوع Registration. لمشاهدة الدروس، يرجى الترقية إلى حساب Student أولاً.", "Your account is Registration type. To watch lessons, please upgrade to a Student account first.")}
-            </p>
-          </div>
-        )}
-
         {/* Layout */}
         <div className="fcv-layout" style={{display:"flex",gap:24,paddingBottom:60}}>
           {/* Player */}

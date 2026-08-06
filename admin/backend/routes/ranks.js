@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
   const { all } = req.query;
   let sql = `
     SELECT r.*,
-      (SELECT COUNT(*) FROM users u WHERE u.rank = r.name AND u.role != 'admin' AND u.account_type IN ('student','registration')) as user_count
+      (SELECT COUNT(*) FROM users u WHERE u.rank = r.name AND u.role != 'admin' AND u.account_type IN ('student','registration_free')) as user_count
     FROM ranks r
   `;
   if (all === "true") sql += " ORDER BY r.sort_order";
@@ -25,7 +25,7 @@ router.get("/leaderboard", async (req, res) => {
     const users = await query(`
       SELECT id, full_name, avatar, rank, direct_count, e_money, account_type
       FROM users
-      WHERE role != 'admin' AND rank IS NOT NULL AND rank != '' AND account_type IN ('student','registration')
+      WHERE role != 'admin' AND rank IS NOT NULL AND rank != '' AND account_type IN ('student','registration_free')
       ORDER BY direct_count DESC
       LIMIT 30
     `);
@@ -94,11 +94,11 @@ router.delete("/:id", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Count qualified team members: Student + Registration accounts, status = active
+// Count qualified team members: Student + Reg Free accounts, status = active
 // Excludes: pending, rejected, suspended, inactive, and members with higher rank
 async function getQualifiedTeamCount(userId, currentRankSortOrder) {
   const allMembers = await query(
-    "SELECT u.id, u.rank, u.status FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type IN ('student','registration')",
+    "SELECT u.id, u.rank, u.status FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type IN ('student','registration_free')",
     [userId, userId]
   );
   // Filter to active only
@@ -122,7 +122,7 @@ async function getQualifiedTeamCount(userId, currentRankSortOrder) {
 // Get full breakdown of qualified team for weekly history
 async function getQualifiedTeamBreakdown(userId, currentRankSortOrder) {
   const allMembers = await query(
-    "SELECT u.id, u.rank, u.status, u.account_type FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type IN ('student','registration')",
+    "SELECT u.id, u.rank, u.status, u.account_type FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type IN ('student','registration_free')",
     [userId, userId]
   );
   const allRanks = await query("SELECT name, sort_order FROM ranks WHERE is_active = 1 ORDER BY sort_order ASC");
@@ -157,7 +157,7 @@ async function getQualifiedTeamBreakdown(userId, currentRankSortOrder) {
 // Legacy wrapper
 async function getTeamCount(userId) {
   const closure = await queryOne(
-    "SELECT COUNT(*) - 1 as cnt FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND u.account_type IN ('student','registration')",
+    "SELECT COUNT(*) - 1 as cnt FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND u.account_type IN ('student','registration_free')",
     [userId]
   );
   const direct = await queryOne("SELECT direct_count FROM users WHERE id = ?", [userId]);
@@ -227,7 +227,7 @@ async function advanceUserRank(userId) {
 
 router.post("/update", async (req, res) => {
   try {
-    const users = await query("SELECT id FROM users WHERE role != 'admin' AND account_type IN ('student','registration') AND status = 'active'");
+    const users = await query("SELECT id FROM users WHERE role != 'admin' AND account_type IN ('student','registration_free') AND status = 'active'");
     let updatedCount = 0;
     for (const u of users) {
       const result = await advanceUserRank(u.id);
@@ -268,7 +268,7 @@ router.get("/progress/:userId", async (req, res) => {
     );
     const totalDirectSales = directs.length;
     const studentDirectSales = directs.filter(d => d.account_type === 'student' && d.status === 'active').length;
-    const registrationDirectSales = directs.filter(d => d.account_type === 'registration' && d.status === 'active').length;
+    const registrationDirectSales = directs.filter(d => d.account_type === 'registration_free' && d.status === 'active').length;
     const qualifiedDirectSales = studentDirectSales + registrationDirectSales;
     const meetsMinDirects = qualifiedDirectSales >= 2;
 

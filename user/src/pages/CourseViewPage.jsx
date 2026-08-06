@@ -235,7 +235,6 @@ export default function CourseViewPage() {
   const isEnrolled = isApproved || (isFree && enrollment);
   const isStudentAccount = user?.account_type === "student" || user?.account_type === "registration_free";
   const canWatchAll = isEnrolled || isFree || isStudentAccount;
-  const isRegistration = user?.account_type === "registration";
   const isExpiredMembership = user && (user.blocked || (user.membership_expires_at && new Date(user.membership_expires_at) < new Date()));
 
   const allLessons = (course.topics || []).flatMap((t) => (t.lessons || []).map((l) => ({ ...l, topicTitle: t.title_ar || t.title, topicId: t.id })));
@@ -400,29 +399,14 @@ export default function CourseViewPage() {
                   </Link>
                 </div>
               </div>
-            ) : current && (isEnrolled ? false : isRegistration && !current.is_free ? true : (!canWatchAll && !current.is_free)) ? (
+            ) : current && (isEnrolled ? false : (!canWatchAll && !current.is_free)) ? (
               <div style={{textAlign:"center",color:"#555",padding:m?16:30}}>
                 <p style={{fontSize:m?32:48,marginBottom:m?6:12}}>🔒</p>
-                {isRegistration ? (
-                  <>
-                    <p style={{fontWeight:700,color:c.text,marginBottom:4,fontSize:m?13:16}}>{t("هذا الدرس مقفل", "This lesson is locked")}</p>
-                    <p style={{fontSize:m?11:13,color:c.textMuted,marginBottom:m?10:16,lineHeight:1.5}}>{t("اشترِ الكورس بـ E-Money أو ترقّ إلى حساب Student للمشاهدة الكاملة.", "Buy the course with E-Money or upgrade to a Student account for full access.")}</p>
-                    <button onClick={() => {
-                      if ((user?.e_money || 0) < course.price) { alert(t("رصيد E-Money غير كافٍ", "Insufficient E-Money balance")); return; }
-                      buyCourse("emoney");
-                    }} style={{display:"inline-flex",alignItems:"center",gap:8,padding:m?"10px 18px":"10px 24px",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",borderRadius:10,color:"#FFFFFF",fontWeight:800,fontSize:m?12:13,border:"none",cursor:"pointer"}}>
-                      💳 {t("اشترِ بـ", "Buy for")} {course.price} E-Money
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <p style={{fontWeight:700,color:c.text,marginBottom:4,fontSize:m?13:16}}>{t("هذا الدرس مقفل", "This lesson is locked")}</p>
-                    <p style={{fontSize:m?11:13,color:c.textMuted,marginBottom:m?10:16}}>{t("اشترِ الكورس للمشاهدة الكاملة", "Buy the course for full access")}</p>
-                    <Link to={`/courses/${id}`} style={{display:"inline-flex",alignItems:"center",gap:8,padding:m?"10px 18px":"10px 24px",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",borderRadius:10,color:"#FFFFFF",fontWeight:800,fontSize:m?12:13,textDecoration:"none"}}>
-                      💳 {t("اشترِ الكورس", "Buy Course")} — {course.price} E-Money
-                    </Link>
-                  </>
-                )}
+                <p style={{fontWeight:700,color:c.text,marginBottom:4,fontSize:m?13:16}}>{t("هذا الدرس مقفل", "This lesson is locked")}</p>
+                <p style={{fontSize:m?11:13,color:c.textMuted,marginBottom:m?10:16}}>{t("اشترِ الكورس للمشاهدة الكاملة", "Buy the course for full access")}</p>
+                <Link to={`/courses/${id}`} style={{display:"inline-flex",alignItems:"center",gap:8,padding:m?"10px 18px":"10px 24px",background:"linear-gradient(135deg,#6E3BF2,#B88BFF)",borderRadius:10,color:"#FFFFFF",fontWeight:800,fontSize:m?12:13,textDecoration:"none"}}>
+                  💳 {t("اشترِ الكورس", "Buy Course")} — {course.price} E-Money
+                </Link>
               </div>
             ) : videoSrc ? (
               isYoutube(current?.video_url) ? (
