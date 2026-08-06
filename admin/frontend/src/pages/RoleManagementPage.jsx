@@ -167,7 +167,7 @@ export default function RoleManagementPage() {
 
               <div className="grid grid-cols-2 gap-3 text-sm">
                 {[
-                  { label: "ID", value: viewUserData?.id || viewUser.id },
+                  { label: "ID", value: viewUserData?.referral_code || viewUserData?.id || viewUser.id },
                   { label: t("الاسم", "Name"), value: viewUserData?.full_name || viewUser.full_name },
                   { label: t("البريد", "Email"), value: viewUserData?.email || viewUser.email },
                   { label: t("الهاتف", "Phone"), value: viewUserData?.phone || "—" },
@@ -178,7 +178,6 @@ export default function RoleManagementPage() {
                   { label: t("الرصيد", "E-Money"), value: viewUserData?.e_money ?? "—" },
                   { label: t("الحالة", "Status"), value: viewUserData?.status || viewUser.status },
                   { label: t("المحظور", "Blocked"), value: (viewUserData?.blocked || viewUser.blocked) ? t("نعم", "Yes") : t("لا", "No") },
-                  { label: t("كود الإحالة", "Referral Code"), value: viewUserData?.referral_code || "—" },
                   { label: t("احالة من", "Referred By"), value: viewUserData?.referred_by || "—" },
                   { label: t("مبيعات الفريق", "Team Sales"), value: viewUserData?.total_team_sales ?? 0 },
                   { label: t("الأعضاء المباشرين", "Direct Count"), value: viewUserData?.direct_count ?? 0 },

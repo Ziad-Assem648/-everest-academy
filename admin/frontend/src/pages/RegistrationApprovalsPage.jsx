@@ -263,7 +263,7 @@ export default function RegistrationApprovalsPage() {
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 14 }}>
                   {[
-                    { label: "ID", value: viewProfileData?.id || viewProfile.id },
+                    { label: "ID", value: viewProfileData?.referral_code || viewProfileData?.id || viewProfile.id },
                     { label: t("الاسم", "Name"), value: viewProfileData?.full_name || viewProfile.full_name },
                     { label: t("البريد", "Email"), value: viewProfileData?.email || viewProfile.email },
                     { label: t("الهاتف", "Phone"), value: viewProfileData?.phone || "—" },
@@ -276,7 +276,6 @@ export default function RegistrationApprovalsPage() {
                     { label: t("الرصيد", "E-Money"), value: viewProfileData?.e_money ?? "—" },
                     { label: t("الحالة", "Status"), value: viewProfileData?.status || "—" },
                     { label: t("المحظور", "Blocked"), value: viewProfileData?.blocked ? t("نعم", "Yes") : t("لا", "No") },
-                    { label: t("كود الإحالة", "Referral Code"), value: viewProfileData?.referral_code || "—" },
                     { label: t("احالة من", "Referred By"), value: viewProfileData?.referred_by || "—" },
                     { label: t("مبيعات الفريق", "Team Sales"), value: viewProfileData?.total_team_sales ?? 0 },
                     { label: t("الأعضاء المباشرين", "Direct Count"), value: viewProfileData?.direct_count ?? 0 },
