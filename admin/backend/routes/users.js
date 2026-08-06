@@ -83,7 +83,7 @@ router.get("/created-accounts", async (req, res) => {
   try {
     const users = await query(`
       SELECT u.id, u.full_name, u.email, u.phone, u.governorate, u.country, u.role, u.account_type, u.referral_code,
-             u.rank, u.e_money, u.status, u.blocked, u.created_at,
+             u.rank, u.e_money, u.status, u.blocked, u.created_at, u.created_by_user,
              c.full_name as creator_name, c.email as creator_email
       FROM users u
       LEFT JOIN users c ON u.created_by_user = c.id
