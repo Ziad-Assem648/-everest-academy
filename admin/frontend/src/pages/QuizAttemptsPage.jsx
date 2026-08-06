@@ -197,7 +197,7 @@ export default function QuizAttemptsPage() {
                   <td data-label={t("الطالب", "Student")} className="p-3">
                     <p className="text-sm font-medium">{a.student_name}</p>
                     <p className="text-xs text-gray-400">{a.student_email}</p>
-                    <p className="text-xs text-gray-300 font-mono">ID: {a.student_id}</p>
+                    <p className="text-xs text-gray-300 font-mono"><span className="text-gray-400">ID:</span> <span className="font-semibold text-gray-600">{a.student_referral_code || a.student_id}</span></p>
                   </td>
                   <td data-label={t("الكورس", "Course")} className="p-3 text-sm">{a.course_name}</td>
                   <td data-label={t("عدد الأسئلة", "Questions")} className="p-3 text-sm">{a.total_marks}</td>

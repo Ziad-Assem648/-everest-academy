@@ -386,7 +386,7 @@ export default function UsersPage() {
                     <>
                       <div className="grid grid-cols-3 gap-3 mb-4">
                         {[
-                          { label: t("المعرف", "User ID"), value: selectedUser.id },
+                          { label: t("المعرف", "User ID"), value: selectedUser.referral_code || selectedUser.id },
                           { label: t("البريد الإلكتروني", "Email"), value: selectedUser.email },
                           { label: t("رقم الهاتف", "Phone"), value: selectedUser.phone || "—" },
                           { label: t("العنوان", "Address"), value: selectedUser.address || "—" },
@@ -570,7 +570,7 @@ export default function UsersPage() {
                                       <tr key={m.id} className="border-t">
                                         <td className="font-medium">{m.full_name}</td>
                                         <td className="text-xs text-gray-500">{m.email}</td>
-                                        <td className="text-xs text-gray-400 font-mono">{m.id}</td>
+                                        <td className="text-xs font-mono"><span className="text-gray-400">ID:</span> <span className="font-semibold text-gray-600">{m.referral_code || m.id}</span></td>
                                         <td className="text-xs">⭐ {m.rank || "—"}</td>
                                         <td><span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">{m.role}</span></td>
                                       </tr>

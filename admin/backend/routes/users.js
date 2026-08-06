@@ -89,7 +89,7 @@ router.get("/:id", async (req, res) => {
   const realDirects = await queryOne("SELECT COUNT(*) as cnt FROM users WHERE referred_by = ? OR (created_by_user = ? AND referred_by IS NULL)", [req.params.id, req.params.id]);
   user.direct_count = realDirects?.cnt || 0;
   const teamLevels = await query(`
-    SELECT u.id, u.full_name, u.email, u.role, u.rank, u.e_money, u.created_at, uc.depth
+    SELECT u.id, u.referral_code, u.full_name, u.email, u.role, u.rank, u.e_money, u.created_at, uc.depth
     FROM user_closure uc
     JOIN users u ON u.id = uc.descendant
     WHERE uc.ancestor = ?

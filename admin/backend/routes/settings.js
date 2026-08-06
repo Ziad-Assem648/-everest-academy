@@ -19,8 +19,8 @@ router.get("/membership-search/:query", async (req, res) => {
   try {
     const q = `%${req.params.query}%`;
     const users = await query(
-      "SELECT id, full_name, email, phone, membership_expires_at, blocked FROM users WHERE id = ? OR email LIKE ? OR full_name LIKE ? OR phone LIKE ? LIMIT 10",
-      [req.params.query, q, q, q]
+      "SELECT id, referral_code, full_name, email, phone, membership_expires_at, blocked FROM users WHERE id = ? OR referral_code = ? OR email LIKE ? OR full_name LIKE ? OR phone LIKE ? LIMIT 10",
+      [req.params.query, req.params.query, q, q, q]
     );
     const results = users.map(u => {
       const days_remaining = u.membership_expires_at

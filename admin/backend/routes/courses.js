@@ -61,7 +61,8 @@ router.get("/attempts", async (req, res) => {
   const attempts = await query(`
     SELECT qa.*, q.title as quiz_title, q.type as quiz_type,
       COALESCE(c.title, '—') as course_name,
-      u.full_name as student_name, u.email as student_email, u.id as student_id
+      u.full_name as student_name, u.email as student_email, u.id as student_id,
+      u.referral_code as student_referral_code
     FROM quiz_attempts qa
     JOIN quizzes q ON qa.quiz_id = q.id
     LEFT JOIN topics t ON q.topic_id = t.id

@@ -183,7 +183,7 @@ export default function ProfilePage() {
               <div>
                 <h2>{p.full_name || "—"}</h2>
                 <p style={{color:c.textMuted,fontSize:13,marginTop:2}}>{p.email}</p>
-                <span className="student-id">ID: {p.referral_code || "—"}</span>
+                <span className="student-id" style={{direction:"ltr",display:"inline-flex",alignItems:"center",gap:4}}><span style={{color:c.textMuted}}>ID:</span> <span style={{color:c.primary,fontWeight:700,fontFamily:"monospace"}}>{p.referral_code || "—"}</span></span>
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"flex-end"}}>
                 <button onClick={() => { toggleLang(); }}
