@@ -175,8 +175,8 @@ export default function PendingActivationPage() {
           </h2>
           <p style={{ fontSize: 14, color: c.textSoft, lineHeight: 1.8, margin: "0 0 20px" }}>
             {t(
-              "تم تأكيد بريدك الإلكتروني بنجاح. الآن ينتظر حسابك المراجعة والتفعيل من الإدارة. سنخطرك فور التفعيل.",
-              "Your email has been verified successfully. Your account is now pending review and activation by the admin. We'll notify you once activated."
+              "تم تأكيد بريدك الإلكتروني بنجاح! لإتمام تفعيل حسابك والوصول إلى الكورسات، يرجى التواصل مع خدمة العملاء لدفع الرسوم.",
+              "Your email has been verified successfully! To activate your account and access your courses, please contact customer service to pay the fees."
             )}
           </p>
         </div>
@@ -197,7 +197,7 @@ export default function PendingActivationPage() {
                 {t("تواصل مع خدمة العملاء", "Contact Customer Service")}
               </h3>
               <p style={{ fontSize: 13, color: c.textMuted }}>
-                {t("فريقنا جاهز لمساعدتك وتفعيل حسابك فوراً", "Our team is ready to help you and activate your account")}
+                {t("تواصل معنا لدفع الرسوم وسيتم تفعيل الكورسات وحسابك فوراً", "Contact us to pay the fees and your courses and account will be activated")}
               </p>
             </div>
 
