@@ -12,6 +12,7 @@ export default function AccountsBySourcePage({ source }) {
   const [viewProfile, setViewProfile] = useState(null);
   const [viewProfileData, setViewProfileData] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [profileError, setProfileError] = useState(null);
 
   const endpoint = isCreated ? "/api/users/created-accounts" : "/api/users/external-accounts";
 
@@ -25,14 +26,19 @@ export default function AccountsBySourcePage({ source }) {
 
   useEffect(() => { load(); }, [endpoint]);
 
-  const openViewProfile = async (userId, name, email) => {
-    setViewProfile({ id: userId, full_name: name, email });
+  const openViewProfile = async (user) => {
+    setViewProfile({ id: user.id, full_name: user.full_name, email: user.email });
     setViewProfileData(null);
+    setProfileError(null);
     setLoadingProfile(true);
     try {
-      const data = await api(`/api/users/${userId}`);
+      const data = await api(`/api/users/${user.id}`);
       setViewProfileData(data);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      setProfileError(e.message);
+      setViewProfileData(user);
+    }
     setLoadingProfile(false);
   };
 
@@ -91,7 +97,7 @@ export default function AccountsBySourcePage({ source }) {
                 <tr key={u.id} className="border-t hover:bg-gray-50">
                   <td data-label="ID" className="font-bold text-everest-700 text-xs">{u.referral_code || u.id}</td>
                   <td data-label={t("الاسم", "Name")}>
-                    <button onClick={() => openViewProfile(u.id, u.full_name, u.email)}
+                    <button onClick={() => openViewProfile(u)}
                       className="font-medium text-sm text-left hover:text-everest-700 transition cursor-pointer">
                       {u.full_name}
                     </button>
@@ -108,7 +114,7 @@ export default function AccountsBySourcePage({ source }) {
                   <td data-label={t("الرصيد", "E-Money")} className="text-xs font-medium text-everest-700">{u.e_money ?? 0}</td>
                   {isCreated && (
                     <td data-label={t("أنشأه", "Created By")} className="text-xs">
-                      <button onClick={() => openViewProfile(u.created_by_user, u.creator_name, u.creator_email)}
+                      <button onClick={() => openViewProfile({ id: u.created_by_user, full_name: u.creator_name, email: u.creator_email })}
                         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 font-medium hover:bg-purple-100 cursor-pointer transition" title={u.creator_email}>
                         👤 {u.creator_name || u.creator_email || u.created_by_user}
                       </button>
@@ -125,18 +131,23 @@ export default function AccountsBySourcePage({ source }) {
       {/* Profile Modal */}
       {viewProfile && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
-          onClick={() => { setViewProfile(null); setViewProfileData(null); }}>
+          onClick={() => { setViewProfile(null); setViewProfileData(null); setProfileError(null); }}>
           <div style={{ background: "#fff", borderRadius: 16, padding: 24, maxWidth: 560, width: "100%", maxHeight: "90vh", overflow: "auto" }}
             onClick={e => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{t("بيانات المستخدم", "User Details")}</h3>
-              <button onClick={() => { setViewProfile(null); setViewProfileData(null); }} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#666" }}>✕</button>
+              <button onClick={() => { setViewProfile(null); setViewProfileData(null); setProfileError(null); }} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#666" }}>✕</button>
             </div>
 
             {loadingProfile ? (
               <p style={{ color: "#999", textAlign: "center", padding: 20 }}>{t("جارٍ التحميل...", "Loading...")}</p>
             ) : (
               <>
+                {profileError && (
+                  <div style={{ background: "#fef2f2", color: "#b91c1c", borderRadius: 10, padding: "10px 14px", fontSize: 12, marginBottom: 16 }}>
+                    ⚠️ {t("تعذر تحميل التفاصيل الكاملة", "Couldn't load full details")}: {profileError}
+                  </div>
+                )}
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #f0f0f0" }}>
                   <div style={{ width: 48, height: 48, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 18,
                     background: (viewProfileData?.account_type || "student") === "student" ? "#22c55e" : "#a855f7" }}>
