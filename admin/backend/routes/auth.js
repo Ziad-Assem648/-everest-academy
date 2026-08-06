@@ -2,7 +2,7 @@ import express from "express";
 import { query, queryOne, execute } from "../db.js";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
-import { sendOTPEmail } from "../services/emailService.js";
+import { sendOTPEmail, sendActivationFollowUpEmail } from "../services/emailService.js";
 
 const router = express.Router();
 
@@ -236,6 +236,16 @@ router.post("/verify-email-otp", async (req, res) => {
 
     await execute("UPDATE users SET email_verified = 1, email_otp = NULL, email_otp_expires = NULL WHERE id = ?", [user.id]);
     res.json({ success: true, message: "Email verified successfully" });
+
+    // Send follow-up email: contact customer service to pay fees and activate account/courses
+    try {
+      const csRows = await query("SELECT * FROM settings WHERE key = 'customer_service_whatsapp'");
+      const csNumber = csRows && csRows[0] ? csRows[0].value : "";
+      const verifiedUser = await queryOne("SELECT full_name, email FROM users WHERE id = ?", [user.id]);
+      await sendActivationFollowUpEmail(verifiedUser?.email || email, verifiedUser?.full_name || "", csNumber);
+    } catch (emailErr) {
+      console.error("Activation follow-up email failed:", emailErr.message);
+    }
   } catch (e) {
     console.error("verify-email-otp error:", e.message);
     res.status(500).json({ error: e.message });

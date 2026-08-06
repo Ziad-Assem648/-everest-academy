@@ -211,6 +211,87 @@ export async function sendOTPEmail(to, otp, name, purpose = "general") {
   if (!res.ok) throw new Error(data.message || "Resend email failed");
 }
 
+export async function sendActivationFollowUpEmail(to, name, csNumber) {
+  const subject = "Account Activated - Contact Customer Service | تم تفعيل حسابك - تواصل مع خدمة العملاء";
+  const phone = csNumber || process.env.CUSTOMER_SERVICE_NUMBER || "+201234567890";
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Customer Service</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f8;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f8;padding:20px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.06);">
+          <tr>
+            <td style="background:linear-gradient(135deg,#6E3BF2,#B88BFF);padding:36px 30px;text-align:center;">
+              <img src="https://myeverestcompany.com/image/logo3.png" alt="Everest Academy" style="height:52px;margin-bottom:12px;" />
+              <h1 style="color:#fff;font-size:22px;font-weight:800;margin:0;letter-spacing:-.3px;">Account Activated / تم تفعيل الحساب</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:36px 32px;">
+              <p style="font-size:16px;color:#1a1a2e;margin:0 0 6px;font-weight:600;">Hello${name ? `, ${name}` : ''}! / مرحباً${name ? `، ${name}` : ''}!</p>
+              <div style="font-size:14px;color:#555;line-height:1.9;margin:0 0 20px;">
+                <p style="margin:0 0 8px;">تواصل معنا لدفع الرسوم وسيتم تفعيل الكورسات وحسابك فوراً.</p>
+                <p style="margin:0 0 8px;">Contact us to pay the fees and your courses and account will be activated.</p>
+              </div>
+              <div style="text-align:center;margin:24px 0;padding:24px;background:#f8f6ff;border-radius:12px;border:1px solid #e9d8ff;">
+                <p style="font-size:13px;color:#6E3BF2;font-weight:700;margin:0 0 8px;">Customer Service / خدمة العملاء</p>
+                <a href="https://wa.me/${String(phone).replace(/[^0-9]/g, '')}" target="_blank" style="display:inline-block;font-size:24px;font-weight:bold;color:#25d366;text-decoration:none;">${phone}</a>
+              </div>
+              <p style="font-size:13px;color:#999;line-height:1.6;margin:0;border-top:1px solid #eee;padding-top:20px;">
+                Your account email is verified. Please contact customer service to complete your activation and start learning. / تم تأكيد بريدك الإلكتروني. يرجى التواصل مع خدمة العملاء لإتمام تفعيلك وبدء التعلم.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 32px;background-color:#fafafe;border-top:1px solid #f0ecff;">
+              <p style="font-size:11px;color:#aaa;text-align:center;margin:0;">
+                Everest Academy &copy; ${new Date().getFullYear()} &bull; All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  const transporter = getTransporter();
+  if (transporter) {
+    try {
+      await transporter.sendMail({
+        from: `"Everest Academy" <noreply@myeverestcompany.com>`,
+        to,
+        subject,
+        html,
+      });
+      return;
+    } catch (smtpErr) {
+      console.warn("SMTP follow-up email failed, falling back to Resend:", smtpErr.message);
+    }
+  }
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error("No email provider configured (SMTP or Resend)");
+  const from = "Everest Academy <noreply@myeverestcompany.com>";
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from, to: [to], subject, html }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Resend email failed");
+}
+
 export async function sendRejectionEmail(to, name, reason) {
   const subject = "Account Registration Rejected - Everest Academy";
 
