@@ -9,9 +9,11 @@ const bVal = (r) => r.bonus !== undefined ? r.bonus : r.weekly_bonus;
 
 async function resolveUserId(identifier) {
   if (!identifier) return null;
-  const byId = await queryOne("SELECT id FROM users WHERE id = ?", [identifier]);
+  const cleaned = String(identifier).trim().toUpperCase();
+  if (!cleaned) return null;
+  const byId = await queryOne("SELECT id FROM users WHERE id = ?", [cleaned]);
   if (byId) return byId.id;
-  const byRef = await queryOne("SELECT id FROM users WHERE referral_code = ?", [identifier]);
+  const byRef = await queryOne("SELECT id FROM users WHERE referral_code = ?", [cleaned]);
   return byRef ? byRef.id : null;
 }
 
@@ -74,6 +76,23 @@ router.get("/upline/:userId", async (req, res) => {
   } catch (err) {
     console.error("mlm/upline error:", err.message);
     res.json([]);
+  }
+});
+
+router.get("/lookup", async (req, res) => {
+  try {
+    const { code } = req.query;
+    if (!code) return res.status(400).json({ error: "code query param required" });
+    const cleaned = String(code).trim().toUpperCase();
+    const u = await queryOne(
+      "SELECT id, referral_code, full_name, e_money FROM users WHERE id = ? OR referral_code = ?",
+      [cleaned, cleaned]
+    );
+    if (!u) return res.json({ found: false });
+    res.json({ found: true, id: u.id, referral_code: u.referral_code, full_name: u.full_name });
+  } catch (err) {
+    console.error("mlm/lookup error:", err.message);
+    res.json({ found: false });
   }
 });
 

@@ -113,6 +113,7 @@ export default function AffiliatePage() {
   const [transferTo, setTransferTo] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
   const [transferMsg, setTransferMsg] = useState("");
+  const [transferTarget, setTransferTarget] = useState(null);
   const [directs, setDirects] = useState([]);
   const [upline, setUpline] = useState(null);
   const [profileData, setProfileData] = useState(null);
@@ -131,6 +132,18 @@ export default function AffiliatePage() {
   };
 
   useEffect(() => { loadData(); }, [user]);
+
+  useEffect(() => {
+    const code = String(transferTo || "").trim();
+    setTransferTarget(null);
+    if (code.length < 4 || !user) return;
+    const t = setTimeout(() => {
+      api(`/api/mlm/lookup?code=${encodeURIComponent(code)}`)
+        .then((r) => setTransferTarget(r && r.found ? r : null))
+        .catch(() => setTransferTarget(null));
+    }, 400);
+    return () => clearTimeout(t);
+  }, [transferTo]);
 
   const copyCode = () => {
     if (user?.referral_code) {
@@ -707,8 +720,14 @@ export default function AffiliatePage() {
                     background: c.bgInput || c.bg,
                     color: c.text,
                     outline: "none",
+                    textTransform: "uppercase",
                   }}
                 />
+                {transferTarget && (
+                  <div style={{ flex: "1 1 100%", fontSize: 12, color: c.textMuted, marginTop: -6 }}>
+                    {t("المستلم", "Recipient")}: <b style={{ color: c.text }}>{transferTarget.full_name}</b> <span style={{ fontFamily: "monospace", color: c.primary }}>{transferTarget.referral_code}</span>
+                  </div>
+                )}
                 <input
                   type="number"
                   value={transferAmount}
@@ -738,12 +757,13 @@ export default function AffiliatePage() {
                         method: "POST",
                         body: JSON.stringify({
                           from_user_id: user.id,
-                          to_user_id: transferTo,
+                          to_user_id: String(transferTo).trim(),
                           amount: parseFloat(transferAmount),
                         }),
                       });
                       setTransferAmount("");
                       setTransferTo("");
+                      setTransferTarget(null);
                       const u = await api(`/api/users/${user.id}`);
                       if (u) login({ ...u, session_token: user.session_token });
                       api(`/api/mlm/transfers/${user.id}`).then(setTransferHistory).catch(() => {});
