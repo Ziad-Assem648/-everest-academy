@@ -11,7 +11,7 @@ import QuizAttemptsPage from "./pages/QuizAttemptsPage.jsx";
 import StudentListPage from "./pages/StudentListPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import UsersPage from "./pages/UsersPage.jsx";
-import PurchaseRequestsPage from "./pages/PurchaseRequestsPage.jsx";
+import AccountsBySourcePage from "./pages/AccountsBySourcePage.jsx";
 import UpgradeRequestsPage from "./pages/UpgradeRequestsPage.jsx";
 import LeadersPage from "./pages/LeadersPage.jsx";
 import PaymentGatewayPage from "./pages/PaymentGatewayPage.jsx";
@@ -62,7 +62,8 @@ function AppInner() {
     { id: "approvals", label: lang === "ar" ? "تفعيل الحسابات" : "Account Approvals", icon: "🔐" },
     { id: "users", label: lang === "ar" ? "إدارة المستخدمين" : "User Management", icon: "👤" },
     { id: "role-mgmt", label: lang === "ar" ? "إدارة الصلاحيات" : "Role Management", icon: "🔐" },
-    { id: "purchases", label: lang === "ar" ? "طلبات الشراء" : "Purchases", icon: "🛒" },
+    { id: "external-accounts", label: lang === "ar" ? "حسابات التسجيل الخارجي" : "External Sign-up Accounts", icon: "📝" },
+    { id: "created-accounts", label: lang === "ar" ? "حسابات إنشاء حساب لآخر" : "Created Accounts", icon: "👥" },
     { id: "course-builder", label: lang === "ar" ? "بناء الكورس" : "Course Builder", icon: "📝" },
     { id: "courses", label: lang === "ar" ? "قائمة الكورسات" : "Courses", icon: "📚" },
     { id: "free-courses", label: lang === "ar" ? " ظهور الكورسات" : "Course Visibility", icon: "👁️" },
@@ -108,7 +109,8 @@ function AppInner() {
           {page === "approvals" && <RegistrationApprovalsPage />}
           {page === "users" && <UsersPage />}
           {page === "role-mgmt" && <RoleManagementPage />}
-          {page === "purchases" && <PurchaseRequestsPage />}
+          {page === "external-accounts" && <AccountsBySourcePage source="external" />}
+          {page === "created-accounts" && <AccountsBySourcePage source="created" />}
           {page === "course-builder" && <CourseBuilderPage />}
           {page === "courses" && <CoursesListPage />}
           {page === "free-courses" && <FreeCoursesSettingsPage />}

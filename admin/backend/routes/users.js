@@ -59,6 +59,44 @@ router.get("/pending-registrations", async (req, res) => {
   }
 });
 
+// Approved accounts from external sign-up (no creator) — must be before /:id
+router.get("/external-accounts", async (req, res) => {
+  try {
+    const users = await query(`
+      SELECT u.id, u.full_name, u.email, u.phone, u.governorate, u.country, u.role, u.account_type, u.referral_code,
+             u.rank, u.e_money, u.status, u.blocked, u.created_at,
+             r.full_name as referrer_name, r.email as referrer_email
+      FROM users u
+      LEFT JOIN users r ON u.referred_by = r.id
+      WHERE u.role NOT IN ('admin','manager') AND u.created_by_user IS NULL AND u.status = 'active'
+      ORDER BY u.created_at DESC
+    `);
+    res.json(users);
+  } catch (e) {
+    console.error("external-accounts error:", e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Approved accounts created via "Create Account for Another User" — must be before /:id
+router.get("/created-accounts", async (req, res) => {
+  try {
+    const users = await query(`
+      SELECT u.id, u.full_name, u.email, u.phone, u.governorate, u.country, u.role, u.account_type, u.referral_code,
+             u.rank, u.e_money, u.status, u.blocked, u.created_at,
+             c.full_name as creator_name, c.email as creator_email
+      FROM users u
+      LEFT JOIN users c ON u.created_by_user = c.id
+      WHERE u.role NOT IN ('admin','manager') AND u.created_by_user IS NOT NULL AND u.status = 'active'
+      ORDER BY u.created_at DESC
+    `);
+    res.json(users);
+  } catch (e) {
+    console.error("created-accounts error:", e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.get("/:id/id-cards", async (req, res) => {
   try {
     const user = await queryOne("SELECT id_card_front, id_card_back FROM users WHERE id = ?", [req.params.id]);
