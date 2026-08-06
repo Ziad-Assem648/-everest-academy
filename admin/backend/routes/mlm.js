@@ -13,7 +13,7 @@ router.get("/tree", async (req, res) => {
     const { userId } = req.query;
     if (!userId) return res.status(400).json({ error: "userId query param required" });
     const descendants = await query(`
-      SELECT u.id, u.full_name, u.email, u.role, u.rank, u.e_money, u.account_type,
+      SELECT u.id, u.referral_code, u.full_name, u.email, u.role, u.rank, u.e_money, u.account_type,
              u.direct_count, u.qualified_direct_count, u.created_at,
              u.referred_by, u.created_by_user, c.depth
       FROM user_closure c
@@ -35,7 +35,7 @@ router.get("/tree", async (req, res) => {
 router.get("/directs/:userId", async (req, res) => {
   try {
     const users = await query(
-      "SELECT id, full_name, email, phone, avatar, role, rank, e_money, direct_count, qualified_direct_count, account_type, status, created_at FROM users WHERE referred_by = ? OR created_by_user = ? ORDER BY created_at DESC",
+      "SELECT id, referral_code, full_name, email, phone, avatar, role, rank, e_money, direct_count, qualified_direct_count, account_type, status, created_at FROM users WHERE referred_by = ? OR created_by_user = ? ORDER BY created_at DESC",
       [req.params.userId, req.params.userId]
     );
     res.json(users);
@@ -48,7 +48,7 @@ router.get("/directs/:userId", async (req, res) => {
 router.get("/upline/:userId", async (req, res) => {
   try {
     let upline = await query(`
-      SELECT u.id, u.full_name, u.email, u.role, u.rank, u.e_money,
+      SELECT u.id, u.referral_code, u.full_name, u.email, u.role, u.rank, u.e_money,
              u.direct_count, u.avatar, c.depth
       FROM user_closure c
       JOIN users u ON u.id = c.ancestor
@@ -58,7 +58,7 @@ router.get("/upline/:userId", async (req, res) => {
     if (upline.length === 0) {
       const me = await queryOne("SELECT referred_by FROM users WHERE id = ?", [req.params.userId]);
       if (me && me.referred_by && me.referred_by !== '') {
-        const sponsor = await queryOne("SELECT id, full_name, email, role, rank, e_money, direct_count, avatar FROM users WHERE id = ?", [me.referred_by]);
+        const sponsor = await queryOne("SELECT id, referral_code, full_name, email, role, rank, e_money, direct_count, avatar FROM users WHERE id = ?", [me.referred_by]);
         if (sponsor) upline = [{ ...sponsor, depth: 1 }];
       }
     }

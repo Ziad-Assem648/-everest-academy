@@ -8,9 +8,12 @@ import { sendOTPEmail, sendRejectionEmail } from "../services/emailService.js";
 const router = express.Router();
 
 async function generateUserId() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   for (let attempt = 0; attempt < 100; attempt++) {
-    const id = String(Math.floor(1000000000 + Math.random() * 9000000000));
-    const existing = await queryOne("SELECT id FROM users WHERE id = ?", [id]);
+    let code = "";
+    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    const id = "EVR-" + code;
+    const existing = await queryOne("SELECT id FROM users WHERE id = ? OR referral_code = ?", [id, id]);
     if (!existing) return id;
   }
   throw new Error("Could not generate unique user ID");
@@ -429,7 +432,7 @@ router.post("/create-for-others", async (req, res) => {
     if (existingPhone) return res.status(400).json({ error: "Phone number is already registered", error_ar: "رقم الهاتف مسجل بالفعل" });
 
     const id = await generateUserId();
-    const code = "EVR-" + id.slice(0, 6);
+    const code = id;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user as pending — creator is tracked via created_by_user, NOT referred_by (prevents double commission)

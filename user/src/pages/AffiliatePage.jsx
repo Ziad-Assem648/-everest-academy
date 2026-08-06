@@ -69,7 +69,7 @@ function TeamMemberNode({ member, depth, t, c, total, dbRanks }) {
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontWeight: 700, fontSize: 13, margin: 0, color: c.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{member.full_name}</p>
-          <p style={{ fontSize: 10, color: c.textMuted, margin: 0, direction: "ltr" }}>ID: {member.id}</p>
+          <p style={{ fontSize: 10, color: c.textMuted, margin: 0, direction: "ltr" }}>ID: {member.referral_code || member.id}</p>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2, flexWrap: "wrap" }}>
             <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 7px", borderRadius: 6, background: member.rank ? `${lc}12` : `${lc}08`, color: member.rank ? lc : `${lc}88`, display:"inline-flex", alignItems:"center", gap:4 }}>
               {(() => { if (!member.rank) return null; const rk = (dbRanks || []).find(r => r.name === member.rank); return rk?.image ? <img src={rk.image} alt="" style={{width:14,height:14,borderRadius:3,objectFit:"cover"}} /> : (rankIcons[member.rank] || "⭐"); })()} {member.rank || `—`}
@@ -382,7 +382,7 @@ export default function AffiliatePage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontWeight: 700, fontSize: 14, margin: 0, color: c.text }}>{upline.full_name}</p>
-                      <p style={{ fontSize: 10, color: c.textMuted, margin: "1px 0 0", direction: "ltr" }}>ID: {upline.id}</p>
+                      <p style={{ fontSize: 10, color: c.textMuted, margin: "1px 0 0", direction: "ltr" }}>ID: {upline.referral_code || upline.id}</p>
                       <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
                         <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 7px", borderRadius: 6, background: `${GOLD}15`, color: GOLD }}>
                           {(() => { const rk = (dbRanks || []).find(r => r.name === upline.rank); return rk?.image ? <img src={rk.image} alt="" style={{width:12,height:12,borderRadius:3,objectFit:"cover",verticalAlign:"middle",marginRight:3}} /> : (rankIcons[upline.rank] || "⭐"); })()} {upline.rank || "Star"}

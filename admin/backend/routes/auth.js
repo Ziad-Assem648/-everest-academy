@@ -23,9 +23,12 @@ function detectDeviceType(ua) {
 }
 
 async function generateUserId() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   for (let attempt = 0; attempt < 100; attempt++) {
-    const id = String(Math.floor(1000000000 + Math.random() * 9000000000));
-    const existing = await queryOne("SELECT id FROM users WHERE id = ?", [id]);
+    let code = "";
+    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    const id = "EVR-" + code;
+    const existing = await queryOne("SELECT id FROM users WHERE id = ? OR referral_code = ?", [id, id]);
     if (!existing) return id;
   }
   throw new Error("Could not generate unique user ID");
@@ -167,7 +170,7 @@ router.post("/register", async (req, res) => {
     }
 
     const id = await generateUserId();
-    const code = "EVR-" + id.slice(0, 6);
+    const code = id;
 
     let referredBy = null;
     if (referral_code) {
