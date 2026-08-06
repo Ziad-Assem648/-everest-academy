@@ -113,6 +113,7 @@ export default function AffiliatePage() {
   const [transferTo, setTransferTo] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
   const [transferMsg, setTransferMsg] = useState("");
+  const [transferring, setTransferring] = useState(false);
   const [transferTarget, setTransferTarget] = useState(null);
   const [directs, setDirects] = useState([]);
   const [upline, setUpline] = useState(null);
@@ -723,11 +724,6 @@ export default function AffiliatePage() {
                     textTransform: "uppercase",
                   }}
                 />
-                {transferTarget && (
-                  <div style={{ flex: "1 1 100%", fontSize: 12, color: c.textMuted, marginTop: -6 }}>
-                    {t("المستلم", "Recipient")}: <b style={{ color: c.text }}>{transferTarget.full_name}</b> <span style={{ fontFamily: "monospace", color: c.primary }}>{transferTarget.referral_code}</span>
-                  </div>
-                )}
                 <input
                   type="number"
                   value={transferAmount}
@@ -747,10 +743,12 @@ export default function AffiliatePage() {
                 />
                 <button
                   onClick={async () => {
+                    if (transferring) return;
                     if (!transferTo || !transferAmount || parseFloat(transferAmount) <= 0) {
                       setTransferMsg(t("اختر مستلم وأدخل مبلغ صحيح", "Select recipient and enter valid amount"));
                       return;
                     }
+                    setTransferring(true);
                     try {
                       setTransferMsg(t("جاري التحويل...", "Transferring..."));
                       const r = await api("/api/mlm/transfer", {
@@ -775,6 +773,8 @@ export default function AffiliatePage() {
                       );
                     } catch (e) {
                       setTransferMsg("❌ " + (e.message || t("فشل التحويل", "Transfer failed")));
+                    } finally {
+                      setTransferring(false);
                     }
                   }}
                   style={{
@@ -784,14 +784,20 @@ export default function AffiliatePage() {
                     borderRadius: 12,
                     fontWeight: 700,
                     fontSize: 13,
-                    cursor: "pointer",
+                    cursor: transferring ? "default" : "pointer",
+                    opacity: transferring ? 0.6 : 1,
                     color: "#fff",
                     boxShadow: `0 4px 14px ${GOLD}33`,
                   }}
                 >
-                  {t("تحويل", "Transfer")}
+                  {transferring ? t("جاري التحويل...", "Transferring...") : t("تحويل", "Transfer")}
                 </button>
               </div>
+              {transferTarget && (
+                <div style={{ fontSize: 12, color: c.textMuted, marginTop: 10 }}>
+                  {t("المستلم", "Recipient")}: <b style={{ color: c.text }}>{transferTarget.full_name}</b> <span style={{ fontFamily: "monospace", color: c.primary }}>{transferTarget.referral_code}</span>
+                </div>
+              )}
               {transferMsg && (
                 <p
                   style={{
