@@ -23,10 +23,8 @@ function detectDeviceType(ua) {
 }
 
 async function generateUserId() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   for (let attempt = 0; attempt < 100; attempt++) {
-    let code = "";
-    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    const code = String(Math.floor(Math.random() * 1000000)).padStart(6, "0");
     const id = "EVR-" + code;
     const existing = await queryOne("SELECT id FROM users WHERE id = ? OR referral_code = ?", [id, id]);
     if (!existing) return id;
