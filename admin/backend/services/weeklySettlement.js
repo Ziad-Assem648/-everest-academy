@@ -213,12 +213,14 @@ export async function runWeeklySettlement({ triggeredBy = "auto", weekStart: for
       const userRank = rankMap[user.rank];
 
       // STEP 1: Direct sales (Level 1, active only)
+      // Only approved STUDENT accounts count toward the referrer's rank.
+      // registration_free approvals are recorded for info but never count.
       const directs = await query("SELECT u.id, u.account_type, u.status FROM users u WHERE u.referred_by = ?", [user.id]);
       const activeDirects = directs.filter(d => d.status === 'active');
-      const totalDirectSales = activeDirects.length;
       const studentDirectSales = activeDirects.filter(d => d.account_type === 'student').length;
       const registrationDirectSales = activeDirects.filter(d => d.account_type === 'registration_free').length;
-      const qualifiedDirectSales = totalDirectSales;
+      const totalDirectSales = studentDirectSales + registrationDirectSales;
+      const qualifiedDirectSales = studentDirectSales;
 
       // STEP 2: Minimum direct sales eligibility (configurable, default 2)
       if (qualifiedDirectSales < minDirectSales) {
@@ -237,8 +239,9 @@ export async function runWeeklySettlement({ triggeredBy = "auto", weekStart: for
       }
 
       // STEP 3: Qualified team (exclude higher-ranked / inactive members)
+      // Only approved STUDENT accounts count toward the team; registration_free never counts.
       const allTeamMembers = await query(
-        "SELECT u.id, u.rank, u.status, u.account_type FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type IN ('student','registration_free')",
+        "SELECT u.id, u.rank, u.status, u.account_type FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type = 'student'",
         [user.id, user.id]
       );
       let qualifiedTeamCount = 0;

@@ -392,22 +392,26 @@ test("minimum direct sales is configurable (default 2)", async () => {
   assert.equal(ctx.q("SELECT commission_status FROM weekly_history WHERE user_id = 'u-2'")[0].commission_status, "not_eligible");
 });
 
-test("registration_free users participate in ranks/commissions normally", async () => {
+test("registration_free users participate in ranks/commissions normally, but only student downline counts", async () => {
   const db = createDb();
   seedRanks(db);
   seedSettings(db);
   insertUser(db, { id: "u-f", name: "Free", email: "f@t.com", account_type: "registration_free", rank: "Star", referred_by: null, direct_count: 2 });
+  // registration_free downline members never count toward the rank/team
   insertUser(db, { id: "d1", name: "D1", email: "d1@t.com", account_type: "registration_free", rank: "", referred_by: "u-f" });
   insertUser(db, { id: "d2", name: "D2", email: "d2@t.com", account_type: "registration_free", rank: "", referred_by: "u-f" });
+  // student downline members DO count
   insertUser(db, { id: "t1", name: "T1", email: "t1@t.com", account_type: "student", rank: "", referred_by: "u-f" });
   insertUser(db, { id: "t2", name: "T2", email: "t2@t.com", account_type: "student", rank: "", referred_by: "u-f" });
   insertUser(db, { id: "t3", name: "T3", email: "t3@t.com", account_type: "student", rank: "", referred_by: "u-f" });
-  insertClosure(db, "u-f", ["d1", "d2", "t1", "t2", "t3"]);
+  insertUser(db, { id: "t4", name: "T4", email: "t4@t.com", account_type: "student", rank: "", referred_by: "u-f" });
+  insertUser(db, { id: "t5", name: "T5", email: "t5@t.com", account_type: "student", rank: "", referred_by: "u-f" });
+  insertClosure(db, "u-f", ["d1", "d2", "t1", "t2", "t3", "t4", "t5"]);
 
   ctx = apiFor(db);
   const res = await runWeeklySettlement({ triggeredBy: "auto", weekStart: "2026-08-02" });
   assert.equal(res.success, true);
-  // u-f (registration_free) is processed like a normal account: promoted to Executive (5 qualified team) and paid
+  // u-f (registration_free) is still processed like a normal account and can rank up
   const user = ctx.q("SELECT * FROM users WHERE id = 'u-f'")[0];
   assert.equal(user.rank, "Executive");
   assert.equal(user.e_money, 1500);
@@ -417,4 +421,9 @@ test("registration_free users participate in ranks/commissions normally", async 
   assert.equal(comms[0].amount, 1500);
   const hist = ctx.q("SELECT * FROM weekly_history WHERE user_id = 'u-f'")[0];
   assert.equal(hist.commission_status, "paid");
+  // only the 5 student directs count toward the rank (regfree recorded as info only)
+  assert.equal(hist.qualified_team_count, 5);
+  assert.equal(hist.qualified_direct_sales, 5);
+  assert.equal(hist.student_direct_sales, 5);
+  assert.equal(hist.registration_direct_sales, 2);
 });

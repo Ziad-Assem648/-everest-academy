@@ -562,14 +562,14 @@ router.get("/rank-progress/:userId", async (req, res) => {
       [user.id]
     );
     const activeDirects = directs.filter(d => d.status === 'active');
-    const totalDirectSales = activeDirects.length;
     const studentDirectSales = activeDirects.filter(d => d.account_type === 'student').length;
     const registrationDirectSales = activeDirects.filter(d => d.account_type === 'registration_free').length;
-    const qualifiedDirectSales = totalDirectSales;
+    const totalDirectSales = studentDirectSales + registrationDirectSales;
+    const qualifiedDirectSales = studentDirectSales;
 
-    // Qualified team
+    // Qualified team (only approved students count toward rank)
     const allTeam = await query(
-      "SELECT u.rank, u.status, u.account_type FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type IN ('student','registration_free')",
+      "SELECT u.rank, u.status, u.account_type FROM user_closure c JOIN users u ON u.id = c.descendant WHERE c.ancestor = ? AND c.descendant != ? AND u.account_type = 'student'",
       [user.id, user.id]
     );
 
