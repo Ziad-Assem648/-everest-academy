@@ -86,7 +86,6 @@ function GuardRanks({ children }) {
   const { user } = useAuth();
   const { t } = useLang();
   if (!user) return <Navigate to="/login" replace />;
-  if (user.account_type === "registration_free") return <Navigate to="/home" replace />;
   return children;
 }
 
