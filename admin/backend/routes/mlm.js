@@ -9,6 +9,19 @@ const router = express.Router();
 const sReq = (r) => r.sales_required !== undefined ? r.sales_required : r.min_direct;
 const bVal = (r) => r.bonus !== undefined ? r.bonus : r.weekly_bonus;
 
+async function logAdminAction(req, action, targetId, targetName, details) {
+  try {
+    const adminName = req.headers["x-user-name"] || "Admin";
+    const adminId = req.headers["x-admin-id"] || "unknown";
+    await execute(
+      "INSERT INTO admin_logs (id, admin_id, admin_name, action, target_user_id, target_user_name, details) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [uuidv4(), adminId, adminName, action, targetId || null, targetName || null, details || null]
+    );
+  } catch (e) {
+    console.error("Failed to log admin action:", e.message);
+  }
+}
+
 async function resolveUserId(identifier) {
   if (!identifier) return null;
   const cleaned = String(identifier).trim().toUpperCase();
@@ -432,6 +445,51 @@ router.get("/settlement/status", adminAuth, async (req, res) => {
   }
 });
 
+// Paid weekly commissions for a given week (who got paid)
+router.get("/settlement/week/:weekStart", adminAuth, async (req, res) => {
+  try {
+    const commissions = await query(`
+      SELECT wc.*, u.full_name, u.email, u.avatar, u.account_type
+      FROM weekly_commissions wc
+      JOIN users u ON u.id = wc.user_id
+      WHERE wc.week_start = ?
+      ORDER BY wc.amount DESC, u.full_name ASC
+    `, [req.params.weekStart]);
+    res.json({ week_start: req.params.weekStart, commissions });
+  } catch (err) {
+    console.error("Week commissions error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Reverse (deduct) a single paid weekly commission from a user
+router.post("/settlement/reverse", adminAuth, async (req, res) => {
+  try {
+    const { user_id, week_start } = req.body;
+    if (!user_id || !week_start) return res.status(400).json({ error: "user_id and week_start required" });
+    const commission = await queryOne(
+      "SELECT * FROM weekly_commissions WHERE user_id = ? AND week_start = ? AND status = 'paid'",
+      [user_id, week_start]
+    );
+    if (!commission) return res.status(404).json({ error: "No paid commission found for this user/week" });
+
+    const user = await queryOne("SELECT id, full_name, e_money FROM users WHERE id = ?", [user_id]);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const newBalance = Math.max(0, (user.e_money || 0) - commission.amount);
+    await execute("UPDATE users SET e_money = ? WHERE id = ?", [newBalance, user_id]);
+    await execute("UPDATE weekly_commissions SET status = 'cancelled' WHERE id = ?", [commission.id]);
+    await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, 'debit', ?, 'completed')",
+      [uuidv4(), user_id, commission.amount, `إلغاء العمولة الأسبوعية - رتبة ${commission.rank_name} (${week_start})`]);
+    await logAdminAction(req, "reverse weekly commission", user_id, user.full_name, `${commission.amount} EM (${commission.rank_name}, week ${week_start})`);
+
+    res.json({ success: true, user_id, week_start, amount: commission.amount, new_balance: newBalance });
+  } catch (err) {
+    console.error("Reverse commission error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Weekly History (GET) ───
 router.get("/weekly-history/:userId", async (req, res) => {
   try {
@@ -593,7 +651,7 @@ router.get("/leaderboard", async (req, res) => {
              COALESCE(r.weekly_bonus, 0) as weekly_bonus, COALESCE(r.sort_order, 0) as rank_order
       FROM users u
       LEFT JOIN ranks r ON u.rank = r.name
-      WHERE u.role != 'admin' AND u.account_type IN ('student','registration_free')
+      WHERE u.role != 'admin' AND u.account_type = 'student'
       ORDER BY r.sort_order DESC, u.total_team_sales DESC
       LIMIT 10
     `);
@@ -613,7 +671,7 @@ router.get("/leaderboard/all", async (req, res) => {
              COALESCE(r.weekly_bonus, 0) as weekly_bonus, COALESCE(r.sort_order, 0) as rank_order
       FROM users u
       LEFT JOIN ranks r ON u.rank = r.name
-      WHERE u.role != 'admin' AND u.account_type IN ('student','registration_free')
+      WHERE u.role != 'admin' AND u.account_type = 'student'
       ORDER BY r.sort_order DESC, u.total_team_sales DESC
     `);
     res.json(users);

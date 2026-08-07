@@ -37,6 +37,56 @@ export async function ensureSettlementSettings() {
   try { await execute("UPDATE weekly_settlements SET status = 'failed' WHERE status = 'running'"); } catch (e) {}
 }
 
+// ─── One-time cleanup: registration_free accounts must never hold ranks or rank money ───
+// Strips every rank from registration_free users and reverses the E-Money they received
+// from rank-based weekly commissions / legacy rank bonuses. Idempotent via settings flag.
+export async function cleanupRegistrationFreeRanks() {
+  try {
+    const flag = await queryOne("SELECT value FROM settings WHERE key = 'rank_cleanup_done'");
+    if (flag && flag.value) return { success: true, skipped: true };
+
+    const users = await query("SELECT id, full_name, e_money, rank FROM users WHERE account_type = 'registration_free'");
+    let stripped = 0;
+    let deductedTotal = 0;
+    let reversedCommissions = 0;
+
+    for (const user of users) {
+      const commissions = await query("SELECT id, amount FROM weekly_commissions WHERE user_id = ?", [user.id]);
+      const bonuses = await query("SELECT id, amount FROM rank_bonuses WHERE user_id = ?", [user.id]);
+      const total = commissions.reduce((s, c) => s + (c.amount || 0), 0) + bonuses.reduce((s, b) => s + (b.amount || 0), 0);
+
+      if (user.rank) {
+        await execute("UPDATE users SET rank = '', rank_progress = 0, updated_at = datetime('now','localtime') WHERE id = ?", [user.id]);
+        stripped++;
+      }
+
+      if (total > 0) {
+        const newBalance = Math.max(0, (user.e_money || 0) - total);
+        await execute("UPDATE users SET e_money = ? WHERE id = ?", [newBalance, user.id]);
+        await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, 'debit', ?, 'completed')",
+          [uuidv4(), user.id, total, `سحب عمولات رتب سابقة (حساب مجاني) - ${commissions.length} عمولة`]);
+        deductedTotal += total;
+      }
+
+      for (const c of commissions) {
+        await execute("UPDATE weekly_commissions SET status = 'cancelled' WHERE id = ?", [c.id]);
+      }
+      reversedCommissions += commissions.length;
+
+      if (bonuses.length > 0) {
+        await execute("DELETE FROM rank_bonuses WHERE user_id = ?", [user.id]);
+      }
+    }
+
+    await execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('rank_cleanup_done', datetime('now','localtime'))");
+    console.log(`🧹 [CLEANUP] registration_free ranks cleaned: ${stripped} stripped, ${reversedCommissions} commissions reversed, ${deductedTotal} EM deducted from ${users.length} users`);
+    return { success: true, users: users.length, stripped, reversedCommissions, deductedTotal };
+  } catch (e) {
+    console.error("cleanupRegistrationFreeRanks error:", e);
+    return { success: false, error: e.message };
+  }
+}
+
 // ─── Timezone helpers ───
 // Wall-clock parts of a Date inside an IANA timezone.
 export function partsInTz(date, tz) {
@@ -198,8 +248,9 @@ export async function runWeeklySettlement({ triggeredBy = "auto", weekStart: for
       return { success: false, error: `Week ${weekStart} already settled` };
     }
 
+    // Only real students can earn ranks / weekly commissions (registration_free accounts never qualify).
     const users = await query(
-      "SELECT id, full_name, email, rank, direct_count, e_money, account_type FROM users WHERE role IN ('student','registration') AND status = 'active'"
+      "SELECT id, full_name, email, rank, direct_count, e_money, account_type FROM users WHERE role = 'student' AND account_type = 'student' AND status = 'active'"
     );
     const allRanks = await query("SELECT * FROM ranks ORDER BY sort_order ASC");
     const rankMap = {};
@@ -358,7 +409,7 @@ export async function runWeeklySettlement({ triggeredBy = "auto", weekStart: for
       FROM weekly_sales ws
       JOIN users u ON u.id = ws.user_id
       LEFT JOIN ranks r ON u.rank = r.name
-      WHERE ws.week_start = ? AND u.role != 'admin' AND u.account_type IN ('student','registration_free')
+      WHERE ws.week_start = ? AND u.role != 'admin' AND u.account_type = 'student'
       ORDER BY ws.sales DESC, rank_order DESC, u.direct_count DESC
       LIMIT 10
     `, [weekStart]);

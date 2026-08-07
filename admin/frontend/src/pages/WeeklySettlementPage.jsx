@@ -16,6 +16,9 @@ export default function WeeklySettlementPage() {
   const [history, setHistory] = useState([]);
   const [openWeek, setOpenWeek] = useState(null);
   const [openWeekData, setOpenWeekData] = useState([]);
+  const [openCommWeek, setOpenCommWeek] = useState(null);
+  const [weekComms, setWeekComms] = useState([]);
+  const [reversing, setReversing] = useState(null);
   const [saving, setSaving] = useState(false);
   const [running, setRunning] = useState(false);
   const [msg, setMsg] = useState("");
@@ -70,6 +73,25 @@ export default function WeeklySettlementPage() {
     if (openWeek === ws) { setOpenWeek(null); setOpenWeekData([]); return; }
     setOpenWeek(ws);
     api(`/api/leaders/history/${ws}`).then((d) => setOpenWeekData(d.leaders || [])).catch(() => setOpenWeekData([]));
+  };
+
+  const toggleComms = async (ws) => {
+    if (openCommWeek === ws) { setOpenCommWeek(null); setWeekComms([]); return; }
+    setOpenCommWeek(ws);
+    setWeekComms([]);
+    api(`/api/mlm/settlement/week/${ws}`).then((d) => setWeekComms(d.commissions || [])).catch(() => setWeekComms([]));
+  };
+
+  const reverseCommission = async (c) => {
+    if (!confirm(t(`خصم ${c.amount} E-Money من ${c.full_name} (عمولة ${c.rank_name})؟`, `Deduct ${c.amount} E-Money from ${c.full_name} (${c.rank_name} commission)?`))) return;
+    setReversing(c.id);
+    try {
+      await api("/api/mlm/settlement/reverse", { method: "POST", body: JSON.stringify({ user_id: c.user_id, week_start: c.week_start }) });
+      const d = await api(`/api/mlm/settlement/week/${c.week_start}`);
+      setWeekComms(d.commissions || []);
+      setMsg(t(`✅ تم خصم ${c.amount} E-Money من ${c.full_name}`, `✅ Deducted ${c.amount} E-Money from ${c.full_name}`));
+      setErr("");
+    } catch (e) { setErr(e.message); } finally { setReversing(null); }
   };
 
   const cfg = status?.config || {};
@@ -217,6 +239,7 @@ export default function WeeklySettlementPage() {
                 <th className="text-right py-2 px-3 text-gray-400 font-medium">{t("الحالة", "Status")}</th>
                 <th className="text-right py-2 px-3 text-gray-400 font-medium">{t("المصدر", "Trigger")}</th>
                 <th className="text-right py-2 px-3 text-gray-400 font-medium">{t("التاريخ", "Date")}</th>
+                <th className="text-right py-2 px-3 text-gray-400 font-medium">{t("العمولات", "Commissions")}</th>
               </tr></thead>
               <tbody>
                 {status.runs.map((r) => (
@@ -227,10 +250,51 @@ export default function WeeklySettlementPage() {
                     </td>
                     <td className="py-2 px-3 text-gray-500">{r.triggered_by === "manual" ? t("يدوي", "Manual") : t("تلقائي", "Auto")}</td>
                     <td className="py-2 px-3 text-gray-500 text-xs">{r.completed_at || r.created_at}</td>
+                    <td className="py-2 px-3">
+                      {r.status === "completed" && (
+                        <button onClick={() => toggleComms(r.week_start)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${openCommWeek === r.week_start ? "bg-everest-600 text-white" : "bg-everest-50 text-everest-700 hover:bg-everest-100"}`}>
+                          {openCommWeek === r.week_start ? "▲ " : "💰 "}{t("العمولات", "Commissions")}
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {openCommWeek && (
+          <div className="mt-4 border-t border-gray-100 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-bold text-gray-800">{t(`عمولات أسبوع ${openCommWeek}`, `Commissions for week ${openCommWeek}`)}</h4>
+              <span className="text-xs text-gray-400">{weekComms.length} {t("عمولة", "commissions")}</span>
+            </div>
+            {weekComms.length === 0 ? (
+              <p className="text-gray-400 text-sm text-center py-4">{t("لا توجد عمولات مسجلة لهذا الأسبوع", "No commissions recorded for this week")}</p>
+            ) : (
+              <div className="space-y-1.5">
+                {weekComms.map((c) => (
+                  <div key={c.id} className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
+                    {c.avatar ? <img src={c.avatar} alt="" className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-everest-600 text-white flex items-center justify-center text-xs font-bold">{(c.full_name || "U")[0]}</div>}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-800 truncate">{c.full_name}</p>
+                      <p className="text-xs text-gray-400">
+                        {c.rank_name}{c.account_type === "registration_free" ? ` • ${t("حساب مجاني", "Free account")}` : ""}
+                        {c.status === "cancelled" && <span className="text-amber-600 font-medium"> • {t("ملغاة", "Cancelled")}</span>}
+                      </p>
+                    </div>
+                    <span className={`text-sm font-bold ${c.status === "cancelled" ? "text-gray-400 line-through" : "text-everest-600"}`}>{c.amount} EM</span>
+                    {c.status === "paid" && (
+                      <button onClick={() => reverseCommission(c)} disabled={reversing === c.id}
+                        className="px-2.5 py-1 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition disabled:opacity-50">
+                        {reversing === c.id ? t("جاري...", "Working...") : t("خصم العمولة", "Deduct")}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

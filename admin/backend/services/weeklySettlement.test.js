@@ -116,7 +116,7 @@ mock.module("../db.js", {
   },
 });
 
-const { runWeeklySettlement, getCurrentWeek, getSettlementWeek, getSettlementSettings, settlementConfigDisplay, nextSettlementTime, partsInTz } =
+const { runWeeklySettlement, getCurrentWeek, getSettlementWeek, getSettlementSettings, settlementConfigDisplay, nextSettlementTime, partsInTz, cleanupRegistrationFreeRanks } =
   await import("./weeklySettlement.js");
 
 function seedRanks(db) {
@@ -390,4 +390,62 @@ test("minimum direct sales is configurable (default 2)", async () => {
   ctx = apiFor(db2);
   res = await runWeeklySettlement({ triggeredBy: "auto", weekStart: "2026-08-02" });
   assert.equal(ctx.q("SELECT commission_status FROM weekly_history WHERE user_id = 'u-2'")[0].commission_status, "not_eligible");
+});
+
+test("registration_free cleanup: strips ranks, reverses rank money, idempotent", async () => {
+  const db = createDb();
+  insertUser(db, { id: "reg-1", name: "Free User", email: "free@t.com", account_type: "registration_free", rank: "Team Leader", e_money: 12000 });
+  insertUser(db, { id: "reg-2", name: "Free 2", email: "free2@t.com", account_type: "registration_free", rank: "", e_money: 3000 });
+  insertUser(db, { id: "stu-1", name: "Real Student", email: "stu@t.com", account_type: "student", rank: "Executive", e_money: 999 });
+  db.run("INSERT INTO weekly_commissions (id,user_id,rank_name,amount,week_start,week_end,status) VALUES ('wc1','reg-1','Team Leader',5000,'2026-07-27','2026-08-02','paid')");
+  db.run("INSERT INTO weekly_commissions (id,user_id,rank_name,amount,week_start,week_end,status) VALUES ('wc2','reg-1','Senior Leader',8000,'2026-08-03','2026-08-09','paid')");
+  db.run("INSERT INTO rank_bonuses (id,user_id,rank_name,amount) VALUES ('rb1','reg-2','Star',2000)");
+
+  ctx = apiFor(db);
+  const res = await cleanupRegistrationFreeRanks();
+  assert.equal(res.success, true);
+  assert.equal(res.users, 2);
+  assert.equal(res.stripped, 1);
+  assert.equal(res.reversedCommissions, 2);
+
+  const reg1 = ctx.q("SELECT * FROM users WHERE id = 'reg-1'")[0];
+  assert.equal(reg1.rank, "");
+  assert.equal(reg1.e_money, 0); // 12000 - 13000 floored to 0
+  assert.equal(ctx.q("SELECT status FROM weekly_commissions WHERE id = 'wc1'")[0].status, "cancelled");
+  assert.equal(ctx.q("SELECT status FROM weekly_commissions WHERE id = 'wc2'")[0].status, "cancelled");
+  assert.equal(ctx.q("SELECT COUNT(*) AS c FROM rank_bonuses")[0].c, 0);
+
+  const reg2 = ctx.q("SELECT * FROM users WHERE id = 'reg-2'")[0];
+  assert.equal(reg2.e_money, 1000); // 3000 - 2000
+  assert.equal(ctx.q("SELECT COUNT(*) AS c FROM wallet_transactions WHERE user_id = 'reg-1'")[0].c, 1);
+
+  // Students untouched
+  assert.equal(ctx.q("SELECT rank FROM users WHERE id = 'stu-1'")[0].rank, "Executive");
+  assert.equal(ctx.q("SELECT e_money FROM users WHERE id = 'stu-1'")[0].e_money, 999);
+
+  // Idempotent: second run does nothing
+  const again = await cleanupRegistrationFreeRanks();
+  assert.equal(again.success, true);
+  assert.equal(again.skipped, true);
+  assert.equal(ctx.q("SELECT COUNT(*) AS c FROM wallet_transactions WHERE user_id = 'reg-1'")[0].c, 1);
+});
+
+test("settlement ignores registration_free users entirely", async () => {
+  const db = createDb();
+  seedRanks(db);
+  seedSettings(db);
+  insertUser(db, { id: "u-f", name: "Free", email: "f@t.com", account_type: "registration_free", rank: "Team Leader", referred_by: null, direct_count: 2 });
+  insertUser(db, { id: "d1", name: "D1", email: "d1@t.com", account_type: "registration_free", rank: "", referred_by: "u-f" });
+  insertUser(db, { id: "d2", name: "D2", email: "d2@t.com", account_type: "registration_free", rank: "", referred_by: "u-f" });
+  insertWeeklySales(db, "u-f", "2026-08-02", 5);
+
+  ctx = apiFor(db);
+  const res = await runWeeklySettlement({ triggeredBy: "auto", weekStart: "2026-08-02" });
+  assert.equal(res.success, true);
+  // No weekly_history records and no commissions for a reg-free-only tree
+  assert.equal(ctx.q("SELECT COUNT(*) AS c FROM weekly_history")[0].c, 0);
+  assert.equal(ctx.q("SELECT COUNT(*) AS c FROM weekly_commissions")[0].c, 0);
+  assert.equal(ctx.q("SELECT rank FROM users WHERE id = 'u-f'")[0].rank, "Team Leader"); // rank untouched by settlement
+  assert.equal(ctx.q("SELECT e_money FROM users WHERE id = 'u-f'")[0].e_money, 0);
+  assert.equal(ctx.q("SELECT COUNT(*) AS c FROM leaderboard_history WHERE week_start = '2026-08-02'")[0].c, 0);
 });
