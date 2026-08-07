@@ -192,5 +192,11 @@ export function getSeedSettings() {
   return [
     ["customer_service_whatsapp", "+201234567890"],
     ["customer_service_email", "support@everestacademy.com"],
+    ["settlement_enabled", "true"],
+    ["settlement_day", "5"],
+    ["settlement_hour", "0"],
+    ["settlement_minute", "0"],
+    ["settlement_timezone", "Africa/Cairo"],
+    ["settlement_min_direct_sales", "2"],
   ];
 }

@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import express from "express";
 import { query, queryOne, execute } from "../db.js";
+import { getCurrentWeek } from "../services/weeklySettlement.js";
 
 const router = express.Router();
 
@@ -110,6 +111,60 @@ router.delete("/:id", async (req, res) => {
   await execute("INSERT OR IGNORE INTO excluded_leaders (user_id) VALUES (?)", [req.params.id]);
   await execute("DELETE FROM leaders WHERE id = ?", [req.params.id]);
   res.json({ success: true });
+});
+
+// ─── Weekly leaderboard (by weekly sales, tie-break rank then directs) ───
+router.get("/weekly", async (req, res) => {
+  try {
+    const { weekStart } = req.query;
+    const week = weekStart || (await getCurrentWeek()).weekStart;
+    const rows = await query(`
+      SELECT ws.user_id, ws.sales as weekly_sales,
+             u.full_name, u.avatar, u.rank, u.direct_count, u.e_money, u.account_type,
+             COALESCE(r.sort_order, 0) as rank_order
+      FROM weekly_sales ws
+      JOIN users u ON u.id = ws.user_id
+      LEFT JOIN ranks r ON u.rank = r.name
+      WHERE ws.week_start = ? AND u.role != 'admin' AND u.account_type IN ('student','registration_free')
+      ORDER BY ws.sales DESC, rank_order DESC, u.direct_count DESC
+      LIMIT 10
+    `, [week]);
+    rows.forEach((u, i) => u.position = i + 1);
+    res.json({ weekStart: week, leaders: rows });
+  } catch (err) {
+    console.error("Weekly leaderboard error:", err.message);
+    res.json({ weekStart: req.query.weekStart || null, leaders: [] });
+  }
+});
+
+// ─── Leaderboard history (saved snapshots per settled week) ───
+router.get("/history", async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT week_start, COUNT(*) as entries, MAX(created_at) as settled_at
+      FROM leaderboard_history
+      GROUP BY week_start
+      ORDER BY week_start DESC
+      LIMIT 52
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error("Leaderboard history error:", err.message);
+    res.json([]);
+  }
+});
+
+router.get("/history/:weekStart", async (req, res) => {
+  try {
+    const rows = await query(
+      "SELECT * FROM leaderboard_history WHERE week_start = ? ORDER BY rank_position ASC",
+      [req.params.weekStart]
+    );
+    res.json({ weekStart: req.params.weekStart, leaders: rows });
+  } catch (err) {
+    console.error("Leaderboard history detail error:", err.message);
+    res.json({ weekStart: req.params.weekStart, leaders: [] });
+  }
 });
 
 export default router;

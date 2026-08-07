@@ -16,6 +16,7 @@ import UpgradeRequestsPage from "./pages/UpgradeRequestsPage.jsx";
 import LeadersPage from "./pages/LeadersPage.jsx";
 import PaymentGatewayPage from "./pages/PaymentGatewayPage.jsx";
 import RanksManagementPage from "./pages/RanksManagementPage.jsx";
+import RankSettingsPage from "./pages/RankSettingsPage.jsx";
 import RegistrationApprovalsPage from "./pages/RegistrationApprovalsPage.jsx";
 import FeedbacksPage from "./pages/FeedbacksPage.jsx";
 import AdminLogsPage from "./pages/AdminLogsPage.jsx";
@@ -69,6 +70,7 @@ function AppInner() {
     { id: "free-courses", label: lang === "ar" ? " ظهور الكورسات" : "Course Visibility", icon: "👁️" },
     { id: "quiz-attempts", label: lang === "ar" ? "نتائج الاختبارات" : "Quiz Results", icon: "📋" },
     { id: "ranks-mgmt", label: lang === "ar" ? "إدارة الرتب" : "Ranks", icon: "🏅" },
+    { id: "settlement-settings", label: lang === "ar" ? "التسوية الأسبوعية" : "Weekly Settlement", icon: "⏳" },
     { id: "leaders", label: lang === "ar" ? "القادة" : "Leaders", icon: "🏆" },
     { id: "admin-logs", label: lang === "ar" ? "سجل الإجراءات" : "Admin Logs", icon: "📋" },
     { id: "membership-settings", label: lang === "ar" ? "إعدادات العضوية" : "Membership", icon: "⏱️" },
@@ -116,6 +118,7 @@ function AppInner() {
           {page === "free-courses" && <FreeCoursesSettingsPage />}
           {page === "quiz-attempts" && <QuizAttemptsPage />}
           {page === "ranks-mgmt" && <RanksManagementPage />}
+          {page === "settlement-settings" && <RankSettingsPage />}
           {page === "leaders" && <LeadersPage />}
           {page === "feedbacks" && <FeedbacksPage />}
           {page === "cs" && <CustomerServicePage />}

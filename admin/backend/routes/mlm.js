@@ -1,6 +1,8 @@
 import express from "express";
 import { query, queryOne, execute } from "../db.js";
 import { v4 as uuidv4 } from "uuid";
+import { adminAuth } from "../middleware/sessionAuth.js";
+import { runWeeklySettlement, getSettlementSettings, getCurrentWeek, nextSettlementTime, settlementConfigDisplay } from "../services/weeklySettlement.js";
 
 const router = express.Router();
 
@@ -172,8 +174,13 @@ router.get("/transfers/:userId", async (req, res) => {
 // 4. Reg Free accounts count toward rank but never generate commission
 // 5. Members with higher rank than current user are excluded from qualified network
 // 6. Every calculation is stored in weekly_history
-router.post("/weekly-commission", async (req, res) => {
+router.post("/weekly-commission", adminAuth, async (req, res) => {
   try {
+    // Rewired to the shared settlement engine (single commission on last achieved rank).
+    const result = await runWeeklySettlement({ triggeredBy: "manual" });
+    if (!result.success && result.error) return res.status(400).json({ error: result.error });
+    return res.json(result);
+    /* Legacy implementation below is intentionally unreachable — replaced by services/weeklySettlement.js */
     const now = new Date();
     const dayOfWeek = now.getDay();
     const daysToMonday = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
@@ -387,6 +394,40 @@ router.post("/weekly-commission", async (req, res) => {
     res.json({ weekStart, weekEnd, total_users: users.length, awarded: totalAwarded, results });
   } catch (err) {
     console.error("Weekly commission error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── WEEKLY SETTLEMENT (new engine) ───
+// Manual trigger (admin). Optional weekStart; force re-runs a failed/stale week.
+router.post("/settlement", adminAuth, async (req, res) => {
+  try {
+    const { weekStart, force } = req.body || {};
+    const result = await runWeeklySettlement({ triggeredBy: "manual", weekStart: weekStart || null, force: !!force });
+    if (!result.success && result.error) return res.status(400).json({ error: result.error });
+    res.json(result);
+  } catch (err) {
+    console.error("Settlement trigger error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Settlement config + status for the admin UI
+router.get("/settlement/status", adminAuth, async (req, res) => {
+  try {
+    const settings = await getSettlementSettings();
+    const last = await queryOne("SELECT value FROM settings WHERE key = 'settlement_last_run'");
+    const runs = await query("SELECT week_start, week_end, status, triggered_by, created_at, completed_at, summary FROM weekly_settlements ORDER BY week_start DESC LIMIT 12");
+    res.json({
+      settings,
+      config: settlementConfigDisplay(settings),
+      currentWeek: await getCurrentWeek(settings),
+      lastRun: last?.value || null,
+      nextSettlement: nextSettlementTime(settings),
+      runs
+    });
+  } catch (err) {
+    console.error("Settlement status error:", err);
     res.status(500).json({ error: err.message });
   }
 });

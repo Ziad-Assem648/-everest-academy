@@ -2,6 +2,7 @@ import express from "express";
 import { query, queryOne, execute } from "../db.js";
 import { v4 as uuidv4 } from "uuid";
 import { advanceUserRank } from "./ranks.js";
+import { recordWeeklySales } from "../services/weeklySettlement.js";
 
 const BACKEND = "https://steadfast-energy-production-a9d1.up.railway.app";
 function fixImg(url) {
@@ -415,6 +416,11 @@ router.post("/:id/purchase", async (req, res) => {
         [enrollmentId, userId, req.params.id, status, method, payment_proof || null]);
     }
 
+    if (status === "approved") {
+      const savedEnrollmentId = (existing && existing.status === "rejected") ? existing.id : enrollmentId;
+      await recordWeeklySales(userId, savedEnrollmentId);
+    }
+
     // Create wallet transaction for emoney
     if (method === "emoney" && price > 0) {
       const tid = uuidv4();
@@ -452,6 +458,7 @@ router.post("/enrollments/admin-add", async (req, res) => {
       [enrollmentId, user.id, courseId]);
 
     await incrementTeamSales(user.id, enrollmentId);
+    await recordWeeklySales(user.id, enrollmentId);
 
     const enrollment = await queryOne("SELECT * FROM enrollments WHERE id = ?", [enrollmentId]);
     res.json(enrollment);
@@ -470,13 +477,8 @@ async function updateUserRankAndReward(userId) {
     if (user.total_team_sales >= r.min_direct) { newRank = r.name; break; }
   }
   if (newRank !== user.rank) {
-    const rankData = allRanks.find(r => r.name === newRank);
     await execute("UPDATE users SET rank = ?, updated_at = datetime('now','localtime') WHERE id = ?", [newRank, userId]);
-    if (rankData && rankData.weekly_bonus > 0) {
-      await execute("UPDATE users SET e_money = e_money + ? WHERE id = ?", [rankData.weekly_bonus, userId]);
-      const tid = uuidv4(); await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, 'credit', ?, 'completed')", [tid, userId, rankData.weekly_bonus, `🎉 Rank up bonus - ${newRank}`]);
-    }
-    const nid = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'success')", [nid, userId, "🎉 Rank Up!", `You reached ${newRank} rank! Bonus: ${rankData?.weekly_bonus || 0} EM`]);
+    const nid = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'success')", [nid, userId, "🎉 Rank Up!", `You reached ${newRank} rank! Your bonus is included in the weekly commission.`]);
   }
 }
 
@@ -516,6 +518,7 @@ router.put("/enrollments/:id/approve", async (req, res) => {
   if (pendingTx) await execute("UPDATE wallet_transactions SET status = 'completed' WHERE id = ?", [pendingTx.id]);
   const nid = uuidv4(); await execute("INSERT INTO notifications (id, user_id, title, message, type, related_id) VALUES (?, ?, ?, ?, 'success', ?)", [nid, enrollment.user_id, "✅ تم الموافقة على الاشتراك", `تم تأكيد اشتراكك في ${course?.title_ar || course?.title || "الكورس"}`, enrollment.course_id]);
   await incrementTeamSales(enrollment.user_id, enrollment.id);
+  await recordWeeklySales(enrollment.user_id, enrollment.id);
   await advanceUserRank(enrollment.user_id);
   res.json({ success: true, message: "Enrollment approved" });
 });

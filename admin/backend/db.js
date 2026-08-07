@@ -282,6 +282,37 @@ function createSchema(driver, isTursoDb) {
       failure_reason TEXT,
       details TEXT,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`,
+    `CREATE TABLE IF NOT EXISTS weekly_settlements (
+      id TEXT PRIMARY KEY,
+      week_start TEXT NOT NULL UNIQUE,
+      week_end TEXT NOT NULL,
+      status TEXT DEFAULT 'running' CHECK(status IN ('running','completed','failed')),
+      triggered_by TEXT DEFAULT 'auto',
+      summary TEXT,
+      created_at TEXT DEFAULT (datetime('now','localtime')),
+      completed_at TEXT
+    )`,
+    `CREATE TABLE IF NOT EXISTS weekly_sales (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      week_start TEXT NOT NULL,
+      sales INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now','localtime')),
+      UNIQUE(user_id, week_start),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`,
+    `CREATE TABLE IF NOT EXISTS leaderboard_history (
+      id TEXT PRIMARY KEY,
+      week_start TEXT NOT NULL,
+      rank_position INTEGER NOT NULL,
+      user_id TEXT NOT NULL,
+      full_name TEXT NOT NULL,
+      avatar TEXT,
+      rank TEXT,
+      weekly_sales INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now','localtime')),
+      UNIQUE(week_start, rank_position)
     )`
   ];
 
@@ -325,6 +356,7 @@ function createSchema(driver, isTursoDb) {
       try { await driver.execute("ALTER TABLE users ADD COLUMN verification_expires TEXT"); } catch(e) {}
       try { await driver.execute("ALTER TABLE user_sessions ADD COLUMN last_heartbeat TEXT"); } catch(e) {}
       try { await driver.execute("ALTER TABLE commissions ADD COLUMN description TEXT"); } catch(e) {}
+      try { await driver.execute("ALTER TABLE enrollments ADD COLUMN sales_counted INTEGER DEFAULT 0"); } catch(e) {}
       try {
         await driver.execute("UPDATE users SET account_type = 'registration', role = 'registration' WHERE account_type = 'registration_sponsor'");
         await driver.execute("UPDATE users SET account_type = 'registration' WHERE role = 'registration' AND account_type = 'student'");
@@ -360,6 +392,7 @@ function createSchema(driver, isTursoDb) {
   try { driver.run("ALTER TABLE user_sessions ADD COLUMN device_info TEXT"); } catch(e) {}
   try { driver.run("ALTER TABLE user_sessions ADD COLUMN last_heartbeat DATETIME DEFAULT CURRENT_TIMESTAMP"); } catch(e) {}
   try { driver.run("ALTER TABLE commissions ADD COLUMN description TEXT"); } catch(e) {}
+  try { driver.run("ALTER TABLE enrollments ADD COLUMN sales_counted INTEGER DEFAULT 0"); } catch(e) {}
   try { driver.run("ALTER TABLE users ADD COLUMN account_type TEXT DEFAULT 'student'"); } catch(e) {}
   try { driver.run("ALTER TABLE courses ADD COLUMN is_show_free INTEGER DEFAULT 0"); } catch(e) {}
   try { driver.run("ALTER TABLE courses ADD COLUMN is_show_homepage INTEGER DEFAULT 1"); } catch(e) {}

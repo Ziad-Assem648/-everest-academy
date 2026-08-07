@@ -185,19 +185,8 @@ async function advanceUserRank(userId) {
       user.rank = next.name;
       changed = true;
 
-      const bonusPaid = await queryOne("SELECT id FROM rank_bonuses WHERE user_id = ? AND rank_name = ?", [userId, next.name]);
-      const bonusAmount = bVal(next);
-      if (bonusAmount > 0 && !bonusPaid) {
-        const bid = uuidv4();
-        await execute("INSERT INTO rank_bonuses (id, user_id, rank_name, amount) VALUES (?, ?, ?, ?)", [bid, userId, next.name, bonusAmount]);
-        await execute("UPDATE users SET e_money = e_money + ? WHERE id = ?", [bonusAmount, userId]);
-        const txId = uuidv4();
-        await execute("INSERT INTO wallet_transactions (id, user_id, amount, type, description, status) VALUES (?, ?, ?, 'credit', ?, 'completed')",
-          [txId, userId, bonusAmount, `🎉 Rank up bonus - ${next.name}`]);
-      }
-
       await execute("INSERT INTO notifications (id, user_id, title, message, type) VALUES (?, ?, ?, ?, 'success')",
-        [uuidv4(), userId, "🎉 Rank Up!", `You reached ${next.name} rank! Bonus: ${bonusAmount || 0} EM`]);
+        [uuidv4(), userId, "🎉 Rank Up!", `You reached ${next.name} rank! Your bonus is included in the weekly commission.`]);
 
       teamCount = await getQualifiedTeamCount(userId, next.sort_order);
     } else {
