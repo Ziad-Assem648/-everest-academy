@@ -30,33 +30,40 @@ export default function UsersPage() {
   useEffect(() => { loadUsers(); api("/api/ranks").then(d => setDbRanks(Array.isArray(d) ? d : [])).catch(() => {}); }, []);
 
   const openProfile = (user) => {
-    api(`/api/users/${user.id}`).then((data) => {
-      setSelectedUser(data);
-      setEditForm({
-        full_name: data.full_name || "",
-        email: data.email || "",
-        phone: data.phone || "",
-        address: data.address || "",
-        role: data.role || "",
-        account_type: data.account_type || "student",
-        bio: data.bio || "",
-      });
-      setEditing(false);
-      setTeamTab(1);
-      setProfileTab("details");
-      setAmount("");
-      setRankProgress(null);
-      setDirectMembers([]);
-      setWeeklyHistory([]);
-      setHistoryDetail(null);
-      setShowDirectDetail(false);
-      setUserCards(null);
-      api(`/api/mlm/rank-progress/${data.id}`).then(setRankProgress).catch(() => {});
-      api(`/api/mlm/directs/${data.id}`).then(d => setDirectMembers(Array.isArray(d) ? d : [])).catch(() => {});
-      api(`/api/mlm/weekly-history/${data.id}`).then(d => setWeeklyHistory(Array.isArray(d) ? d : [])).catch(() => {});
-      api("/api/mlm/leaderboard").then(d => setLeaderboard(Array.isArray(d) ? d : [])).catch(() => {});
-      api(`/api/users/${data.id}/id-cards`).then(setUserCards).catch(() => {});
+    api(`/api/users/${user.id}`).then(applyProfile);
+  };
+
+  const openProfileById = (id) => {
+    if (!id) return;
+    api(`/api/users/${id}`).then(applyProfile);
+  };
+
+  const applyProfile = (data) => {
+    setSelectedUser(data);
+    setEditForm({
+      full_name: data.full_name || "",
+      email: data.email || "",
+      phone: data.phone || "",
+      address: data.address || "",
+      role: data.role || "",
+      account_type: data.account_type || "student",
+      bio: data.bio || "",
     });
+    setEditing(false);
+    setTeamTab(1);
+    setProfileTab("details");
+    setAmount("");
+    setRankProgress(null);
+    setDirectMembers([]);
+    setWeeklyHistory([]);
+    setHistoryDetail(null);
+    setShowDirectDetail(false);
+    setUserCards(null);
+    api(`/api/mlm/rank-progress/${data.id}`).then(setRankProgress).catch(() => {});
+    api(`/api/mlm/directs/${data.id}`).then(d => setDirectMembers(Array.isArray(d) ? d : [])).catch(() => {});
+    api(`/api/mlm/weekly-history/${data.id}`).then(d => setWeeklyHistory(Array.isArray(d) ? d : [])).catch(() => {});
+    api("/api/mlm/leaderboard").then(d => setLeaderboard(Array.isArray(d) ? d : [])).catch(() => {});
+    api(`/api/users/${data.id}/id-cards`).then(setUserCards).catch(() => {});
   };
 
   const saveProfile = async () => {
@@ -387,7 +394,7 @@ export default function UsersPage() {
                           { label: t("المعرف", "User ID"), value: selectedUser.referral_code || selectedUser.id },
                           { label: t("البريد الإلكتروني", "Email"), value: selectedUser.email },
                           { label: t("رقم الهاتف", "Phone"), value: selectedUser.phone || "—" },
-                          { label: t("العنوان", "Address"), value: selectedUser.address || "—" },
+                          { label: t("العنوان", "Address"), value: selectedUser.address || selectedUser.governorate || "—" },
                           { label: t("الدولة", "Country"), value: selectedUser.country || "—" },
                         ].map((item, i) => (
                           <div key={i} className="bg-gray-50 rounded-lg p-3">
@@ -423,6 +430,41 @@ export default function UsersPage() {
                           <p className="text-sm font-bold text-green-600 mt-1">{selectedUser.e_money}</p>
                         </div>
                       </div>
+
+                      {/* Sponsor (registered by code or created internally) */}
+                      {selectedUser.sponsor && (
+                        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6">
+                          <h4 className="font-bold mb-3 text-sm">{t("👤 تم التسجيل من خلال", "👤 Registered Through")}</h4>
+                          <button
+                            onClick={() => openProfileById(selectedUser.sponsor.id)}
+                            className="flex items-center gap-3 w-full text-right bg-white rounded-lg p-3 border border-indigo-100 hover:border-indigo-400 hover:bg-indigo-50/60 transition cursor-pointer"
+                            title={t("اضغط لعرض الملف", "Click to view profile")}
+                          >
+                            <div className="w-11 h-11 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-lg shrink-0">
+                              {(selectedUser.sponsor.full_name || "?")[0]}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm truncate">{selectedUser.sponsor.full_name}</p>
+                              <p className="text-xs text-gray-500 truncate">{selectedUser.sponsor.email}</p>
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                <span className="text-[11px] px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium">{selectedUser.sponsor.referral_code}</span>
+                                <span className="text-[11px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">🏅 {selectedUser.sponsor.rank || "—"}</span>
+                                <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${selectedUser.sponsor.account_type === "student" ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"}`}>
+                                  {selectedUser.sponsor.account_type === "student" ? "🎓 Student" : "🆓 Reg Free"}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="text-center shrink-0">
+                              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${selectedUser.sponsor.source === "code" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
+                                {selectedUser.sponsor.source === "code"
+                                  ? t("🔗 بكود الإحالة", "🔗 By Referral Code")
+                                  : t("🏗️ تم إنشاؤه من الداخل", "🏗️ Created Internally")}
+                              </span>
+                              <p className="text-[10px] text-gray-400 mt-1">{t("اضغط لعرض الملف", "Click to view profile")}</p>
+                            </div>
+                          </button>
+                        </div>
+                      )}
 
                       {/* ID Card Images */}
                       {userCards?.id_card_front && (

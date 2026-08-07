@@ -120,10 +120,21 @@ router.put("/:id/id-cards", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-  const user = await queryOne("SELECT id, full_name, email, phone, address, role, account_type, referral_code, rank, e_money, academic_points, total_team_sales, direct_count, qualified_direct_count, negative_allowed, blocked, status, bio, avatar, governorate, country, created_at, membership_expires_at FROM users WHERE id = ?", [req.params.id]);
+  const user = await queryOne("SELECT id, full_name, email, phone, address, role, account_type, referral_code, referred_by, created_by_user, rank, e_money, academic_points, total_team_sales, direct_count, qualified_direct_count, negative_allowed, blocked, status, bio, avatar, governorate, country, created_at, membership_expires_at FROM users WHERE id = ?", [req.params.id]);
   if (!user) return res.status(404).json({ error: "User not found" });
   const realDirects = await queryOne("SELECT COUNT(*) as cnt FROM users WHERE referred_by = ? OR (created_by_user = ? AND referred_by IS NULL)", [req.params.id, req.params.id]);
   user.direct_count = realDirects?.cnt || 0;
+  // Sponsor: the person who registered this user — by referral code, or an admin/manager who created the account internally
+  let sponsor = null;
+  if (user.referred_by) {
+    const s = await queryOne("SELECT id, full_name, email, phone, avatar, rank, account_type, referral_code, status, governorate, country FROM users WHERE id = ?", [user.referred_by]);
+    if (s) { sponsor = { ...s, source: "code" }; }
+  }
+  if (!sponsor && user.created_by_user) {
+    const s = await queryOne("SELECT id, full_name, email, phone, avatar, rank, account_type, referral_code, status, governorate, country FROM users WHERE id = ?", [user.created_by_user]);
+    if (s) { sponsor = { ...s, source: "created" }; }
+  }
+  user.sponsor = sponsor;
   const teamLevels = await query(`
     SELECT u.id, u.referral_code, u.full_name, u.email, u.role, u.rank, u.e_money, u.created_at, uc.depth
     FROM user_closure uc
