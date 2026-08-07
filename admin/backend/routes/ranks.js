@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
   const { all } = req.query;
   let sql = `
     SELECT r.*,
-      (SELECT COUNT(*) FROM users u WHERE u.rank = r.name AND u.role != 'admin' AND u.account_type = 'student') as user_count
+      (SELECT COUNT(*) FROM users u WHERE u.rank = r.name AND u.role != 'admin' AND u.account_type IN ('student','registration_free')) as user_count
     FROM ranks r
   `;
   if (all === "true") sql += " ORDER BY r.sort_order";
@@ -25,7 +25,7 @@ router.get("/leaderboard", async (req, res) => {
     const users = await query(`
       SELECT id, full_name, avatar, rank, direct_count, e_money, account_type
       FROM users
-      WHERE role != 'admin' AND rank IS NOT NULL AND rank != '' AND account_type = 'student'
+      WHERE role != 'admin' AND rank IS NOT NULL AND rank != '' AND account_type IN ('student','registration_free')
       ORDER BY direct_count DESC
       LIMIT 30
     `);
@@ -165,10 +165,8 @@ async function getTeamCount(userId) {
 }
 
 async function advanceUserRank(userId) {
-  const user = await queryOne("SELECT id, rank, e_money, account_type FROM users WHERE id = ?", [userId]);
+  const user = await queryOne("SELECT id, rank, e_money FROM users WHERE id = ?", [userId]);
   if (!user) return null;
-  // registration_free accounts never hold ranks or earn rank money.
-  if (user.account_type !== "student") return null;
   const allRanks = await query("SELECT * FROM ranks WHERE is_active = 1 ORDER BY sort_order ASC");
   if (allRanks.length === 0) return null;
 
@@ -218,7 +216,7 @@ async function advanceUserRank(userId) {
 
 router.post("/update", async (req, res) => {
   try {
-    const users = await query("SELECT id FROM users WHERE role != 'admin' AND account_type = 'student' AND status = 'active'");
+    const users = await query("SELECT id FROM users WHERE role != 'admin' AND account_type IN ('student','registration_free') AND status = 'active'");
     let updatedCount = 0;
     for (const u of users) {
       const result = await advanceUserRank(u.id);

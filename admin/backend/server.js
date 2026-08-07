@@ -91,7 +91,7 @@ if (fs.existsSync(userPublic)) {
 }
 
 import sessionAuth, { adminAuth } from "./middleware/sessionAuth.js";
-import { getSettlementSettings, runWeeklySettlement, getSettlementWeek, partsInTz, ensureSettlementSettings, cleanupRegistrationFreeRanks } from "./services/weeklySettlement.js";
+import { getSettlementSettings, runWeeklySettlement, getSettlementWeek, partsInTz, ensureSettlementSettings } from "./services/weeklySettlement.js";
 import authRoutes from "./routes/auth.js";
 import usersRoutes from "./routes/users.js";
 import coursesRoutes from "./routes/courses.js";
@@ -255,8 +255,6 @@ initDb().then(async () => {
   console.log("✅ Admin accounts seeded");
   await ensureSettlementSettings();
   console.log("✅ Weekly settlement settings ensured");
-  await cleanupRegistrationFreeRanks();
-  console.log("✅ Registration-free rank cleanup checked");
   // Load Gemini API keys (env first, then settings DB override)
   geminiPool.load(process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || "");
   try {

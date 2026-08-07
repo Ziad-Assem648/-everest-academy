@@ -651,7 +651,7 @@ router.get("/leaderboard", async (req, res) => {
              COALESCE(r.weekly_bonus, 0) as weekly_bonus, COALESCE(r.sort_order, 0) as rank_order
       FROM users u
       LEFT JOIN ranks r ON u.rank = r.name
-      WHERE u.role != 'admin' AND u.account_type = 'student'
+      WHERE u.role != 'admin' AND u.account_type IN ('student','registration_free')
       ORDER BY r.sort_order DESC, u.total_team_sales DESC
       LIMIT 10
     `);
@@ -671,7 +671,7 @@ router.get("/leaderboard/all", async (req, res) => {
              COALESCE(r.weekly_bonus, 0) as weekly_bonus, COALESCE(r.sort_order, 0) as rank_order
       FROM users u
       LEFT JOIN ranks r ON u.rank = r.name
-      WHERE u.role != 'admin' AND u.account_type = 'student'
+      WHERE u.role != 'admin' AND u.account_type IN ('student','registration_free')
       ORDER BY r.sort_order DESC, u.total_team_sales DESC
     `);
     res.json(users);

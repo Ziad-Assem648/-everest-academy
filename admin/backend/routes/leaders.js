@@ -125,7 +125,7 @@ router.get("/weekly", async (req, res) => {
       FROM weekly_sales ws
       JOIN users u ON u.id = ws.user_id
       LEFT JOIN ranks r ON u.rank = r.name
-      WHERE ws.week_start = ? AND u.role != 'admin' AND u.account_type = 'student'
+      WHERE ws.week_start = ? AND u.role != 'admin' AND u.account_type IN ('student','registration_free')
       ORDER BY ws.sales DESC, rank_order DESC, u.direct_count DESC
       LIMIT 10
     `, [week]);
