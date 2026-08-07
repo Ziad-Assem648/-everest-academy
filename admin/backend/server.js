@@ -8,7 +8,7 @@ import { dirname, join } from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import multer from "multer";
-import { initDb, execute, query, queryOne } from "./db.js";
+import { initDb, execute, query, queryOne, resetAllRanksOnce } from "./db.js";
 import { pool as geminiPool } from "./geminiKeys.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -255,6 +255,10 @@ initDb().then(async () => {
   console.log("✅ Admin accounts seeded");
   await ensureSettlementSettings();
   console.log("✅ Weekly settlement settings ensured");
+  // One-time rank reset: everyone with a rank goes back to the beginning
+  const rankReset = await resetAllRanksOnce();
+  if (rankReset.success && !rankReset.skipped) console.log("✅ Ranks reset - everyone starts from the beginning");
+  else if (rankReset.error) console.warn("⚠️ Rank reset skipped:", rankReset.error);
   // Load Gemini API keys (env first, then settings DB override)
   geminiPool.load(process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || "");
   try {

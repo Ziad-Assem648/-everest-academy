@@ -362,7 +362,6 @@ function createSchema(driver, isTursoDb) {
         await driver.execute("UPDATE users SET account_type = 'registration' WHERE role = 'registration' AND account_type = 'student'");
         await driver.execute("UPDATE users SET account_type = 'student' WHERE role NOT IN ('registration', 'admin', 'ghost') AND account_type = 'student'");
         await driver.execute("UPDATE users SET account_type = 'registration_free' WHERE account_type = 'registration'");
-        try { await driver.execute("UPDATE users SET rank = '', rank_progress = 0 WHERE rank != '' AND role NOT IN ('admin','ghost')"); } catch(e) {}
       } catch(e) {}
       try { await driver.execute("UPDATE ranks SET sales_required = 2 WHERE name = 'Star' AND sales_required = 0"); } catch(e) {}
       try { await driver.execute("UPDATE courses SET featured_image = 'https://steadfast-energy-production-a9d1.up.railway.app' || featured_image WHERE featured_image LIKE '/uploads/%'"); } catch(e) {}
@@ -413,7 +412,6 @@ function createSchema(driver, isTursoDb) {
     driver.run("UPDATE users SET account_type = 'registration' WHERE role = 'registration' AND account_type = 'student'");
     driver.run("UPDATE users SET account_type = 'student' WHERE role NOT IN ('registration', 'admin', 'ghost') AND account_type = 'student'");
     driver.run("UPDATE users SET account_type = 'registration_free' WHERE account_type = 'registration'");
-    driver.run("UPDATE users SET rank = '', rank_progress = 0 WHERE rank != '' AND role NOT IN ('admin','ghost')");
   } catch(e) {}
   try { driver.run("UPDATE ranks SET sales_required = 2 WHERE name = 'Star' AND sales_required = 0"); } catch(e) {}
   try { driver.run("UPDATE courses SET featured_image = 'https://steadfast-energy-production-a9d1.up.railway.app' || featured_image WHERE featured_image LIKE '/uploads/%'"); } catch(e) {}
@@ -736,6 +734,22 @@ let autoSaveTimer = null;
 export function startAutoSave() {
   if (autoSaveTimer) clearInterval(autoSaveTimer);
   autoSaveTimer = setInterval(() => { if (db) saveDb(); }, 600000);
+}
+
+// One-time reset: everyone with a rank (non-admin) goes back to the beginning (rank zero).
+// Guarded by a settings flag so it never re-runs after the first time.
+export async function resetAllRanksOnce() {
+  try {
+    const flag = await queryOne("SELECT value FROM settings WHERE key = 'rank_reset_done'");
+    if (flag && flag.value) return { success: true, skipped: true };
+    await execute("UPDATE users SET rank = '', rank_progress = 0 WHERE rank != '' AND role NOT IN ('admin','ghost')");
+    await execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('rank_reset_done', '1')");
+    console.log("🔄 [RANK RESET] All ranks cleared - everyone starts from the beginning");
+    return { success: true };
+  } catch (e) {
+    console.error("resetAllRanksOnce error:", e);
+    return { success: false, error: e.message };
+  }
 }
 
 export async function query(sql, params = []) {
