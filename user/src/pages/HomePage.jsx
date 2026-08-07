@@ -315,6 +315,7 @@ export default function HomePage() {
       </section>
 
       {/* Rank Guide */}
+      {user?.account_type !== "registration_free" && (
       <section style={{ padding:"80px 5%",background:c.bg }}>
         <div style={{ maxWidth:1200,margin:"auto" }}>
           <div style={{ textAlign:"center",marginBottom:50 }}>
@@ -354,6 +355,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Footer */}
       <FooterSection />

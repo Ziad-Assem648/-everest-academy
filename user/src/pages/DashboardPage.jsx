@@ -84,6 +84,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+        {user?.account_type !== "registration_free" && (
         <div className="rank-card">
           <div className="rl">{t("الرتبة الحالية","Current Rank")}</div>
           <h3>{(() => { const rk = dbRanks.find(r => r.name === (user?.rank || "Star")); return rk?.image ? <img src={rk.image} alt="" style={{width:28,height:28,borderRadius:8,verticalAlign:"middle",marginRight:6,objectFit:"cover"}} /> : <span>⭐</span>; })()} {user?.rank || "Star"}</h3>
@@ -93,6 +94,7 @@ export default function DashboardPage() {
             <strong>{user?.total_team_sales || 0}</strong>
           </div>
         </div>
+        )}
       </section>
 
       {/* My Courses */}
@@ -129,6 +131,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Rank Progress */}
+      {user?.account_type !== "registration_free" && (
       <section className="dash-section">
         <div className="rank-progress-card">
           <div className="rank-top">
@@ -143,6 +146,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Footer */}
       <footer className="dash-footer">

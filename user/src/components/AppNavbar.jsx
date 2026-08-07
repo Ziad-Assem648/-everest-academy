@@ -32,7 +32,7 @@ const navItems = [
   { to: "/home", label_ar: "الرئيسية", label_en: "Home", icon: "fa-solid fa-house" },
   { to: "/my-courses", label_ar: "كورساتي", label_en: "My Courses", icon: "fa-solid fa-book-open", hideForStudent: true },
   { to: "/courses", label_ar: "الكورسات", label_en: "Courses", icon: "fa-solid fa-graduation-cap" },
-  { to: "/rankings", label_ar: "الرتب", label_en: "Ranks", icon: "fa-solid fa-trophy" },
+  { to: "/rankings", label_ar: "الرتب", label_en: "Ranks", icon: "fa-solid fa-trophy", hideForRegistrationFree: true },
   { to: "/affiliate?tab=team", label_ar: "التسويق", label_en: "Affiliate", icon: "fa-solid fa-handshake" },
   { to: "/top-saller", label_ar: "الأفضل", label_en: "Top", icon: "fa-solid fa-star" },
   { to: "/feedback/new", label_ar: "التقييم", label_en: "Feedback", icon: "fa-solid fa-comment-dots" },
@@ -43,7 +43,7 @@ const mobileTabItems = [
   { to: "/home", label_ar: "الرئيسية", label_en: "Home", icon: "fa-solid fa-house" },
   { to: "/my-courses", label_ar: "كورساتي", label_en: "My Courses", icon: "fa-solid fa-book-open", hideForStudent: true },
   { to: "/courses", label_ar: "الكورسات", label_en: "Courses", icon: "fa-solid fa-graduation-cap" },
-  { to: "/rankings", label_ar: "الرتب", label_en: "Ranks", icon: "fa-solid fa-trophy" },
+  { to: "/rankings", label_ar: "الرتب", label_en: "Ranks", icon: "fa-solid fa-trophy", hideForRegistrationFree: true },
   { to: "/affiliate?tab=team", label_ar: "التسويق", label_en: "Affiliate", icon: "fa-solid fa-handshake" },
   { to: "/top-saller", label_ar: "الأفضل", label_en: "Top", icon: "fa-solid fa-star" },
   { to: "/feedback/new", label_ar: "التقييم", label_en: "Feedback", icon: "fa-solid fa-comment-dots" },
@@ -51,6 +51,7 @@ const mobileTabItems = [
 ];
 
 const isStudentAccount = (user) => !user || user.account_type === "student" || user.account_type === "registration_free";
+const hideForRegistrationFree = (item, user) => item.hideForRegistrationFree && user?.account_type === "registration_free";
 
 export default function AppNavbar() {
   const { user, logout } = useAuth();
@@ -121,7 +122,7 @@ export default function AppNavbar() {
         </Link>
 
         <nav style={{ display: "flex", alignItems: "center", gap: 0 }}>
-          {navItems.filter(item => !item.studentOnly || isStudentAccount(user)).filter(item => !(item.hideForStudent && (user?.account_type === "student" || user?.account_type === "registration_free"))).map((item) => {
+          {navItems.filter(item => !item.studentOnly || isStudentAccount(user)).filter(item => !(item.hideForStudent && (user?.account_type === "student" || user?.account_type === "registration_free"))).filter(item => !hideForRegistrationFree(item, user)).map((item) => {
             const active = isActive(item.to);
             return (
               <Link key={item.to + item.label_en} to={item.to}
@@ -175,7 +176,7 @@ export default function AppNavbar() {
           background: theme === "dark" ? "rgba(20,20,30,0.95)" : "rgba(255,255,255,0.95)",
           borderTopColor: c.border,
         }}>
-          {mobileTabItems.filter(item => !item.studentOnly || isStudentAccount(user)).filter(item => !(item.hideForStudent && (user?.account_type === "student" || user?.account_type === "registration_free"))).map((item) => {
+          {mobileTabItems.filter(item => !item.studentOnly || isStudentAccount(user)).filter(item => !(item.hideForStudent && (user?.account_type === "student" || user?.account_type === "registration_free"))).filter(item => !hideForRegistrationFree(item, user)).map((item) => {
             const active = isActive(item.to);
             return (
               <Link key={item.to} to={item.to} className={active ? "active" : ""} style={{

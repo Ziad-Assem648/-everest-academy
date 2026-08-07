@@ -82,6 +82,14 @@ function Guard({ children }) {
   return children;
 }
 
+function GuardRanks({ children }) {
+  const { user } = useAuth();
+  const { t } = useLang();
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.account_type === "registration_free") return <Navigate to="/home" replace />;
+  return children;
+}
+
 function GuardAdmin({ children }) {
   const { user } = useAuth();
   if (!user) return <div className="auth-body"><div style={{textAlign:"center"}}><p style={{fontSize:18,marginBottom:16}}>الرجاء تسجيل الدخول</p><Link to="/login" style={{color:"#6a0dad",fontWeight:700}}>دخول</Link></div></div>;
@@ -119,7 +127,7 @@ export default function App() {
         <Route path="/my-courses" element={<Guard><MyCoursesRedirect /></Guard>} />
         <Route path="/courses/:id" element={<CourseViewPage />} />
         <Route path="/profile" element={<Guard><ProfilePage /></Guard>} />
-        <Route path="/rankings" element={<Guard><RankingsPage /></Guard>} />
+        <Route path="/rankings" element={<GuardRanks><RankingsPage /></GuardRanks>} />
         <Route path="/affiliate" element={<Guard><AffiliatePage /></Guard>} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/free-courses" element={<FreeCoursesPage />} />
