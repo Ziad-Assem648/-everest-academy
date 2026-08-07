@@ -5,7 +5,7 @@ import { api } from "../api.js";
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const TIMEZONES = ["Africa/Cairo","Africa/Casablanca","Africa/Johannesburg","Asia/Riyadh","Asia/Dubai","Asia/Amman","Asia/Beirut","Europe/London","Europe/Paris","UTC","America/New_York","America/Los_Angeles"];
 
-export default function RankSettingsPage() {
+export default function WeeklySettlementPage() {
   const { lang, t: tFn } = useLang();
   const t = (ar, en) => tFn(ar, en);
 
@@ -79,7 +79,7 @@ export default function RankSettingsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold">{t("⚙️ نظام الرتب والتسوية الأسبوعية", "⚙️ Rank Commission & Weekly Settlement")}</h2>
+          <h2 className="text-2xl font-bold">{t("⏳ التسوية الأسبوعية للعمولات", "⏳ Weekly Commission Settlement")}</h2>
           <p className="text-gray-500 text-sm mt-1">{t("ضبط موعد التسوية، عمولة واحدة على آخر رتبة مؤهلة، تصفير المبيعات الأسبوعية، وقائمة Top 10 مع السجل الأسبوعي", "Configure settlement timing, single commission on last qualified rank, weekly sales reset, and Top-10 with weekly history")}</p>
         </div>
       </div>

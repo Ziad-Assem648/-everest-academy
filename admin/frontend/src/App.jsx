@@ -16,7 +16,7 @@ import UpgradeRequestsPage from "./pages/UpgradeRequestsPage.jsx";
 import LeadersPage from "./pages/LeadersPage.jsx";
 import PaymentGatewayPage from "./pages/PaymentGatewayPage.jsx";
 import RanksManagementPage from "./pages/RanksManagementPage.jsx";
-import RankSettingsPage from "./pages/RankSettingsPage.jsx";
+import WeeklySettlementPage from "./pages/WeeklySettlementPage.jsx";
 import RegistrationApprovalsPage from "./pages/RegistrationApprovalsPage.jsx";
 import FeedbacksPage from "./pages/FeedbacksPage.jsx";
 import AdminLogsPage from "./pages/AdminLogsPage.jsx";
@@ -118,7 +118,7 @@ function AppInner() {
           {page === "free-courses" && <FreeCoursesSettingsPage />}
           {page === "quiz-attempts" && <QuizAttemptsPage />}
           {page === "ranks-mgmt" && <RanksManagementPage />}
-          {page === "settlement-settings" && <RankSettingsPage />}
+          {page === "settlement-settings" && <WeeklySettlementPage />}
           {page === "leaders" && <LeadersPage />}
           {page === "feedbacks" && <FeedbacksPage />}
           {page === "cs" && <CustomerServicePage />}
